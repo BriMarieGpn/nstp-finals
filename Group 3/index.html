@@ -15,7 +15,6 @@
     --border: rgba(255,255,255,0.15);
 }
 
-/* GLOBAL */
 body {
     margin: 0;
     padding: 0;
@@ -25,7 +24,6 @@ body {
     color: white;
 }
 
-/* NAVBAR (GLASS) */
 .navbar {
     position: sticky;
     top: 0;
@@ -73,10 +71,6 @@ body {
     padding: 0 20px 40px 20px; /* ❗ top padding removed */
 }
 
-/* =========================
-   CAROUSEL (UNCHANGED LOGIC)
-========================= */
-
 .carousel-wrapper {
     position: relative;
     width: 100vw;
@@ -113,7 +107,6 @@ body {
         rgba(6,42,36,0));
 }
 
-/* TRACK */
 .carousel {
     display: flex;
     align-items: center;
@@ -122,7 +115,6 @@ body {
     padding-left: 25vw;
 }
 
-/* SLIDES */
 .slide {
     flex: 0 0 60%;
     height: 340px;
@@ -149,7 +141,6 @@ body {
     z-index: 5;
 }
 
-/* ARROWS */
 .arrow {
     position: absolute;
     top: 50%;
@@ -172,7 +163,6 @@ body {
 .left { left: 20px; }
 .right { right: 20px; }
 
-/* DOTS */
 .dots {
     text-align: center;
     margin-top: 12px;
@@ -235,7 +225,6 @@ body {
     font-weight: 600;
 }
 
-/* MOBILE */
 @media (max-width: 600px) {
     .slide {
         flex: 0 0 80%;
@@ -251,7 +240,6 @@ body {
 
 <body>
 
-<!-- NAV -->
 <div class="navbar">
     <div class="nav-inner">
         <div class="logo">I-TANIM</div>
@@ -265,23 +253,19 @@ body {
 
 <div class="container">
 
-<!-- CAROUSEL -->
 <div class="carousel-wrapper">
 
     <button class="arrow left" onclick="prev()">‹</button>
 
     <div class="carousel" id="carousel">
 
-        <!-- CLONE LAST -->
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9')"></div>
 
-        <!-- REAL -->
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6')"></div>
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1464226184884-fa280b87c399')"></div>
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1492496913980-501348b61469')"></div>
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9')"></div>
 
-        <!-- CLONE FIRST -->
         <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6')"></div>
 
     </div>
@@ -291,7 +275,6 @@ body {
 
 <div class="dots" id="dots"></div>
 
-<!-- CARDS -->
 <div class="cards">
     <div class="home-card">
         <h2>Volunteer</h2>
@@ -324,7 +307,6 @@ const realSlides = slides.length - 2;
 
 let auto;
 
-/* DOTS */
 for (let i = 0; i < realSlides; i++) {
     let dot = document.createElement("span");
     dot.onclick = () => go(i + 1);
@@ -337,14 +319,12 @@ const dots = document.querySelectorAll(".dots span");
 function fixEdges() {
     const width = slides[0].offsetWidth + 30;
 
-    // jumped to last real slide (from first clone)
     if (index === 0) {
         index = realSlides;
         carousel.style.transition = "none";
         carousel.style.transform = `translateX(-${index * width}px)`;
     }
 
-    // jumped to first real slide (from last clone)
     if (index === slides.length - 1) {
         index = 1;
         carousel.style.transition = "none";
@@ -352,9 +332,8 @@ function fixEdges() {
     }
 }
 
-/* ===== RENDER ===== */
 function update() {
-    fixEdges(); // 🔥 MUST RUN FIRST
+    fixEdges();
 
     const width = slides[0].offsetWidth + 30;
 
@@ -373,7 +352,6 @@ function update() {
     dots[dotIndex].classList.add("active");
 }
 
-/* ===== NAVIGATION ===== */
 function next() {
     index++;
     update();
@@ -392,7 +370,6 @@ function go(i) {
     resetAuto();
 }
 
-/* ===== AUTO PLAY FIX ===== */
 function startAuto() {
     auto = setInterval(() => {
         index++;
@@ -405,7 +382,6 @@ function resetAuto() {
     startAuto();
 }
 
-/* INIT */
 update();
 startAuto();
 </script>
