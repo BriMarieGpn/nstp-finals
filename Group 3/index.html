@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-Tanim | Home</title>
+
+<style>
+:root {
+    --grad-top: #C8F542;
+    --grad-mid: #0B6B57;
+    --grad-bot: #062A24;
+
+    --glass: rgba(255,255,255,0.08);
+    --border: rgba(255,255,255,0.15);
+}
+
+/* GLOBAL */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, var(--grad-top), var(--grad-mid), var(--grad-bot));
+    overflow-x: hidden;
+    color: white;
+}
+
+/* NAVBAR (GLASS) */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+
+    background: rgba(6, 42, 36, 0.6);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+
+    margin: 0;
+}
+
+.nav-inner {
+    max-width: 1100px;
+    margin: auto;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--grad-top);
+}
+
+.nav-links a {
+    color: white;
+    margin-left: 18px;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    opacity: 1;
+    color: var(--grad-top);
+}
+
+/* REMOVE ALL GAP BETWEEN NAV AND CAROUSEL */
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 0 20px 40px 20px; /* ❗ top padding removed */
+}
+
+/* =========================
+   CAROUSEL (UNCHANGED LOGIC)
+========================= */
+
+.carousel-wrapper {
+    position: relative;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    overflow: hidden;
+
+    padding: 0;        /* ❗ no spacing */
+    margin-top: 0;     /* ❗ IMPORTANT FIX */
+}
+
+/* FADE EDGES */
+.carousel-wrapper::before,
+.carousel-wrapper::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 180px;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.carousel-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right,
+        rgba(6,42,36,1),
+        rgba(6,42,36,0));
+}
+
+.carousel-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left,
+        rgba(6,42,36,1),
+        rgba(6,42,36,0));
+}
+
+/* TRACK */
+.carousel {
+    display: flex;
+    align-items: center;
+    transition: transform 0.5s ease;
+    will-change: transform;
+    padding-left: 25vw;
+}
+
+/* SLIDES */
+.slide {
+    flex: 0 0 60%;
+    height: 340px;
+
+    margin: 0 15px;
+    border-radius: 28px;
+
+    background-size: cover;
+    background-position: center;
+
+    opacity: 0.35;
+    transform: scale(0.92);
+    transition: all 0.4s ease;
+
+    filter: brightness(0.75) saturate(1.1);
+
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+.slide.active {
+    opacity: 1;
+    transform: scale(1.05);
+    filter: brightness(1.05) saturate(1.2);
+    z-index: 5;
+}
+
+/* ARROWS */
+.arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--border);
+    color: white;
+
+    font-size: 22px;
+    padding: 10px 14px;
+    cursor: pointer;
+
+    border-radius: 50%;
+    z-index: 99999;
+}
+
+.left { left: 20px; }
+.right { right: 20px; }
+
+/* DOTS */
+.dots {
+    text-align: center;
+    margin-top: 12px;
+}
+
+.dots span {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    margin: 5px;
+
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.dots .active {
+    background: var(--grad-top);
+    transform: scale(1.4);
+}
+
+/* CARDS */
+.cards {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 45px;
+}
+
+.home-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+
+    padding: 22px;
+    width: 260px;
+    border-radius: 22px;
+
+    text-align: center;
+    transition: 0.3s;
+}
+
+.home-card:hover {
+    transform: translateY(-6px);
+    background: rgba(255,255,255,0.12);
+}
+
+.home-card a {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 16px;
+
+    background: var(--grad-bot);
+    color: var(--grad-top);
+
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .slide {
+        flex: 0 0 80%;
+        height: 240px;
+    }
+
+    .carousel {
+        padding-left: 10vw;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<div class="navbar">
+    <div class="nav-inner">
+        <div class="logo">I-TANIM</div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="index.html">Login</a>
+            <a href="signup.html">Register</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+<!-- CAROUSEL -->
+<div class="carousel-wrapper">
+
+    <button class="arrow left" onclick="prev()">‹</button>
+
+    <div class="carousel" id="carousel">
+
+        <!-- CLONE LAST -->
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9')"></div>
+
+        <!-- REAL -->
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1464226184884-fa280b87c399')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1492496913980-501348b61469')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9')"></div>
+
+        <!-- CLONE FIRST -->
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6')"></div>
+
+    </div>
+
+    <button class="arrow right" onclick="next()">›</button>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<!-- CARDS -->
+<div class="cards">
+    <div class="home-card">
+        <h2>Volunteer</h2>
+        <p>Login or register to start.</p>
+        <a href="login.html">Go</a>
+    </div>
+
+    <div class="home-card">
+        <h2>Coming Soon</h2>
+        <p>Feature placeholder</p>
+        <a href="#">Soon</a>
+    </div>
+
+    <div class="home-card">
+        <h2>Coming Soon</h2>
+        <p>Feature placeholder</p>
+        <a href="#">Soon</a>
+    </div>
+</div>
+
+</div>
+
+<script>
+const carousel = document.getElementById("carousel");
+const slides = document.querySelectorAll(".slide");
+const dotsContainer = document.getElementById("dots");
+
+let index = 1;
+const realSlides = slides.length - 2;
+
+let auto;
+
+/* DOTS */
+for (let i = 0; i < realSlides; i++) {
+    let dot = document.createElement("span");
+    dot.onclick = () => go(i + 1);
+    dotsContainer.appendChild(dot);
+}
+
+const dots = document.querySelectorAll(".dots span");
+
+/* ===== CORE FIX: ALWAYS NORMALIZE FIRST ===== */
+function fixEdges() {
+    const width = slides[0].offsetWidth + 30;
+
+    // jumped to last real slide (from first clone)
+    if (index === 0) {
+        index = realSlides;
+        carousel.style.transition = "none";
+        carousel.style.transform = `translateX(-${index * width}px)`;
+    }
+
+    // jumped to first real slide (from last clone)
+    if (index === slides.length - 1) {
+        index = 1;
+        carousel.style.transition = "none";
+        carousel.style.transform = `translateX(-${index * width}px)`;
+    }
+}
+
+/* ===== RENDER ===== */
+function update() {
+    fixEdges(); // 🔥 MUST RUN FIRST
+
+    const width = slides[0].offsetWidth + 30;
+
+    carousel.style.transition = "transform 0.5s ease";
+    carousel.style.transform = `translateX(-${index * width}px)`;
+
+    slides.forEach(s => s.classList.remove("active"));
+    dots.forEach(d => d.classList.remove("active"));
+
+    slides[index].classList.add("active");
+
+    let dotIndex = index - 1;
+    if (dotIndex < 0) dotIndex = realSlides - 1;
+    if (dotIndex >= realSlides) dotIndex = 0;
+
+    dots[dotIndex].classList.add("active");
+}
+
+/* ===== NAVIGATION ===== */
+function next() {
+    index++;
+    update();
+    resetAuto();
+}
+
+function prev() {
+    index--;
+    update();
+    resetAuto();
+}
+
+function go(i) {
+    index = i;
+    update();
+    resetAuto();
+}
+
+/* ===== AUTO PLAY FIX ===== */
+function startAuto() {
+    auto = setInterval(() => {
+        index++;
+        update();
+    }, 4000);
+}
+
+function resetAuto() {
+    clearInterval(auto);
+    startAuto();
+}
+
+/* INIT */
+update();
+startAuto();
+</script>
+
+</body>
+</html>

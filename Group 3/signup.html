@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>I-Tanim | Register</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body class="auth">
+
+<div class="card">
+    <h1>REGISTER</h1>
+
+    <input type="text" id="fname" placeholder="First Name">
+    <input type="text" id="lname" placeholder="Last Name">
+    <input type="email" id="email" placeholder="Email Address">
+    <input type="password" id="pass" placeholder="Password (Min 6 chars)">
+
+    <button class="btn-reg" id="reg-btn">CREATE ACCOUNT</button>
+
+    <div class="back">
+        <a href="index.html">← Back to Login</a>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+    getAuth,
+    createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    doc,
+    setDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyA_WAoRxS0XtSBHO4GKOUPeo9IxSuo9m8E",
+    authDomain: "i-tanim.firebaseapp.com",
+    projectId: "i-tanim",
+    storageBucket: "i-tanim.firebasestorage.app",
+    messagingSenderId: "543718035125",
+    appId: "1:543718035125:web:92261781c28eec00c738fc"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("reg-btn").onclick = async () => {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("pass").value;
+
+    if (pass.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    try {
+        const res = await createUserWithEmailAndPassword(auth, email, pass);
+
+        await setDoc(doc(db, "volunteers", res.user.uid), {
+            firstName: fname.value,
+            lastName: lname.value,
+            email: email,
+            status: "Pending",
+            volunteerID: "ITNM-" + res.user.uid.substring(0,5).toUpperCase()
+        });
+
+        window.location.href = "dashboard.html";
+
+    } catch (e) {
+        alert(e.message);
+    }
+};
+</script>
+
+</body>
+</html>
