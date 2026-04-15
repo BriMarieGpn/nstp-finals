@@ -94,6 +94,7 @@ function syncProgramsFromTasks() {
         id: t.id,
         title: t.name,
         hours: String(t.hours ?? ''),
+        requirement: t.requirement || 'None',
         desc: t.desc || '',
         image: (t.attachments && t.attachments[0] && t.attachments[0].dataUrl) ? t.attachments[0].dataUrl : defaultImage,
         joined: t.joined || [],
@@ -262,8 +263,9 @@ function updateTasks() {
             <div>
                 <strong>${t.name}</strong><br>
                 ${t.desc}<br>
-                Hours: ${t.hours}, Max Volunteers: ${t.maxVolunteers}<br>
-                Assigned: ${t.assigned.length}/${t.maxVolunteers}, Status: ${t.status}
+                Hours: ${t.hours}, Requirement: ${t.requirement || 'None'}<br>
+                Max Volunteers: ${t.maxVolunteers}, Assigned: ${t.assigned.length}/${t.maxVolunteers}<br>
+                Status: ${t.status}
             </div>
             <div>
                 <button class="edit-btn" onclick="editTask('${t.id}')">Edit</button>
@@ -289,6 +291,7 @@ function showTaskModal(taskId = null) {
         desc.value = task.desc;
         hours.value = task.hours;
         maxVol.value = task.maxVolunteers;
+        document.getElementById('taskRequirement').value = task.requirement || 'None';
         // show existing attachments
         renderTaskAttachmentPreview(task.attachments || []);
         // do not auto-populate file input for security reasons
@@ -300,6 +303,7 @@ function showTaskModal(taskId = null) {
         name.value = '';
         desc.value = '';
         hours.value = '';
+        document.getElementById('taskRequirement').value = 'None';
         maxVol.value = '';
         clearAttachmentInput();
         delete modal.dataset.editId;
@@ -315,10 +319,11 @@ async function saveTask() {
     const name = document.getElementById('taskName').value.trim();
     const desc = document.getElementById('taskDesc').value.trim();
     const hours = parseInt(document.getElementById('taskHours').value);
+    const requirement = document.getElementById('taskRequirement').value || 'None';
     const maxVol = parseInt(document.getElementById('taskMaxVolunteers').value);
 
     if (!name || !desc || !hours || !maxVol) {
-        alert('Please fill all fields');
+        alert('Please fill all required fields');
         return;
     }
 
@@ -331,6 +336,7 @@ async function saveTask() {
         task.name = name;
         task.desc = desc;
         task.hours = hours;
+        task.requirement = requirement;
         task.maxVolunteers = maxVol;
         // Only replace attachments if user selected new ones; otherwise keep existing.
         if (newAttachments.length > 0) {
@@ -344,6 +350,7 @@ async function saveTask() {
             name,
             desc,
             hours,
+            requirement,
             maxVolunteers: maxVol,
             assigned: [],
             status: 'active',

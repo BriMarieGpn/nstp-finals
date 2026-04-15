@@ -3,17 +3,20 @@ document.addEventListener('DOMContentLoaded', function() {
     loadUserDashboard();
 });
 
+function getCurrentUser() {
+    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+    return users[0] || { id: 'user1', name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [], skills: [] };
+}
+
 function loadUserDashboard() {
     // Load data from localStorage (support both legacy and admin keys)
-    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
     const tasks = JSON.parse(localStorage.getItem('itanimTasks') || localStorage.getItem('tasks') || '[]');
     const badges = JSON.parse(localStorage.getItem('badges') || '[]');
     const certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
     const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
     const programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || localStorage.getItem('programs') || '[]');
 
-    // Get current user (assuming first user for demo, or from session)
-    const currentUser = users[0] || { name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [] };
+    const currentUser = getCurrentUser();
 
     // Update welcome message
     document.getElementById('welcomeMessage').textContent = `Welcome, ${currentUser.name}!`;
@@ -26,6 +29,7 @@ function loadUserDashboard() {
 
     // Load enrolled programs
     loadEnrolledPrograms(currentUser, programs);
+    loadAvailablePrograms(currentUser, programs);
 
     // Load assigned tasks
     loadAssignedTasks(currentUser, tasks);
@@ -68,8 +72,8 @@ function attachSkillControls(user) {
         const skill = select.value;
         if (!skill) return;
 
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        const current = users[0] || { id: 'user1', email: 'demo@example.com', skills: [] };
+        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+        const current = storedUsers[0] || { id: 'user1', email: 'demo@example.com', skills: [] };
         current.skills = current.skills || [];
 
         if (current.skills.includes(skill)) {
@@ -78,8 +82,9 @@ function attachSkillControls(user) {
         }
 
         current.skills.push(skill);
-        users[0] = current;
-        localStorage.setItem('users', JSON.stringify(users));
+        storedUsers[0] = current;
+        localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
+        localStorage.setItem('users', JSON.stringify(storedUsers));
         loadUserDashboard();
     };
 }
@@ -113,6 +118,59 @@ function loadEnrolledPrograms(user, programs) {
         </div>
     `).join('');
 }
+
+function loadAvailablePrograms(user, programs) {
+    const container = document.getElementById('availableProgramsList');
+    const enrolledIds = user.enrolledPrograms || [];
+    const availablePrograms = programs.filter(p => !enrolledIds.includes(p.id));
+
+    if (availablePrograms.length === 0) {
+        container.innerHTML = '<p>No available programs to join at the moment.</p>';
+        return;
+    }
+
+    container.innerHTML = availablePrograms.map(program => `
+        <div class="program-card">
+            <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
+            <div class="program-info">
+                <h3>${program.title}</h3>
+                <p>${program.description}</p>
+                <div class="program-meta">
+                    <span>📅 ${program.date}</span>
+                    <span>📍 ${program.location}</span>
+                    <span>⏰ ${program.duration} hours</span>
+                </div>
+                <div class="program-actions">
+                    <button class="btn-primary" onclick="joinProgram('${program.id}')">Join</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function joinProgram(programId) {
+    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+    if (!users.length) {
+        alert('No registered user found. Please sign in to join programs.');
+        return;
+    }
+
+    const currentUser = users[0];
+    currentUser.enrolledPrograms = currentUser.enrolledPrograms || [];
+
+    if (currentUser.enrolledPrograms.includes(programId)) {
+        alert('You have already joined this program.');
+        return;
+    }
+
+    currentUser.enrolledPrograms.push(programId);
+    users[0] = currentUser;
+    localStorage.setItem('users', JSON.stringify(users));
+
+    loadUserDashboard();
+    alert('You have joined the program successfully!');
+}
+
 
 function loadAssignedTasks(user, tasks) {
     const container = document.getElementById('assignedTasksList');

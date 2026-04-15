@@ -179,11 +179,12 @@
     ">
         <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:1px solid rgba(255,248,236,0.22); border-radius:50%; background:rgba(255,248,236,0.12); color:#FFF8EC; cursor:pointer; font-size:18px;">×</button>
         <img id="detailImage" src="https://via.placeholder.com/500x280?text=Program+Image" style="width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:16px; border:1px solid rgba(255,248,236,0.18);">
-        <h3 id="detailTitle" style="margin:0 0 10px 0;">Program Title</h3>
-        <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0;">Program description appears here...</p>
-        <p style="margin:0 0 8px 0;"><strong>Hours:</strong> <span id="detailHours"></span></p>
-        <p style="margin:0 0 16px 0;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
-        
+        <h3 id="detailTitle" style="margin:0 0 10px 0; color: white;">Program Title</h3>
+        <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0; color: white;">Program description appears here...</p>
+        <p style="margin:0 0 8px 0; color: white;"><strong>Hours:</strong> <span id="detailHours"></span></p>
+        <p style="margin:0 0 8px 0; color: white;"><strong>Requirement:</strong> <span id="detailRequirement"></span></p>
+        <p style="margin:0 0 16px 0; color: white;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
+        <div id="detailAction" style="display:flex; gap:10px; margin-bottom:12px;"></div>
         <!-- Admin Edit/Delete Buttons -->
         <div id="adminControls" style="display:none; gap:10px; display:flex;">
             <button onclick="editSelectedProgram()" style="flex:1; padding:10px; border:1px solid rgba(255,248,236,0.22); border-radius:8px; background:rgba(153,173,122,0.30); color:#FFF8EC; cursor:pointer; font-weight:bold;">Edit</button>
@@ -215,6 +216,13 @@
 <input id="programTitle" placeholder="Program title">
 
 <input id="programHours" type="number" placeholder="Hours">
+<select id="programRequirement" style="width:100%; margin:10px 0; padding:10px; border-radius:12px; border:1px solid rgba(255,248,236,0.22); background:rgba(255,255,255,0.12); color:#FFF8EC;">
+    <option value="None">Requirement: None</option>
+    <option value="Bronze">Requirement: Bronze</option>
+    <option value="Silver">Requirement: Silver</option>
+    <option value="Gold">Requirement: Gold</option>
+    <option value="Platinum">Requirement: Platinum</option>
+</select>
 <input id="programImage" type="file" accept="image/png, image/jpeg">
 <img id="programImagePreview" alt="Selected image preview" style="display:none; width:100%; height:140px; object-fit:cover; border-radius:12px; margin:10px 0; border:1px solid rgba(255,248,236,0.18);">
 

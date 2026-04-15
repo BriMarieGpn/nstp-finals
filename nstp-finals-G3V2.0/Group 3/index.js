@@ -142,12 +142,7 @@ window.closeModal = () => {
     // Clear form fields
     document.getElementById("programTitle").value = "";
     document.getElementById("programHours").value = "";
-    document.getElementById("programDesc").value = "";
-    document.getElementById("programImage").value = "";
-    // Reset edit mode
-    window.editingProgramId = undefined;
-    // Reset button text
-    const submitBtn = document.querySelector('button[onclick="submitProgram()"]');
+    document.getElementById("programRequirement").value = "None";
     if (submitBtn) {
         submitBtn.textContent = '+ Add Program';
     }
@@ -205,13 +200,13 @@ window.editSelectedProgram = () => {
     // Populate the add program form with current values
     document.getElementById('programTitle').value = programToEdit.title || '';
     document.getElementById('programHours').value = programToEdit.hours || '';
+    document.getElementById('programRequirement').value = programToEdit.requirement || 'None';
     document.getElementById('programDesc').value = programToEdit.desc || '';
     // Note: image field will be empty and user can upload a new one
     
     // Change button text temporarily
     const submitBtn = document.querySelector('button[onclick="submitProgram()"]');
     if (submitBtn) {
-        const oldText = submitBtn.textContent;
         submitBtn.textContent = 'Update Program';
         
         // Store the edit mode
@@ -406,6 +401,15 @@ function renderPrograms(programs) {
         row.style.width = "100%";
         row.style.alignItems = "center";
 
+        if (program.requirement && program.requirement !== 'None') {
+            const requirementBadge = document.createElement('small');
+            requirementBadge.textContent = `Req: ${program.requirement}`;
+            requirementBadge.style.color = '#dcdcdc';
+            requirementBadge.style.fontSize = '12px';
+            requirementBadge.style.marginTop = '4px';
+            item.appendChild(requirementBadge);
+        }
+
         const joinedLabel = document.createElement("span");
         joinedLabel.style.opacity = "0.75";
         joinedLabel.textContent = `${(program.joined || []).length} joined`;
@@ -455,6 +459,26 @@ function showProgramDetail(program) {
     detailDesc.textContent = program.desc || "No description provided.";
     detailHours.textContent = `${program.hours || 0}`;
     detailJoined.textContent = `${(program.joined || []).length}`;
+    document.getElementById('detailRequirement').textContent = program.requirement || 'None';
+    
+    const detailAction = document.getElementById('detailAction');
+    detailAction.innerHTML = '';
+    if (currentUser.role === 'user') {
+        const joinBtn = document.createElement('button');
+        joinBtn.textContent = (program.joined || []).includes(currentUser.id) ? 'Joined' : 'Join';
+        joinBtn.style.flex = '1';
+        joinBtn.style.padding = '10px';
+        joinBtn.style.borderRadius = '10px';
+        joinBtn.style.border = '1px solid rgba(255,248,236,0.22)';
+        joinBtn.style.background = 'rgba(255,255,255,0.12)';
+        joinBtn.style.color = '#FFF8EC';
+        joinBtn.style.cursor = 'pointer';
+        joinBtn.onclick = (event) => {
+            event.stopPropagation();
+            joinProgram(program.id, program.joined || []);
+        };
+        detailAction.appendChild(joinBtn);
+    }
     
     // Show/hide admin controls
     const adminControls = document.getElementById('adminControls');
@@ -535,6 +559,7 @@ window.submitProgram = async () => {
     try {
         const title = document.getElementById("programTitle").value.trim();
         const hours = document.getElementById("programHours").value.trim();
+        const requirement = document.getElementById("programRequirement").value || 'None';
         const desc = document.getElementById("programDesc").value.trim();
         const file = document.getElementById("programImage").files[0];
 
@@ -560,6 +585,7 @@ window.submitProgram = async () => {
             if (index > -1) {
                 programDocs[index].title = title;
                 programDocs[index].hours = hours;
+                programDocs[index].requirement = requirement;
                 programDocs[index].desc = desc;
                 programDocs[index].image = imageURL;
             }
@@ -571,6 +597,7 @@ window.submitProgram = async () => {
                 id: `local-${Date.now()}`,
                 title,
                 hours,
+                requirement,
                 desc,
                 image: imageURL,
                 joined: []
@@ -580,6 +607,7 @@ window.submitProgram = async () => {
                 const docRef = await addDoc(collection(db, "programs"), {
                     title,
                     hours,
+                    requirement,
                     desc,
                     image: imageURL,
                     joined: []

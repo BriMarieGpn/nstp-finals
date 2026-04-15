@@ -22,8 +22,19 @@
     color: var(--p-50);
 }
 
+.container {
+    max-width: 1180px;
+    margin: auto;
+    padding: 24px 20px 40px;
+}
+
 .tab-content {
     display: none;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 24px 50px color-mix(in srgb, var(--p-900) 12%, transparent);
 }
 
 .tab-content.active {
@@ -64,31 +75,76 @@
     color: var(--text);
 }
 
-.form-group button {
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group button,
+.task-item button,
+.volunteer-item button {
     margin-top: 10px;
-    padding: 10px 15px;
+    padding: 10px 14px;
     background: var(--primary);
     color: var(--p-50);
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.form-group button:hover,
+.task-item button:hover,
+.volunteer-item button:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
 }
 
 .badge-thresholds {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 15px;
 }
 
-.volunteer-item {
-    background: var(--glass);
+.task-item {
+    background: var(--surface);
     border: 1px solid var(--border);
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 12px;
+    padding: 18px;
+    margin: 14px 0;
+    border-radius: 18px;
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.task-item strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.task-item div {
+    flex: 1 1 240px;
+}
+
+.volunteer-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px;
+    margin: 10px 0;
+    border-radius: 18px;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 14px;
+}
+
+.volunteer-item div {
+    flex: 1 1 320px;
 }
 
 .volunteer-item div {
