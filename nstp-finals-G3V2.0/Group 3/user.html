@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I-Tanim | User Dashboard</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="stylesheet" href="user.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-inner">
+            <div class="logo">I-TANIM</div>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="#" id="dashboardLink">Dashboard</a>
+                <a href="index.html">Programs</a>
+                <a href="#">Profile</a>
+                <a href="index.html">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 id="welcomeMessage">Welcome to Your Dashboard</h1>
+
+        <div class="dashboard-grid">
+            <!-- Stats Cards -->
+            <div class="stat-card">
+                <h3>Total Hours</h3>
+                <div class="stat-value" id="totalHours">0</div>
+                <p>Community Service Hours</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Programs Enrolled</h3>
+                <div class="stat-value" id="enrolledPrograms">0</div>
+                <p>Active Programs</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Badges Earned</h3>
+                <div class="stat-value" id="badgesEarned">0</div>
+                <p>Achievement Badges</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Certifications</h3>
+                <div class="stat-value" id="certificationsCount">0</div>
+                <p>Completed Certifications</p>
+            </div>
+        </div>
+
+        <!-- Enrolled Programs Section -->
+        <div class="dashboard-section">
+            <h2>My Programs</h2>
+            <div id="enrolledProgramsList" class="programs-list">
+                <!-- Programs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="dashboard-section">
+            <h2>My Skills</h2>
+            <div class="skill-action-row">
+                <select id="skillSelect">
+                    <option value="environment">Environment</option>
+                    <option value="teamwork">Teamwork</option>
+                    <option value="gardening">Gardening</option>
+                    <option value="community service">Community Service</option>
+                    <option value="cleanup">Cleanup</option>
+                    <option value="leadership">Leadership</option>
+                </select>
+                <button id="addSkillButton" class="btn-primary">Add Skill</button>
+            </div>
+            <div id="userSkillsList" class="skills-list">
+                <!-- User skills will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Assigned Tasks Section -->
+        <div class="dashboard-section">
+            <h2>My Tasks</h2>
+            <div id="assignedTasksList" class="tasks-list">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Badges Section -->
+        <div class="dashboard-section">
+            <h2>My Badges</h2>
+            <div id="userBadgesList" class="badges-list">
+                <!-- Badges will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Certifications Section -->
+        <div class="dashboard-section">
+            <h2>My Certifications</h2>
+            <div id="userCertificationsList" class="certifications-list">
+                <!-- Certifications will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="dashboard-section">
+            <h2>Recent Notifications</h2>
+            <div id="userNotificationsList" class="notifications-list">
+                <!-- Notifications will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TEMP DEBUG PANEL (DEV ONLY) -->
+    <div style="
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 10px;
+        z-index: 99999;
+        backdrop-filter: blur(10px);
+    ">
+        <h4 style="margin:0 0 8px 0;">DEBUG</h4>
+        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+            <strong style="font-size:13px; opacity:0.9;">Debug Test Buttons</strong>
+            <button onclick="debugAddSampleData()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Add Sample Data</button>
+            <button onclick="loadUserDashboard()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Refresh Dashboard</button>
+        </div>
+    </div>
+
+    <script src="user.js"></script>
+</body>
+</html>

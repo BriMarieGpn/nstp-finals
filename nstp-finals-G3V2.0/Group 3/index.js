@@ -16,12 +16,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
+    apiKey: "AIzaSyA_WAoRxS0XtSBHO4GKOUPeo9IxSuo9m8E",
     authDomain: "i-tanim.firebaseapp.com",
     projectId: "i-tanim",
-    storageBucket: "i-tanim.appspot.com",
-    messagingSenderId: "XXXX",
-    appId: "XXXX"
+    storageBucket: "i-tanim.firebasestorage.app",
+    messagingSenderId: "543718035125",
+    appId: "1:543718035125:web:92261781c28eec00c738fc"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -46,6 +46,8 @@ const detailTitle = document.getElementById("detailTitle");
 const detailDesc = document.getElementById("detailDesc");
 const detailHours = document.getElementById("detailHours");
 const detailJoined = document.getElementById("detailJoined");
+const adminLink = document.getElementById("adminLink");
+const userDashboardLink = document.getElementById("userDashboardLink");
 
 const localStorageKey = "itanimLocalPrograms";
 const initialFallbackPrograms = [
@@ -55,7 +57,8 @@ const initialFallbackPrograms = [
         hours: "4",
         desc: "Join our tree planting drive to help the community.",
         image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80",
-        joined: []
+        joined: [],
+        skills: ["tree planting", "environment", "outdoor"]
     },
     {
         id: "local-2",
@@ -63,7 +66,8 @@ const initialFallbackPrograms = [
         hours: "2",
         desc: "Help clean local streets and parks.",
         image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80",
-        joined: []
+        joined: [],
+        skills: ["cleanup", "teamwork", "environment"]
     },
     {
         id: "local-3",
@@ -71,9 +75,24 @@ const initialFallbackPrograms = [
         hours: "3",
         desc: "Learn how to grow food in small spaces.",
         image: "https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=900&q=80",
-        joined: []
+        joined: [],
+        skills: ["gardening", "sustainability", "horticulture"]
     }
 ];
+
+function getCurrentUserData() {
+    if (currentUser.role === "user") {
+        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        if (storedUsers.length > 0) {
+            return storedUsers[0];
+        }
+        return { id: 'user1', role: 'user', name: 'Demo User', skills: ['environment', 'gardening'] };
+    }
+    return { id: currentUser.id, role: currentUser.role, skills: [] };
+}
+
+let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+let tasks = JSON.parse(localStorage.getItem('itanimTasks') || '[]');
 
 const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const useFirestore = isFirebaseConfigured;
@@ -85,18 +104,26 @@ function updateUserUI() {
     }
 }
 
-function setAdminControls() {
-    addBtn.style.display = currentUser.role === "admin" ? "block" : "none";
+function setRoleBasedUI() {
+    const isAdmin = currentUser.role === "admin";
+    const isUser = currentUser.role === "user";
+    addBtn.style.display = isAdmin ? "block" : "none";
+    if (adminLink) {
+        adminLink.style.display = isAdmin ? "inline" : "none";
+    }
+    if (userDashboardLink) {
+        userDashboardLink.style.display = isUser ? "inline" : "none";
+    }
 }
 
 roleSwitcher.addEventListener("change", (e) => {
     currentUser.role = e.target.value;
     updateUserUI();
-    setAdminControls();
+    setRoleBasedUI();
     renderPrograms(programDocs);
 });
 
-setAdminControls();
+setRoleBasedUI();
 updateUserUI();
 
 addBtn.addEventListener("click", () => {
@@ -138,6 +165,14 @@ function saveLocalPrograms() {
     localStorage.setItem(localStorageKey, JSON.stringify(programDocs));
 }
 
+function saveUsers() {
+    localStorage.setItem('itanimUsers', JSON.stringify(users));
+}
+
+function saveTasks() {
+    localStorage.setItem('itanimTasks', JSON.stringify(tasks));
+}
+
 function renderPrograms(programs) {
     publicList.innerHTML = "";
 
@@ -150,9 +185,12 @@ function renderPrograms(programs) {
         return;
     }
 
+    const currentUserData = getCurrentUserData();
+
     programs.forEach((program) => {
         const item = document.createElement("div");
         item.className = "program-item";
+        item.style.position = "relative";
         item.addEventListener("click", () => showProgramDetail(program));
 
         const image = document.createElement("img");
@@ -161,6 +199,16 @@ function renderPrograms(programs) {
         image.onerror = () => {
             image.src = defaultImage;
         };
+
+        const hasSkillMatch = Array.isArray(currentUserData.skills) && Array.isArray(program.skills)
+            && program.skills.some(skill => currentUserData.skills.includes(skill));
+
+        if (hasSkillMatch && currentUser.role === "user") {
+            const badge = document.createElement("div");
+            badge.className = "recommended-badge";
+            badge.textContent = "Recommended";
+            item.appendChild(badge);
+        }
 
         const title = document.createElement("b");
         title.textContent = program.title || "Untitled program";
@@ -375,6 +423,56 @@ window.debugAddSampleProgram = () => {
 window.debugShowPrograms = () => {
     console.log("Loaded programs:", programDocs);
     alert(`Programs loaded: ${programDocs.length}. Check console for details.`);
+};
+
+window.debugAddSampleUser = () => {
+    const newUser = {
+        id: `user${Date.now()}`,
+        name: "Debug User",
+        email: "debug@example.com",
+        age: 20,
+        barangay: "Debug",
+        skills: ["Debugging"],
+        status: "pending",
+        hours: 0,
+        badge: "None"
+    };
+    users.push(newUser);
+    saveUsers();
+    alert("Sample user added. Check admin panel for management.");
+};
+
+window.debugAddSampleTask = () => {
+    const newTask = {
+        id: `task${Date.now()}`,
+        name: "Debug Task",
+        desc: "A task for debugging purposes",
+        hours: 1,
+        maxVolunteers: 2,
+        assigned: [],
+        status: "active"
+    };
+    tasks.push(newTask);
+    saveTasks();
+    alert("Sample task added. Check admin panel for management.");
+};
+
+window.debugSimulateJoin = () => {
+    if (programDocs.length > 0) {
+        const program = programDocs[0];
+        if (currentUser.role === "user" || currentUser.role === "admin") {
+            joinProgram(program.id, program.joined || []);
+        } else {
+            alert("Switch to user or admin role first.");
+        }
+    } else {
+        alert("No programs available to join.");
+    }
+};
+
+window.debugShowUsers = () => {
+    console.log("All users:", users);
+    alert(`Users: ${users.length}. Check console for details.`);
 };
 
 if (!useFirestore) {

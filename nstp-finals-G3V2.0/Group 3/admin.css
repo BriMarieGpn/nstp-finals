@@ -1,0 +1,110 @@
+.admin-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: var(--grad-bot);
+    color: var(--grad-top);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.stats-grid, .analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.chart-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(14px);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.08);
+    color: white;
+}
+
+.form-group button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: var(--grad-bot);
+    color: var(--grad-top);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.badge-thresholds {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.volunteer-item {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.volunteer-item div {
+    flex: 1;
+}
+
+.volunteer-item button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.approve-btn { background: #4CAF50; color: white; }
+.reject-btn { background: #f44336; color: white; }
+.edit-btn { background: #2196F3; color: white; }
+.delete-btn { background: #f44336; color: white; }
+.archive-btn { background: #FF9800; color: white; }

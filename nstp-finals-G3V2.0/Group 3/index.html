@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I-Tanim | Home</title>
 
-<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="home.css">
 </head>
 
 <body>
@@ -16,6 +17,8 @@
             <a href="#">Home</a>
             <a href="index.html">Login</a>
             <a href="signup.html">Register</a>
+            <a id="userDashboardLink" href="user.html" style="display:none;">Dashboard</a>
+            <a id="adminLink" href="admin.html" style="display:none;">Admin Panel</a>
         </div>
     </div>
 </div>
@@ -43,6 +46,10 @@
         <strong style="font-size:13px; opacity:0.9;">Debug Test Buttons</strong>
         <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Test Add Sample Program</button>
         <button onclick="debugShowPrograms()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Test Show Program List</button>
+        <button onclick="debugAddSampleUser()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Add Sample User</button>
+        <button onclick="debugAddSampleTask()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Add Sample Task</button>
+        <button onclick="debugSimulateJoin()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Simulate User Join</button>
+        <button onclick="debugShowUsers()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Show All Users</button>
     </div>
 </div>
 <div class="container">
