@@ -29,6 +29,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23062A24'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23C8F542'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 const programDocs = [];
+let selectedProgramId = null;
 
 let currentUser = {
     id: "user1",
@@ -56,7 +57,7 @@ const initialFallbackPrograms = [
         title: "Tree Planting Drive",
         hours: "4",
         desc: "Join our tree planting drive to help the community.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["tree planting", "environment", "outdoor"]
     },
@@ -65,7 +66,7 @@ const initialFallbackPrograms = [
         title: "Community Clean-Up",
         hours: "2",
         desc: "Help clean local streets and parks.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["cleanup", "teamwork", "environment"]
     },
@@ -74,7 +75,7 @@ const initialFallbackPrograms = [
         title: "Urban Gardening Workshop",
         hours: "3",
         desc: "Learn how to grow food in small spaces.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["gardening", "sustainability", "horticulture"]
     }
@@ -107,7 +108,7 @@ function updateUserUI() {
 function setRoleBasedUI() {
     const isAdmin = currentUser.role === "admin";
     const isUser = currentUser.role === "user";
-    addBtn.style.display = "block"; // Show for testing
+    addBtn.style.display = isAdmin ? "block" : "none";
     if (adminLink) {
         adminLink.style.display = isAdmin ? "inline" : "none";
     }
@@ -127,18 +128,97 @@ setRoleBasedUI();
 updateUserUI();
 
 addBtn.addEventListener("click", () => {
-    console.log("Add button clicked, current role:", currentUser.role);
-    // Temporarily allow for testing
+    if (currentUser.role !== "admin") {
+        alert("Only admins can add programs.");
+        return;
+    }
     modal.style.display = "flex";
-    console.log("Modal display set to flex");
 });
 
 window.closeModal = () => {
-    modal.style.display = "none";
+    console.log("Closing modal");
+    if (modal) modal.style.display = "none";
+    // Clear form fields
+    document.getElementById("programTitle").value = "";
+    document.getElementById("programHours").value = "";
+    document.getElementById("programDesc").value = "";
+    document.getElementById("programImage").value = "";
+    // Reset edit mode
+    window.editingProgramId = undefined;
+    // Reset button text
+    const submitBtn = document.querySelector('button[onclick="submitProgram()"]');
+    if (submitBtn) {
+        submitBtn.textContent = '+ Add Program';
+    }
 };
 
 window.closeDetailModal = () => {
-    detailModal.style.display = "none";
+    if (detailModal) detailModal.style.display = "none";
+    selectedProgramId = null;
+};
+
+window.deleteSelectedProgram = async () => {
+    if (!selectedProgramId) return;
+    
+    if (currentUser.role !== 'admin') {
+        alert('Only admins can delete programs.');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this program?')) {
+        return;
+    }
+    
+    try {
+        // Remove from programDocs array
+        const index = programDocs.findIndex(p => p.id === selectedProgramId);
+        if (index > -1) {
+            programDocs.splice(index, 1);
+            saveLocalPrograms();
+            renderPrograms(programDocs);
+            window.closeDetailModal();
+            alert('Program deleted successfully!');
+        } else {
+            alert('Program not found.');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error deleting program: ' + err.message);
+    }
+};
+
+window.editSelectedProgram = () => {
+    if (!selectedProgramId) return;
+    
+    if (currentUser.role !== 'admin') {
+        alert('Only admins can edit programs.');
+        return;
+    }
+    
+    const programToEdit = programDocs.find(p => p.id === selectedProgramId);
+    if (!programToEdit) {
+        alert('Program not found.');
+        return;
+    }
+    
+    // Populate the add program form with current values
+    document.getElementById('programTitle').value = programToEdit.title || '';
+    document.getElementById('programHours').value = programToEdit.hours || '';
+    document.getElementById('programDesc').value = programToEdit.desc || '';
+    // Note: image field will be empty and user can upload a new one
+    
+    // Change button text temporarily
+    const submitBtn = document.querySelector('button[onclick="submitProgram()"]');
+    if (submitBtn) {
+        const oldText = submitBtn.textContent;
+        submitBtn.textContent = 'Update Program';
+        
+        // Store the edit mode
+        window.editingProgramId = selectedProgramId;
+    }
+    
+    window.closeDetailModal();
+    modal.style.display = 'flex';
 };
 
 detailModal.addEventListener("click", (e) => {
@@ -149,19 +229,23 @@ detailModal.addEventListener("click", (e) => {
 
 function loadLocalPrograms() {
     const saved = localStorage.getItem(localStorageKey);
+    console.debug("loadLocalPrograms: saved data =", saved ? `${saved.length} bytes` : 'null');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
+            console.debug("loadLocalPrograms: parsed", Array.isArray(parsed) ? `${parsed.length} items` : 'not an array');
             return Array.isArray(parsed) ? parsed : [];
         } catch (err) {
             console.warn("Could not parse saved programs", err);
         }
     }
+    console.debug("loadLocalPrograms: returning initialFallbackPrograms");
     return [...initialFallbackPrograms];
 }
 
 function saveLocalPrograms() {
     localStorage.setItem(localStorageKey, JSON.stringify(programDocs));
+    console.debug("saveLocalPrograms: saved", programDocs.length, "programs");
 }
 
 function saveUsers() {
@@ -173,7 +257,15 @@ function saveTasks() {
 }
 
 function renderPrograms(programs) {
+    // Debug: log what we're rendering
+    console.log("renderPrograms called with", programs.length, "programs:");
+    programs.forEach((p, idx) => {
+        console.log(`  [${idx}]`, p.title || '(no title)', "image:", p.image ? p.image.substring(0, 50) : '(none)');
+    });
+
+    // CLEAR THE ENTIRE LIST first
     publicList.innerHTML = "";
+    console.log("Cleared publicList");
 
     if (!programs.length) {
         publicList.innerHTML = `
@@ -193,8 +285,15 @@ function renderPrograms(programs) {
         item.addEventListener("click", () => showProgramDetail(program));
 
         const image = document.createElement("img");
+        // Try to load program image, fall back to default if broken
         image.src = program.image || defaultImage;
         image.alt = program.title || "Program image";
+        image.style.display = "block";
+        image.style.width = "100%";
+        image.style.height = "160px";
+        image.style.objectFit = "cover";
+        image.style.borderRadius = "12px";
+        image.style.marginBottom = "8px";
         image.onerror = () => {
             image.src = defaultImage;
         };
@@ -267,6 +366,7 @@ function renderPrograms(programs) {
 }
 
 function showProgramDetail(program) {
+    selectedProgramId = program.id;
     detailImage.src = program.image || defaultImage;
     detailImage.onerror = () => {
         detailImage.src = defaultImage;
@@ -275,6 +375,15 @@ function showProgramDetail(program) {
     detailDesc.textContent = program.desc || "No description provided.";
     detailHours.textContent = `${program.hours || 0}`;
     detailJoined.textContent = `${(program.joined || []).length}`;
+    
+    // Show/hide admin controls
+    const adminControls = document.getElementById('adminControls');
+    if (currentUser.role === 'admin') {
+        adminControls.style.display = 'flex';
+    } else {
+        adminControls.style.display = 'none';
+    }
+    
     detailModal.style.display = "flex";
 }
 
@@ -327,12 +436,10 @@ async function uploadProgramImage(file) {
 }
 
 window.submitProgram = async () => {
-    console.log("Submit program called");
-    // Temporarily allow for testing
-    // if (currentUser.role !== "admin") {
-    //     alert("Only admins can add programs.");
-    //     return;
-    // }
+    if (currentUser.role !== "admin") {
+        alert("Only admins can add programs.");
+        return;
+    }
 
     try {
         const title = document.getElementById("programTitle").value.trim();
@@ -345,32 +452,56 @@ window.submitProgram = async () => {
             return;
         }
 
-        const imageURL = await uploadProgramImage(file);
-        const newProgram = {
-            id: `local-${Date.now()}`,
-            title,
-            hours,
-            desc,
-            image: imageURL,
-            joined: []
-        };
-
-        if (useFirestore) {
-            const docRef = await addDoc(collection(db, "programs"), {
+        const isEditing = window.editingProgramId !== undefined;
+        
+        // If editing and no new image selected, keep the old one
+        let imageURL;
+        if (isEditing && !file) {
+            const existingProgram = programDocs.find(p => p.id === window.editingProgramId);
+            imageURL = existingProgram.image;
+        } else {
+            imageURL = await uploadProgramImage(file);
+        }
+        
+        if (isEditing) {
+            // Update existing program
+            const index = programDocs.findIndex(p => p.id === window.editingProgramId);
+            if (index > -1) {
+                programDocs[index].title = title;
+                programDocs[index].hours = hours;
+                programDocs[index].desc = desc;
+                programDocs[index].image = imageURL;
+            }
+            window.editingProgramId = undefined;
+            alert("Program updated!");
+        } else {
+            // Add new program
+            const newProgram = {
+                id: `local-${Date.now()}`,
                 title,
                 hours,
                 desc,
                 image: imageURL,
                 joined: []
-            });
-            newProgram.id = docRef.id;
-        }
+            };
 
-        programDocs.push(newProgram);
+            if (useFirestore) {
+                const docRef = await addDoc(collection(db, "programs"), {
+                    title,
+                    hours,
+                    desc,
+                    image: imageURL,
+                    joined: []
+                });
+                newProgram.id = docRef.id;
+            }
+
+            programDocs.push(newProgram);
+            alert("Program added!");
+        }
+        
         saveLocalPrograms();
         renderPrograms(programDocs);
-
-        alert("Program added!");
         closeModal();
     } catch (err) {
         console.error(err);
@@ -381,8 +512,12 @@ window.submitProgram = async () => {
 function listenPrograms() {
     if (!useFirestore) {
         programDocs.length = 0;
-        programDocs.push(...loadLocalPrograms());
+        const loaded = loadLocalPrograms();
+        console.log("listenPrograms (offline mode): loaded", loaded.length, "programs from", (loaded[0]?.title || 'unknown'));
+        programDocs.push(...loaded);
+        console.log("listenPrograms: programDocs now has", programDocs.length, "programs");
         renderPrograms(programDocs);
+        console.log("listenPrograms: renderPrograms complete");
         return;
     }
 
@@ -476,11 +611,57 @@ window.debugShowUsers = () => {
     alert(`Users: ${users.length}. Check console for details.`);
 };
 
+window.debugCleanupEverything = () => {
+    // Clear all localStorage data
+    localStorage.clear();
+    
+    // Reset programDocs to initial fallback only
+    programDocs.length = 0;
+    programDocs.push(...initialFallbackPrograms);
+    
+    // Reset users and tasks arrays
+    users.length = 0;
+    tasks.length = 0;
+    
+    // Save clean state
+    saveLocalPrograms();
+    saveUsers();
+    saveTasks();
+    
+    // Re-render programs
+    renderPrograms(programDocs);
+    
+    // Reset current user to visitor
+    currentUser.role = "visitor";
+    updateUserUI();
+    setRoleBasedUI();
+    
+    alert("Everything cleaned up! Reset to initial state.");
+};
+
 if (!useFirestore) {
     console.warn("Firebase is not configured. Using local demo data instead.");
 }
 
+// Initialize programs
 listenPrograms();
+
+// Fallback: ensure programs are rendered even if listenPrograms doesn't work
+// This handles browser caching issues
+document.addEventListener('DOMContentLoaded', () => {
+    if (programDocs.length === 0) {
+        console.warn("Programs not loaded, attempting fallback...");
+        listenPrograms();
+    }
+});
+
+// Additional safety: re-render after a short delay to ensure DOM is ready
+setTimeout(() => {
+    if (publicList && publicList.children.length === 0) {
+        console.warn("Program list empty, re-rendering...");
+        renderPrograms(programDocs);
+    }
+}, 100);
 
 const carousel = document.getElementById("carousel");
 const slides = document.querySelectorAll(".slide");
@@ -542,3 +723,5 @@ let autoSlide = setInterval(next, 5000);
 window.prev = prev;
 window.next = next;
 window.go = go;
+window.submitProgram = submitProgram;
+window.closeModal = closeModal;

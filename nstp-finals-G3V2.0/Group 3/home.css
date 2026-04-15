@@ -184,9 +184,11 @@ body.home {
 
 .program-item img {
   width: 100%;
-  height: 140px;
+  height: 160px;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 8px;
 }
 
 .program-item b {
