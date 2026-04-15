@@ -2,9 +2,9 @@ body.home {
   margin: 0;
   padding: 0;
   font-family: "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, var(--grad-top), var(--grad-mid), var(--grad-bot));
+  background: var(--bg);
   overflow-x: hidden;
-  color: white;
+  color: var(--text);
 }
 
 .page-intro {
@@ -12,12 +12,12 @@ body.home {
   grid-template-columns: 1.6fr 1fr;
   align-items: center;
   gap: 24px;
-  background: rgba(6,42,36,0.72);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: color-mix(in srgb, var(--p-300) 78%, transparent);
+  border: 1px solid var(--border);
   border-radius: 26px;
   padding: 28px;
   margin-bottom: 30px;
-  box-shadow: 0 22px 50px rgba(0,0,0,0.2);
+  box-shadow: 0 22px 50px color-mix(in srgb, var(--p-900) 18%, transparent);
 }
 
 .page-intro h1 {
@@ -29,7 +29,7 @@ body.home {
 .page-intro p {
   margin: 0;
   max-width: 680px;
-  color: rgba(255,255,255,0.88);
+  color: var(--text-muted);
   line-height: 1.75;
 }
 
@@ -38,8 +38,8 @@ body.home {
   align-items: center;
   padding: 8px 16px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.12);
-  color: white;
+  background: color-mix(in srgb, var(--p-900) 10%, transparent);
+  color: var(--text);
   font-weight: 700;
   letter-spacing: 0.02em;
   margin-bottom: 18px;
@@ -59,8 +59,8 @@ body.home {
 }
 
 .status-card {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: color-mix(in srgb, var(--p-50) 60%, transparent);
+  border: 1px solid var(--border);
   border-radius: 22px;
   padding: 20px;
   text-align: center;
@@ -69,13 +69,13 @@ body.home {
 .status-card strong {
   display: block;
   font-size: 1.75rem;
-  color: white;
+  color: var(--text);
 }
 
 .status-card span {
   display: block;
   margin-top: 6px;
-  color: rgba(255,255,255,0.8);
+  color: var(--text-muted);
 }
 
 .cards {
@@ -100,8 +100,8 @@ body.home {
   display: inline-block;
   margin-top: 10px;
   padding: 10px 16px;
-  background: var(--grad-bot);
-  color: var(--grad-top);
+  background: var(--primary);
+  color: var(--p-50);
   border-radius: 20px;
   text-decoration: none;
   font-weight: 600;
@@ -151,7 +151,7 @@ body.home {
 .sectionHeader h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #20351f;
+  color: var(--text);
 }
 
 .programsGrid {
@@ -166,20 +166,20 @@ body.home {
 }
 
 .program-item {
-  background: rgba(255,255,255,0.08);
+  background: color-mix(in srgb, var(--p-50) 60%, transparent);
   padding: 14px;
   border-radius: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color: white;
-  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  border: 1px solid var(--border);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .program-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 30px rgba(0,0,0,0.18);
+  box-shadow: 0 18px 30px color-mix(in srgb, var(--p-900) 18%, transparent);
 }
 
 .program-item img {
@@ -195,18 +195,18 @@ body.home {
   display: block;
   font-size: 1rem;
   margin-bottom: 6px;
-  color: white;
+  color: var(--text);
 }
 
 .program-item small,
 .program-item p,
 .program-item span {
-  color: rgba(255,255,255,0.8);
+  color: var(--text-muted);
 }
 
 .program-item button {
-  background: rgba(255,255,255,0.12);
-  color: white;
+  background: var(--primary);
+  color: var(--p-50);
   border: none;
   padding: 8px 12px;
   border-radius: 12px;
@@ -249,9 +249,9 @@ body.home {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255,255,255,0.12);
+  background: color-mix(in srgb, var(--p-50) 60%, transparent);
   border: 1px solid var(--border);
-  color: white;
+  color: var(--text);
   font-size: 22px;
   padding: 10px 14px;
   cursor: pointer;
@@ -272,13 +272,13 @@ body.home {
   width: 9px;
   height: 9px;
   margin: 5px;
-  background: rgba(255,255,255,0.4);
+  background: color-mix(in srgb, var(--p-900) 20%, transparent);
   border-radius: 50%;
   cursor: pointer;
 }
 
 .dots .active {
-  background: var(--grad-top);
+  background: var(--primary);
   transform: scale(1.4);
 }
 
@@ -306,7 +306,7 @@ body.home {
 }
 
 .home-card p {
-  color: rgba(255,255,255,0.8);
+  color: var(--text-muted);
   line-height: 1.6;
 }
 

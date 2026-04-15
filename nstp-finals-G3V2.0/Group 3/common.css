@@ -1,30 +1,42 @@
 :root {
-    --grad-top: #C8F542;
-    --grad-mid: #0B6B57;
-    --grad-bot: #062A24;
-    --olive: #3f6b44;
-    --olive-dark: #264224;
+    /* Palette (no gradients) */
+    --p-900: #546B41; /* dark olive */
+    --p-600: #99AD7A; /* sage */
+    --p-300: #DCCCAC; /* sand */
+    --p-50: #FFF8EC;  /* cream */
 
-    --glass: rgba(255,255,255,0.08);
-    --border: rgba(255,255,255,0.15);
+    /* Semantic tokens */
+    --bg: var(--p-50);
+    --surface: var(--p-300);
+    --surface-2: color-mix(in srgb, var(--p-50) 70%, var(--p-300));
+    --text: var(--p-900);
+    --text-muted: color-mix(in srgb, var(--p-900) 72%, var(--p-50));
+    --primary: var(--p-900);
+    --primary-soft: var(--p-600);
+    --border: color-mix(in srgb, var(--p-900) 22%, transparent);
+
+    /* Existing names used around the UI */
+    --olive: var(--p-900);
+    --olive-dark: var(--p-900);
+    --glass: color-mix(in srgb, var(--p-50) 18%, transparent);
 }
 
 body {
     margin: 0;
     padding: 0;
     font-family: "Poppins", sans-serif;
-    background: linear-gradient(180deg, #f8f4e8 0%, #eef1e5 100%);
+    background: var(--bg);
     overflow-x: hidden;
-    color: var(--olive-dark);
+    color: var(--text);
 }
 
 .navbar {
     position: sticky;
     top: 0;
     z-index: 9999;
-    background: rgba(245, 239, 225, 0.98);
+    background: color-mix(in srgb, var(--p-50) 92%, transparent);
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(97,107,82,0.18);
+    border-bottom: 1px solid var(--border);
 }
 
 .nav-inner {
@@ -37,13 +49,13 @@ body {
 }
 
 .logo {
-    color: #264224;
+    color: var(--text);
     font-size: 20px;
     font-weight: 800;
 }
 
 .nav-links a {
-    color: #264224;
+    color: var(--text);
     margin-left: 18px;
     text-decoration: none;
     opacity: 0.85;
@@ -53,7 +65,7 @@ body {
 /* Hard override to prevent page-specific styles from making links white on light nav */
 .navbar .nav-links a,
 .navbar .logo {
-    color: #264224 !important;
+    color: var(--text) !important;
 }
 
 .nav-links a:hover {
@@ -72,9 +84,9 @@ body {
     justify-content: center;
     padding: 10px 16px;
     border-radius: 999px;
-    border: 1px solid rgba(97,107,82,0.18);
-    background: rgba(255,255,255,0.9);
-    color: #264224;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
     text-decoration: none;
     font-weight: 700;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -82,7 +94,7 @@ body {
 
 .btn:hover {
     transform: translateY(-1px);
-    box-shadow: 0 14px 30px rgba(63,107,68,0.08);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--p-900) 14%, transparent);
 }
 
 .debug-panel {
@@ -102,8 +114,8 @@ body {
     border-radius: 10px;
     border: none;
     cursor: pointer;
-    background: rgba(255,255,255,0.12);
-    color: white;
+    background: color-mix(in srgb, var(--p-900) 18%, transparent);
+    color: var(--p-50);
 }
 
 .stat-card {
@@ -124,7 +136,7 @@ body {
 .stat-value {
     font-size: 32px;
     font-weight: bold;
-    color: var(--grad-top);
+    color: var(--primary);
     margin: 10px 0;
 }
 

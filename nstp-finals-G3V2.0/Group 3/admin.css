@@ -12,14 +12,14 @@
     background: var(--glass);
     border: 1px solid var(--border);
     border-radius: 8px;
-    color: rgb(0, 0, 0);
+    color: var(--text);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .tab-btn.active {
-    background: var(--grad-bot);
-    color: var(--grad-top);
+    background: var(--primary);
+    color: var(--p-50);
 }
 
 .tab-content {
@@ -60,15 +60,15 @@
     padding: 10px;
     border-radius: 8px;
     border: 1px solid var(--border);
-    background: rgba(255,255,255,0.08);
-    color: white;
+    background: color-mix(in srgb, var(--p-50) 60%, transparent);
+    color: var(--text);
 }
 
 .form-group button {
     margin-top: 10px;
     padding: 10px 15px;
-    background: var(--grad-bot);
-    color: var(--grad-top);
+    background: var(--primary);
+    color: var(--p-50);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -103,8 +103,8 @@
     cursor: pointer;
 }
 
-.approve-btn { background: #4CAF50; color: white; }
-.reject-btn { background: #f44336; color: white; }
-.edit-btn { background: #2196F3; color: white; }
-.delete-btn { background: #f44336; color: white; }
-.archive-btn { background: #FF9800; color: white; }
+.approve-btn { background: var(--primary); color: var(--p-50); border: 1px solid var(--border); }
+.reject-btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.edit-btn { background: var(--primary-soft); color: var(--text); border: 1px solid var(--border); }
+.delete-btn { background: var(--primary); color: var(--p-50); border: 1px solid var(--border); }
+.archive-btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
