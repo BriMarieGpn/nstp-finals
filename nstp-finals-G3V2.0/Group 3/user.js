@@ -4,13 +4,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadUserDashboard() {
-    // Load data from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    // Load data from localStorage (support both legacy and admin keys)
+    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+    const tasks = JSON.parse(localStorage.getItem('itanimTasks') || localStorage.getItem('tasks') || '[]');
     const badges = JSON.parse(localStorage.getItem('badges') || '[]');
     const certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
     const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-    const programs = JSON.parse(localStorage.getItem('programs') || '[]');
+    const programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || localStorage.getItem('programs') || '[]');
 
     // Get current user (assuming first user for demo, or from session)
     const currentUser = users[0] || { name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [] };
@@ -116,7 +116,13 @@ function loadEnrolledPrograms(user, programs) {
 
 function loadAssignedTasks(user, tasks) {
     const container = document.getElementById('assignedTasksList');
-    const userTasks = tasks.filter(t => t.assignedTo === user.email);
+    const userId = user.id || user.email;
+    const userEmail = user.email;
+    const userTasks = tasks.filter(t => {
+        if (t.assignedTo) return t.assignedTo === userEmail;
+        if (Array.isArray(t.assigned)) return t.assigned.includes(userId);
+        return false;
+    });
 
     if (userTasks.length === 0) {
         container.innerHTML = '<p>No tasks assigned.</p>';
@@ -125,12 +131,11 @@ function loadAssignedTasks(user, tasks) {
 
     container.innerHTML = userTasks.map(task => `
         <div class="task-item">
-            <h4>${task.title}</h4>
-            <p>${task.description}</p>
+            <h4>${task.title || task.name}</h4>
+            <p>${task.description || task.desc}</p>
             <div class="task-meta">
-                <span>Priority: ${task.priority}</span>
-                <span>Status: ${task.status}</span>
-                <span>Due: ${task.dueDate}</span>
+                <span>Status: ${task.status || 'active'}</span>
+                <span>Hours: ${task.hours ?? ''}</span>
             </div>
             <div class="task-actions">
                 <button onclick="updateTaskStatus('${task.id}', 'completed')" class="btn-primary">Mark Complete</button>

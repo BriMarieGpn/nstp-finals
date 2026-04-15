@@ -182,6 +182,10 @@
             <textarea id="taskDesc" placeholder="Description" style="width:100%; height:80px; margin:10px 0; padding:10px;"></textarea>
             <input id="taskHours" type="number" placeholder="Required Hours" style="width:100%; margin:10px 0; padding:10px;">
             <input id="taskMaxVolunteers" type="number" placeholder="Max Volunteers" style="width:100%; margin:10px 0; padding:10px;">
+            <div style="margin:10px 0;">
+                <input id="taskAttachments" type="file" accept="image/png, image/jpeg" multiple style="width:100%; margin:10px 0; padding:10px;">
+                <div id="taskAttachmentPreview" style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:10px;"></div>
+            </div>
             <div style="display:flex; justify-content:space-between; margin-top:15px;">
                 <button onclick="closeTaskModal()">Cancel</button>
                 <button onclick="saveTask()">Save</button>

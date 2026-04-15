@@ -51,6 +51,7 @@ const adminLink = document.getElementById("adminLink");
 const userDashboardLink = document.getElementById("userDashboardLink");
 
 const localStorageKey = "itanimLocalPrograms";
+const localTasksKey = "itanimTasks";
 const initialFallbackPrograms = [
     {
         id: "local-1",
@@ -244,8 +245,13 @@ function loadLocalPrograms() {
 }
 
 function saveLocalPrograms() {
-    localStorage.setItem(localStorageKey, JSON.stringify(programDocs));
-    console.debug("saveLocalPrograms: saved", programDocs.length, "programs");
+    try {
+        localStorage.setItem(localStorageKey, JSON.stringify(programDocs));
+        console.debug("saveLocalPrograms: saved", programDocs.length, "programs");
+    } catch (err) {
+        console.warn("saveLocalPrograms failed (likely storage quota).", err);
+        alert("Program image may be too large to save in this browser. Try a smaller image.");
+    }
 }
 
 function saveUsers() {
@@ -254,6 +260,80 @@ function saveUsers() {
 
 function saveTasks() {
     localStorage.setItem('itanimTasks', JSON.stringify(tasks));
+}
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+async function readImageAsCompressedDataUrl(file, { maxW = 1400, maxH = 900, quality = 0.82 } = {}) {
+    // Helps avoid localStorage quota issues (large images silently fail to save)
+    // Falls back to normal DataURL if compression isn't supported.
+    try {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+            return await readFileAsDataUrl(file);
+        }
+
+        const bitmap = await createImageBitmap(file);
+        const ratio = Math.min(1, maxW / bitmap.width, maxH / bitmap.height);
+        const w = Math.max(1, Math.round(bitmap.width * ratio));
+        const h = Math.max(1, Math.round(bitmap.height * ratio));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return await readFileAsDataUrl(file);
+
+        ctx.drawImage(bitmap, 0, 0, w, h);
+
+        const outType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        const dataUrl = canvas.toDataURL(outType, outType === 'image/jpeg' ? quality : undefined);
+        if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) return dataUrl;
+        return await readFileAsDataUrl(file);
+    } catch {
+        return await readFileAsDataUrl(file);
+    }
+}
+
+function isProbablyBlobUrl(url) {
+    return typeof url === 'string' && url.startsWith('blob:');
+}
+
+function syncProgramsFromTasksIfNeeded() {
+    // If admin task management is being used, surface those tasks as "Available Programs"
+    // so add/edit/delete in admin reflects here.
+    try {
+        const raw = localStorage.getItem(localTasksKey);
+        if (!raw) return;
+        const adminTasks = JSON.parse(raw);
+        if (!Array.isArray(adminTasks) || adminTasks.length === 0) return;
+
+        // Only overwrite if current program list is empty OR was previously synced.
+        const current = loadLocalPrograms();
+        const wasSynced = Array.isArray(current) && current.every(p => p && p._source === 'task');
+        if (current.length > 0 && !wasSynced) return;
+
+        programDocs.length = 0;
+        programDocs.push(...adminTasks.map(t => ({
+            id: t.id,
+            title: t.name,
+            hours: String(t.hours ?? ''),
+            desc: t.desc || '',
+            image: (t.attachments && t.attachments[0] && t.attachments[0].dataUrl) ? t.attachments[0].dataUrl : defaultImage,
+            joined: t.joined || [],
+            skills: t.skills || [],
+            _source: 'task'
+        })));
+        saveLocalPrograms();
+    } catch {
+        // ignore
+    }
 }
 
 function renderPrograms(programs) {
@@ -423,15 +503,26 @@ window.joinProgram = async (id, joined) => {
 async function uploadProgramImage(file) {
     if (!file) return defaultImage;
     if (!useFirestore) {
-        return URL.createObjectURL(file);
+        // IMPORTANT: blob: URLs do not persist after refresh; store a data URL instead.
+        try {
+            return await readImageAsCompressedDataUrl(file);
+        } catch (err) {
+            console.warn("Local image read failed, using placeholder image", err);
+            return defaultImage;
+        }
     }
     try {
         const imageRef = ref(storage, `programImages/${Date.now()}-${file.name}`);
         await uploadBytes(imageRef, file);
         return await getDownloadURL(imageRef);
     } catch (err) {
-        console.warn("Image upload failed, using placeholder image", err);
-        return defaultImage;
+        console.warn("Image upload failed, falling back to local image", err);
+        try {
+            return await readImageAsCompressedDataUrl(file);
+        } catch (e2) {
+            console.warn("Local fallback image read failed, using placeholder image", e2);
+            return defaultImage;
+        }
     }
 }
 
@@ -644,11 +735,33 @@ if (!useFirestore) {
 }
 
 // Initialize programs
+syncProgramsFromTasksIfNeeded();
 listenPrograms();
 
 // Fallback: ensure programs are rendered even if listenPrograms doesn't work
 // This handles browser caching issues
 document.addEventListener('DOMContentLoaded', () => {
+    // Image preview for program uploads
+    const fileInput = document.getElementById('programImage');
+    const preview = document.getElementById('programImagePreview');
+    if (fileInput && preview) {
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files && fileInput.files[0];
+            if (!file) {
+                preview.style.display = 'none';
+                preview.src = '';
+                return;
+            }
+            try {
+                preview.src = await readImageAsCompressedDataUrl(file);
+                preview.style.display = 'block';
+            } catch {
+                preview.style.display = 'none';
+                preview.src = '';
+            }
+        });
+    }
+
     if (programDocs.length === 0) {
         console.warn("Programs not loaded, attempting fallback...");
         listenPrograms();

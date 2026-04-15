@@ -50,6 +50,12 @@ body {
     font-weight: 600;
 }
 
+/* Hard override to prevent page-specific styles from making links white on light nav */
+.navbar .nav-links a,
+.navbar .logo {
+    color: #264224 !important;
+}
+
 .nav-links a:hover {
     opacity: 1;
 }

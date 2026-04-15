@@ -9,6 +9,7 @@ let skills = JSON.parse(localStorage.getItem('itanimSkills') || '["Teaching", "C
 let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge": 18, "validBarangays": "All"}');
 let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze": 10, "silver": 25, "gold": 50, "platinum": 100}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
+const programsKey = "itanimLocalPrograms";
 
 // Initialize some demo data
 if (users.length === 0) {
@@ -44,6 +45,63 @@ function saveSkills() { localStorage.setItem('itanimSkills', JSON.stringify(skil
 function saveRestrictions() { localStorage.setItem('itanimRestrictions', JSON.stringify(restrictions)); }
 function saveBadges() { localStorage.setItem('itanimBadges', JSON.stringify(badgeThresholds)); }
 function saveNotifications() { localStorage.setItem('itanimNotifications', JSON.stringify(notifications)); }
+
+function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderTaskAttachmentPreview(attachments) {
+    const container = document.getElementById('taskAttachmentPreview');
+    if (!container) return;
+    if (!Array.isArray(attachments) || attachments.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    container.innerHTML = attachments.map(att => `
+        <div style="border:1px solid rgba(255,255,255,0.18); border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.06);">
+            <img src="${att.dataUrl}" alt="${att.name}" style="width:100%; height:86px; object-fit:cover; display:block;">
+            <div style="padding:6px 8px; font-size:12px; opacity:0.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${att.name}</div>
+        </div>
+    `).join('');
+}
+
+async function getAttachmentsFromInput() {
+    const input = document.getElementById('taskAttachments');
+    if (!input || !input.files || input.files.length === 0) return [];
+    const files = Array.from(input.files);
+    const results = [];
+    for (const file of files) {
+        const dataUrl = await readFileAsDataUrl(file);
+        results.push({ name: file.name, type: file.type, size: file.size, dataUrl });
+    }
+    return results;
+}
+
+function clearAttachmentInput() {
+    const input = document.getElementById('taskAttachments');
+    if (input) input.value = '';
+    renderTaskAttachmentPreview([]);
+}
+
+function syncProgramsFromTasks() {
+    // Mirror tasks -> public "Available Programs" list (index.js reads this key in offline mode)
+    const programs = tasks.map(t => ({
+        id: t.id,
+        title: t.name,
+        hours: String(t.hours ?? ''),
+        desc: t.desc || '',
+        image: (t.attachments && t.attachments[0] && t.attachments[0].dataUrl) ? t.attachments[0].dataUrl : defaultImage,
+        joined: t.joined || [],
+        skills: t.skills || [],
+        _source: 'task'
+    }));
+    localStorage.setItem(programsKey, JSON.stringify(programs));
+}
 
 // Tab switching
 function showTab(tabName) {
@@ -231,6 +289,11 @@ function showTaskModal(taskId = null) {
         desc.value = task.desc;
         hours.value = task.hours;
         maxVol.value = task.maxVolunteers;
+        // show existing attachments
+        renderTaskAttachmentPreview(task.attachments || []);
+        // do not auto-populate file input for security reasons
+        const input = document.getElementById('taskAttachments');
+        if (input) input.value = '';
         modal.dataset.editId = taskId;
     } else {
         title.textContent = 'Create Task';
@@ -238,6 +301,7 @@ function showTaskModal(taskId = null) {
         desc.value = '';
         hours.value = '';
         maxVol.value = '';
+        clearAttachmentInput();
         delete modal.dataset.editId;
     }
     modal.style.display = 'flex';
@@ -247,7 +311,7 @@ function closeTaskModal() {
     document.getElementById('taskModal').style.display = 'none';
 }
 
-function saveTask() {
+async function saveTask() {
     const name = document.getElementById('taskName').value.trim();
     const desc = document.getElementById('taskDesc').value.trim();
     const hours = parseInt(document.getElementById('taskHours').value);
@@ -260,6 +324,7 @@ function saveTask() {
 
     const modal = document.getElementById('taskModal');
     const editId = modal.dataset.editId;
+    const newAttachments = await getAttachmentsFromInput();
 
     if (editId) {
         const task = tasks.find(t => t.id === editId);
@@ -267,6 +332,12 @@ function saveTask() {
         task.desc = desc;
         task.hours = hours;
         task.maxVolunteers = maxVol;
+        // Only replace attachments if user selected new ones; otherwise keep existing.
+        if (newAttachments.length > 0) {
+            task.attachments = newAttachments;
+        } else {
+            task.attachments = task.attachments || [];
+        }
     } else {
         const newTask = {
             id: `task${Date.now()}`,
@@ -275,12 +346,14 @@ function saveTask() {
             hours,
             maxVolunteers: maxVol,
             assigned: [],
-            status: 'active'
+            status: 'active',
+            attachments: newAttachments
         };
         tasks.push(newTask);
     }
 
     saveTasks();
+    syncProgramsFromTasks();
     updateTasks();
     closeTaskModal();
 }
@@ -294,6 +367,7 @@ function archiveTask(id) {
     if (task) {
         task.status = 'completed';
         saveTasks();
+        syncProgramsFromTasks();
         updateTasks();
     }
 }
@@ -301,6 +375,7 @@ function archiveTask(id) {
 function deleteTask(id) {
     tasks = tasks.filter(t => t.id !== id);
     saveTasks();
+    syncProgramsFromTasks();
     updateTasks();
 }
 
@@ -468,4 +543,21 @@ document.addEventListener('DOMContentLoaded', () => {
     updateBadges();
     updateCertifications();
     updateNotifications();
+
+    // Attachment preview behavior
+    const attachmentInput = document.getElementById('taskAttachments');
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', async () => {
+            try {
+                const atts = await getAttachmentsFromInput();
+                renderTaskAttachmentPreview(atts);
+            } catch (err) {
+                console.warn(err);
+                renderTaskAttachmentPreview([]);
+            }
+        });
+    }
+
+    // Ensure programs mirror is present on load
+    syncProgramsFromTasks();
 });
