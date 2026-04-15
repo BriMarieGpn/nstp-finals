@@ -1,0 +1,151 @@
+:root{
+    --g1:#C8F542;
+    --g2:#0B6B57;
+    --g3:#062A24;
+
+    --glass: rgba(255,255,255,0.08);
+    --border: rgba(255,255,255,0.15);
+}
+
+/* GLOBAL */
+body{
+    margin:0;
+    font-family:"Segoe UI", sans-serif;
+    background: linear-gradient(135deg,var(--g1),var(--g2),var(--g3));
+    min-height:100vh;
+    color:white;
+}
+
+/* AUTH CENTERING */
+body.auth{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* CARD */
+.card{
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+
+    padding: 40px;
+    border-radius: 28px;
+
+    width: 100%;
+    max-width: 380px;
+
+    text-align:center;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+}
+
+/* TEXT */
+.welcome{
+    font-size: 0.85rem;
+    opacity:0.8;
+}
+
+.brand, h1{
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    color: var(--g1);
+}
+
+/* INPUTS */
+input{
+    width:100%;
+    padding:14px;
+    margin:8px 0;
+
+    border-radius:14px;
+    border:1px solid var(--border);
+
+    background: rgba(255,255,255,0.06);
+    color:white;
+    outline:none;
+}
+
+input::placeholder{
+    color: rgba(255,255,255,0.6);
+}
+
+/* OPTIONS */
+.options{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.85rem;
+    margin:10px 0 20px;
+}
+
+/* BUTTONS */
+.btn-login, .btn-reg{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:50px;
+
+    background: var(--g3);
+    color: var(--g1);
+    font-weight:bold;
+
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn-login:hover,
+.btn-reg:hover{
+    transform: translateY(-2px);
+    background: var(--g2);
+    color:white;
+}
+
+/* GOOGLE */
+.btn-google{
+    width:100%;
+    padding:12px;
+
+    border-radius:50px;
+    border:1px solid var(--border);
+
+    background: rgba(255,255,255,0.08);
+    color:white;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+
+    cursor:pointer;
+}
+
+/* DIVIDER */
+.divider{
+    margin:20px 0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:rgba(255,255,255,0.5);
+}
+
+.divider::before,
+.divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:rgba(255,255,255,0.2);
+}
+
+/* LINKS */
+a{
+    color: var(--g1);
+    text-decoration:none;
+    font-weight:600;
+}
+
+.footer, .back{
+    margin-top:15px;
+    font-size:0.85rem;
+    opacity:0.8;
+}
