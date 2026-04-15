@@ -5,211 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I-Tanim | Home</title>
 
-<style>
-:root {
-    --grad-top: #C8F542;
-    --grad-mid: #0B6B57;
-    --grad-bot: #062A24;
-
-    --glass: rgba(255,255,255,0.08);
-    --border: rgba(255,255,255,0.15);
-}
-/* PROGRAM SCROLL CONTAINER */
-#programList {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-top: 10px;
-    padding-right: 5px;
-}
-
-/* optional nicer scrollbar */
-#programList::-webkit-scrollbar {
-    width: 6px;
-}
-
-#programList::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.3);
-    border-radius: 10px;
-}
-#publicProgramList .program-item {
-    background: rgba(255,255,255,0.08);
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-body {
-    margin: 0;
-    padding: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: linear-gradient(135deg, var(--grad-top), var(--grad-mid), var(--grad-bot));
-    overflow-x: hidden;
-    color: white;
-}
-
-.navbar {
-    position: sticky;
-    top: 0;
-    z-index: 9999;
-    background: rgba(6, 42, 36, 0.6);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
-}
-
-.nav-inner {
-    max-width: 1100px;
-    margin: auto;
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.logo {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--grad-top);
-}
-
-.nav-links a {
-    color: white;
-    margin-left: 18px;
-    text-decoration: none;
-    opacity: 0.8;
-}
-
-.container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 20px 40px 20px;
-}
-
-/* CAROUSEL */
-.carousel-wrapper {
-    position: relative;
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    overflow: hidden;
-}
-
-.carousel {
-    display: flex;
-    align-items: center;
-    transition: transform 0.5s ease;
-    padding-left: 25vw;
-}
-
-.slide {
-    flex: 0 0 60%;
-    height: 340px;
-    margin: 0 15px;
-    border-radius: 28px;
-    background-size: cover;
-    background-position: center;
-    opacity: 0.35;
-    transform: scale(0.92);
-    transition: all 0.4s ease;
-}
-
-.slide.active {
-    opacity: 1;
-    transform: scale(1.05);
-}
-
-.arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.12);
-    border: 1px solid var(--border);
-    color: white;
-    font-size: 22px;
-    padding: 10px 14px;
-    cursor: pointer;
-    border-radius: 50%;
-    z-index: 99999;
-}
-
-.left { left: 20px; }
-.right { right: 20px; }
-
-.dots {
-    text-align: center;
-    margin-top: 12px;
-}
-
-.dots span {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    margin: 5px;
-    background: rgba(255,255,255,0.4);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.dots .active {
-    background: var(--grad-top);
-    transform: scale(1.4);
-}
-
-/* CARDS */
-.cards {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 45px;
-}
-
-.home-card {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(14px);
-    padding: 22px;
-    width: 260px;
-    border-radius: 22px;
-    text-align: center;
-}
-
-/* buttons */
-.btn {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 10px 16px;
-    background: var(--grad-bot);
-    color: var(--grad-top);
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.program-item {
-    background: rgba(255,255,255,0.08);
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 12px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-#programModal input, #programModal textarea {
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border-radius:10px;
-    border:none;
-    outline:none;
-}
-#programModal textarea {
-    resize:none;
-    height:80px;
-}
-
-</style>
+<link rel="stylesheet" href="index.css">
 </head>
 
 <body>
@@ -243,6 +39,11 @@ body {
     </select>
 
     <p id="userLabel" style="margin:8px 0 0 0; font-size:12px;"></p>
+    <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+        <strong style="font-size:13px; opacity:0.9;">Debug Test Buttons</strong>
+        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Test Add Sample Program</button>
+        <button onclick="debugShowPrograms()" style="padding:8px 10px; border-radius:10px; border:none; cursor:pointer; background:rgba(255,255,255,0.12); color:white;">Test Show Program List</button>
+    </div>
 </div>
 <div class="container">
 
@@ -324,6 +125,35 @@ body {
     </div>
 
 </div>
+
+<div id="programDetailModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.75);
+    backdrop-filter: blur(10px);
+    justify-content:center;
+    align-items:center;
+    z-index:100000;
+">
+    <div style="
+        background:rgba(10,40,35,0.96);
+        padding:20px;
+        border-radius:18px;
+        width:min(420px,92%);
+        border:1px solid rgba(255,255,255,0.18);
+        position:relative;
+    ">
+        <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:none; border-radius:50%; background:rgba(255,255,255,0.15); color:white; cursor:pointer; font-size:18px;">×</button>
+        <img id="detailImage" src="https://via.placeholder.com/500x280?text=Program+Image" style="width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:16px;">
+        <h3 id="detailTitle" style="margin:0 0 10px 0;">Program Title</h3>
+        <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0;">Program description appears here...</p>
+        <p style="margin:0 0 8px 0;"><strong>Hours:</strong> <span id="detailHours"></span></p>
+        <p style="margin:0;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
+    </div>
+</div>
+
 <!-- ADD PROGRAM POPUP -->
 <div id="programModal" style="
     display:none;
@@ -358,304 +188,6 @@ body {
     </div>
 </div>
 </div>
-<!-- EVERYTHING BELOW IS YOUR ORIGINAL CODE WITH ROLE PATCHES ONLY -->
-
-<script type="module">
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    doc,
-    updateDoc,
-    arrayUnion
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* =========================
-   FIREBASE INIT (UNCHANGED)
-========================= */
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "i-tanim.firebaseapp.com",
-    projectId: "i-tanim",
-    storageBucket: "i-tanim.appspot.com",
-    messagingSenderId: "XXXX",
-    appId: "XXXX"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const storage = getStorage(app);
-
-/* =========================
-   USER ROLE SYSTEM (ADDED ONLY)
-========================= */
-let currentUser = {
-    id: "user1",
-    role: "visitor"
-};
-
-/* TEMP ROLE SWITCHER */
-const roleSwitcher = document.getElementById("roleSwitcher");
-const userLabel = document.getElementById("userLabel");
-
-function updateUserUI() {
-    userLabel.innerText = "Role: " + currentUser.role;
-}
-
-/* change role instantly */
-roleSwitcher.addEventListener("change", (e) => {
-    currentUser.role = e.target.value;
-
-    // update UI behavior instantly
-    if (currentUser.role !== "admin") {
-        addBtn.style.display = "none";
-    } else {
-        addBtn.style.display = "block";
-    }
-
-    updateUserUI();
-});
-
-updateUserUI();
-
-/* =========================
-   ELEMENTS (UNCHANGED)
-========================= */
-const addBtn = document.getElementById("addProgramBtn");
-const modal = document.getElementById("programModal");
-const publicList = document.getElementById("publicProgramList");
-
-/* =========================
-   ROLE UI CONTROL (ADDED ONLY)
-========================= */
-if (currentUser.role !== "admin") {
-    addBtn.style.display = "none";
-} else {
-    addBtn.style.display = "block";
-}
-
-/* =========================
-   MODAL OPEN (UNCHANGED)
-========================= */
-addBtn.onclick = () => {
-    if (currentUser.role !== "admin") {
-        alert("Only admins can add programs.");
-        return;
-    }
-    modal.style.display = "flex";
-};
-
-/* =========================
-   JOIN PROGRAM (PATCHED SAFETY ONLY)
-========================= */
-window.joinProgram = async (id, joined) => {
-    if (currentUser.role !== "user" && currentUser.role !== "admin") {
-        alert("Only registered users can join programs.");
-        return;
-    }
-
-    if (joined.includes(currentUser.id)) return;
-
-    await updateDoc(doc(db, "programs", id), {
-        joined: arrayUnion(currentUser.id)
-    });
-};
-
-/* =========================
-   REALTIME LIST (UNCHANGED + PATCHED BUTTON LOGIC)
-========================= */
-onSnapshot(collection(db, "programs"), (snap) => {
-    publicList.innerHTML = "";
-
-    snap.forEach(d => {
-        const data = d.data();
-
-        let joinButton = "";
-
-        if (currentUser.role === "user" || currentUser.role === "admin") {
-            joinButton = `
-                <button onclick='joinProgram("${d.id}", ${JSON.stringify(data.joined || [])})'>
-                    Join
-                </button>
-            `;
-        } else {
-            joinButton = `<small style="opacity:0.7;">Login to join</small>`;
-        }
-
-        const div = document.createElement("div");
-        div.className = "program-item";
-
-        div.style.flexDirection = "column";
-        div.style.alignItems = "flex-start";
-        div.style.gap = "8px";
-
-        div.innerHTML = `
-            <img src="${data.image || 'https://via.placeholder.com/400x200'}" style="
-                width:100%;
-                height:120px;
-                object-fit:cover;
-                border-radius:10px;
-            ">
-
-            <b>${data.title}</b>
-
-            <small>${data.hours || 0} hours</small>
-
-            <p style="margin:0; opacity:0.8;">${data.desc || ''}</p>
-
-            ${joinButton}
-        `;
-
-        publicList.appendChild(div);
-    });
-});
-
-/* =========================
-   ADD PROGRAM (FULL ORIGINAL + ADMIN LOCK)
-========================= */
-window.submitProgram = async () => {
-    if (currentUser.role !== "admin") {
-        alert("Only admins can add programs.");
-        return;
-    }
-
-    try {
-        const title = document.getElementById("programTitle").value.trim();
-        const hours = document.getElementById("programHours").value.trim();
-        const desc = document.getElementById("programDesc").value.trim();
-        const file = document.getElementById("programImage").files[0];
-
-        if (!title) {
-            alert("Title required");
-            return;
-        }
-
-        let imageURL = "";
-
-        if (file) {
-            const imageRef = ref(storage, `programImages/${Date.now()}-${file.name}`);
-
-            await uploadBytes(imageRef, file);
-            imageURL = await getDownloadURL(imageRef);
-        }
-
-        await addDoc(collection(db, "programs"), {
-            title,
-            hours,
-            desc,
-            image: imageURL,
-            joined: []
-        });
-
-        alert("Program added!");
-        closeModal();
-
-    } catch (err) {
-        console.error(err);
-        alert("ERROR: " + err.message);
-    }
-};
-
-/* =========================
-   MODAL CLOSE (UNCHANGED)
-========================= */
-window.closeModal = () => {
-    document.getElementById("programModal").style.display = "none";
-};
-
-</script>
-
-<!-- CAROUSEL SCRIPT FIXED -->
-<script>
-const carousel = document.getElementById("carousel");
-const slides = document.querySelectorAll(".slide");
-const dotsContainer = document.getElementById("dots");
-
-let index = 1;
-const realSlides = slides.length - 2;
-
-for (let i = 0; i < realSlides; i++) {
-    let dot = document.createElement("span");
-    dot.onclick = () => go(i + 1);
-    dotsContainer.appendChild(dot);
-}
-
-function fix() {
-    const w = slides[0].offsetWidth + 30;
-
-    if (index === 0) index = realSlides;
-    if (index === slides.length - 1) index = 1;
-}
-
-function update() {
-    fix();
-
-    const w = slides[0].offsetWidth + 30;
-    carousel.style.transform = `translateX(-${index * w}px)`;
-
-    slides.forEach(s => s.classList.remove("active"));
-    slides[index].classList.add("active");
-
-    const dots = document.querySelectorAll(".dots span");
-    dots.forEach(d => d.classList.remove("active"));
-
-    let di = index - 1;
-    if (dots[di]) dots[di].classList.add("active");
-}
-
-function next(){ index++; update(); }
-function prev(){ index--; update(); }
-function go(i){ index = i; update(); }
-window.closeModal = () => {
-    document.getElementById("programModal").style.display = "none";
-};
-window.submitProgram = async () => {
-    try {
-        const title = document.getElementById("programTitle").value.trim();
-        const hours = document.getElementById("programHours").value.trim();
-        const desc = document.getElementById("programDesc").value.trim();
-        const file = document.getElementById("programImage").files[0];
-
-        if (!title) {
-            alert("Title required");
-            return;
-        }
-
-        let imageURL = "";
-
-        if (file) {
-            const imageRef = ref(storage, `programImages/${Date.now()}-${file.name}`);
-
-            await uploadBytes(imageRef, file);
-            imageURL = await getDownloadURL(imageRef);
-        }
-
-        await addDoc(collection(db, "programs"), {
-            title,
-            hours,
-            desc,
-            image: imageURL,
-            joined: []
-        });
-
-        alert("Program added!");
-        closeModal();
-
-    } catch (err) {
-        console.error(err);
-        alert("ERROR: " + err.message);
-    }
-};
-update();
-</script>
-
+<script type="module" src="index.js"></script>
 </body>
 </html>
