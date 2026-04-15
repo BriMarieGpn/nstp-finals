@@ -6,25 +6,71 @@
 <title>I-Tanim | Register</title>
 <link rel="stylesheet" href="style.css">
 </head>
+<body class="pageRegister">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brandName">I-TANIM</span>
+      </div>
+      <div class="topbar-right">
+        <span class="hotline">Volunteer Hotline: 0919 096 6996</span>
+      </div>
+    </header>
 
-<body class="auth">
+    <main class="pageShell">
+      <div class="formPage">
+        <a class="backLink" href="index.html">
+          <span class="arrow">&#8592;</span>
+          <span class="miniBrand">I-TANIM</span>
+        </a>
 
-<div class="card">
-    <h1>REGISTER</h1>
+        <div class="pageTitle">
+          <h2>Volunteer Registration</h2>
+          <p>Create your account and start volunteering with our barangay programs.</p>
+        </div>
 
-    <input type="text" id="fname" placeholder="First Name">
-    <input type="text" id="lname" placeholder="Last Name">
-    <input type="email" id="email" placeholder="Email Address">
-    <input type="password" id="pass" placeholder="Password (Min 6 chars)">
+        <form class="softPanel formPanel" onsubmit="return false;">
+          <div class="fieldRow split21">
+            <input type="text" id="fname" placeholder="First Name">
+            <input type="text" id="lname" placeholder="Last Name">
+          </div>
 
-    <button class="btn-reg" id="reg-btn">CREATE ACCOUNT</button>
+          <div class="fieldRow">
+            <input type="number" id="age" placeholder="Age">
+          </div>
 
-    <div class="back">
-        <a href="index.html">← Back to Login</a>
-    </div>
-</div>
+          <div class="fieldRow">
+            <input type="text" id="address" placeholder="Address">
+          </div>
 
-<script type="module">
+          <div class="fieldRow split11">
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="pass" placeholder="Password">
+          </div>
+
+          <div class="fieldRow selectWrap">
+            <select id="skillCategory">
+              <option selected disabled>Select Skill Category</option>
+              <option>Urban Gardening</option>
+              <option>Community Outreach</option>
+              <option>Waste Management</option>
+              <option>Construction Support</option>
+            </select>
+          </div>
+
+          <div class="fieldRow">
+            <textarea id="otherSkills" rows="4" placeholder="Other Specific Skills"></textarea>
+          </div>
+
+          <div class="fieldRow submitRow">
+            <button type="button" class="wideBtn" id="reg-btn">CREATE ACCOUNT</button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import {
     getAuth,
@@ -53,6 +99,12 @@ const db = getFirestore(app);
 document.getElementById("reg-btn").onclick = async () => {
     const email = document.getElementById("email").value;
     const pass = document.getElementById("pass").value;
+    const fname = document.getElementById("fname").value;
+    const lname = document.getElementById("lname").value;
+    const address = document.getElementById("address").value;
+    const age = document.getElementById("age").value;
+    const skillCategory = document.getElementById("skillCategory").value;
+    const otherSkills = document.getElementById("otherSkills").value;
 
     if (pass.length < 6) {
         alert("Password must be at least 6 characters.");
@@ -63,20 +115,23 @@ document.getElementById("reg-btn").onclick = async () => {
         const res = await createUserWithEmailAndPassword(auth, email, pass);
 
         await setDoc(doc(db, "volunteers", res.user.uid), {
-            firstName: fname.value,
-            lastName: lname.value,
+            firstName: fname,
+            lastName: lname,
             email: email,
+            age: age,
+            address: address,
+            skillCategory: skillCategory,
+            otherSkills: otherSkills,
             status: "Pending",
-            volunteerID: "ITNM-" + res.user.uid.substring(0,5).toUpperCase()
+            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase()
         });
 
-        window.location.href = "dashboard.html";
+        window.location.href = "user.html";
 
     } catch (e) {
         alert(e.message);
     }
 };
 </script>
-
 </body>
 </html>

@@ -2,6 +2,8 @@
     --grad-top: #C8F542;
     --grad-mid: #0B6B57;
     --grad-bot: #062A24;
+    --olive: #3f6b44;
+    --olive-dark: #264224;
 
     --glass: rgba(255,255,255,0.08);
     --border: rgba(255,255,255,0.15);
@@ -10,19 +12,19 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: "Segoe UI", sans-serif;
-    background: linear-gradient(135deg, var(--grad-top), var(--grad-mid), var(--grad-bot));
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(180deg, #f8f4e8 0%, #eef1e5 100%);
     overflow-x: hidden;
-    color: white;
+    color: var(--olive-dark);
 }
 
 .navbar {
     position: sticky;
     top: 0;
     z-index: 9999;
-    background: rgba(6, 42, 36, 0.6);
+    background: rgba(245, 239, 225, 0.98);
     backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(97,107,82,0.18);
 }
 
 .nav-inner {
@@ -35,22 +37,46 @@ body {
 }
 
 .logo {
+    color: #264224;
     font-size: 20px;
     font-weight: 800;
-    color: var(--grad-top);
 }
 
 .nav-links a {
-    color: white;
+    color: #264224;
     margin-left: 18px;
     text-decoration: none;
-    opacity: 0.8;
+    opacity: 0.85;
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    opacity: 1;
 }
 
 .container {
     max-width: 1100px;
     margin: auto;
     padding: 0 20px 40px 20px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(97,107,82,0.18);
+    background: rgba(255,255,255,0.9);
+    color: #264224;
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(63,107,68,0.08);
 }
 
 .debug-panel {

@@ -1,4 +1,4 @@
-import {
+﻿import {
     getStorage,
     ref,
     uploadBytes,
@@ -56,7 +56,7 @@ const initialFallbackPrograms = [
         title: "Tree Planting Drive",
         hours: "4",
         desc: "Join our tree planting drive to help the community.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["tree planting", "environment", "outdoor"]
     },
@@ -65,7 +65,7 @@ const initialFallbackPrograms = [
         title: "Community Clean-Up",
         hours: "2",
         desc: "Help clean local streets and parks.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["cleanup", "teamwork", "environment"]
     },
@@ -74,7 +74,7 @@ const initialFallbackPrograms = [
         title: "Urban Gardening Workshop",
         hours: "3",
         desc: "Learn how to grow food in small spaces.",
-        image: defaultImage,
+        image: "https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=900&q=80",
         joined: [],
         skills: ["gardening", "sustainability", "horticulture"]
     }
@@ -107,7 +107,7 @@ function updateUserUI() {
 function setRoleBasedUI() {
     const isAdmin = currentUser.role === "admin";
     const isUser = currentUser.role === "user";
-    addBtn.style.display = "block"; // Show for testing
+    addBtn.style.display = isAdmin ? "block" : "none";
     if (adminLink) {
         adminLink.style.display = isAdmin ? "inline" : "none";
     }
@@ -127,10 +127,11 @@ setRoleBasedUI();
 updateUserUI();
 
 addBtn.addEventListener("click", () => {
-    console.log("Add button clicked, current role:", currentUser.role);
-    // Temporarily allow for testing
+    if (currentUser.role !== "admin") {
+        alert("Only admins can add programs.");
+        return;
+    }
     modal.style.display = "flex";
-    console.log("Modal display set to flex");
 });
 
 window.closeModal = () => {
@@ -327,12 +328,10 @@ async function uploadProgramImage(file) {
 }
 
 window.submitProgram = async () => {
-    console.log("Submit program called");
-    // Temporarily allow for testing
-    // if (currentUser.role !== "admin") {
-    //     alert("Only admins can add programs.");
-    //     return;
-    // }
+    if (currentUser.role !== "admin") {
+        alert("Only admins can add programs.");
+        return;
+    }
 
     try {
         const title = document.getElementById("programTitle").value.trim();
@@ -515,30 +514,16 @@ function update() {
 function prev() {
     index -= 1;
     update();
-    resetAutoSlide();
 }
 
 function next() {
     index += 1;
     update();
-    resetAutoSlide();
 }
 
 function go(n) {
     index = n;
     update();
-    resetAutoSlide();
-}
-
-function resetAutoSlide() {
-    clearInterval(autoSlide);
-    autoSlide = setInterval(next, 5000);
 }
 
 update();
-let autoSlide = setInterval(next, 5000);
-
-// Make functions global for onclick handlers
-window.prev = prev;
-window.next = next;
-window.go = go;
