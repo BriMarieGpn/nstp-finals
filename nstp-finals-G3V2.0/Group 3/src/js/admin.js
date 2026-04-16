@@ -62,6 +62,8 @@ function savePrograms() {
         })();
     }
     saveAdminStateToFirestore();
+    // Always sync to homepage programs after saving
+    syncProgramsFromPrograms();
 }
 function updateTasks() {
     // Placeholder for task list updates in admin dashboard.
@@ -201,20 +203,28 @@ async function syncProgramsFromPrograms() {
     if (!useFirestore) return;
 
     try {
-        await Promise.all(programs.map(async (program) => {
-            await setDoc(doc(db, 'programs_empty', program.id), {
-                title: program.title,
+        // First, delete all existing programs in Firestore
+        const snap = await getDocs(collection(db, 'programs_empty'));
+        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+
+        // Then add all current programs
+        const addPromises = programs.map(async (program) => {
+            const firestoreData = {
+                title: program.name,  // Fix: use program.name instead of program.title
                 hours: program.hours,
-                requirement: program.requirement,
-                desc: program.desc,
-                image: program.image,
-                joined: program.joined,
-                skills: program.skills,
-                _source: program._source
-            }, { merge: true });
-        }));
+                requirement: program.requirement || 'None',
+                desc: program.desc || '',
+                image: (program.attachments && program.attachments[0] && program.attachments[0].dataUrl) ? program.attachments[0].dataUrl : defaultImage,
+                joined: program.joined || [],
+                skills: program.skills || []
+            };
+            return setDoc(doc(db, 'programs_empty', program.id), firestoreData, { merge: true });
+        });
+        await Promise.all(addPromises);
+        console.log('Successfully synced', programs.length, 'programs to Firestore');
     } catch (err) {
-        console.warn('Could not sync programs from programs to Firestore', err);
+        console.warn('Could not sync programs to Firestore', err);
     }
 }
 
@@ -436,11 +446,17 @@ function closeProgramModal() {
 }
 
 async function saveProgram() {
+    console.log("Admin saveProgram called");
+    console.log("useFirestore:", useFirestore);
+    console.log("auth.currentUser:", auth.currentUser);
+
     const name = document.getElementById('programName').value.trim();
     const desc = document.getElementById('programDesc').value.trim();
     const hours = parseInt(document.getElementById('programHours').value);
     const requirement = document.getElementById('programRequirement').value || 'None';
     const maxVol = parseInt(document.getElementById('programMaxVolunteers').value);
+
+    console.log("Form values:", { name, desc, hours, requirement, maxVol });
 
     if (!name || !desc || !hours || !maxVol) {
         alert('Please fill all required fields');
@@ -450,6 +466,8 @@ async function saveProgram() {
     const modal = document.getElementById('programModal');
     const editId = modal.dataset.editId;
     const newAttachments = await getAttachmentsFromInput();
+
+    console.log("editId:", editId);
 
     if (editId) {
         const program = programs.find(p => p.id === editId);
@@ -477,6 +495,7 @@ async function saveProgram() {
             status: 'active',
             attachments: newAttachments
         };
+        console.log("New program to add:", newProgram);
         programs.push(newProgram);
         logAction('program_add', `Created program: "${name}" (${hours} hours)`, { programId: newProgram.id, hours });
     }
@@ -921,3 +940,13 @@ window.archiveProgram = archiveProgram;
 window.deleteProgram = deleteProgram;
 window.approveProgram = approveProgram;
 window.rejectProgram = rejectProgram;
+
+window.debugAuthState = () => {
+    console.log("=== ADMIN AUTH DEBUG ===");
+    console.log("auth.currentUser:", auth.currentUser);
+    console.log("currentUser (local):", currentUser);
+    console.log("useFirestore:", useFirestore);
+    console.log("Firebase config projectId:", firebaseConfig.projectId);
+    console.log("========================");
+    alert(`Auth: ${auth.currentUser ? 'Logged in as ' + auth.currentUser.email : 'Not logged in'}\nRole: ${currentUser.role}\nFirestore: ${useFirestore ? 'Enabled' : 'Disabled'}`);
+};

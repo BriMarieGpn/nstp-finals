@@ -259,6 +259,8 @@ window.deleteSelectedProgram = async () => {
         } else {
             alert('Program not found.');
         }
+        // Sync deletion to admin programs
+        syncToAdminPrograms();
     } catch (err) {
         console.error(err);
         alert('Error deleting program: ' + err.message);
@@ -410,6 +412,31 @@ function syncProgramsFromProgramsIfNeeded() {
         saveLocalPrograms();
     } catch {
         // ignore
+    }
+}
+
+function syncToAdminPrograms() {
+    // Sync homepage programs back to admin programs format
+    try {
+        const adminPrograms = programDocs.map(p => ({
+            id: p.id,
+            name: p.title,
+            desc: p.desc || '',
+            hours: parseInt(p.hours) || 0,
+            requirement: p.requirement || 'None',
+            maxVolunteers: 10, // Default value since homepage doesn't track this
+            assigned: [],
+            status: 'active',
+            attachments: p.image && p.image !== defaultImage ? [{ dataUrl: p.image, name: 'program-image.jpg', type: 'image/jpeg' }] : [],
+            joined: p.joined || [],
+            skills: p.skills || []
+        }));
+
+        // Save to admin localStorage
+        localStorage.setItem(localProgramsKey, JSON.stringify(adminPrograms));
+        console.log('Synced', adminPrograms.length, 'programs to admin storage');
+    } catch (err) {
+        console.warn('Could not sync to admin programs', err);
     }
 }
 
@@ -592,6 +619,8 @@ window.joinProgram = async (id, joined) => {
             renderPrograms(programDocs);
             const programName = program.title || 'Unknown Program';
             logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
+            // Sync join to admin programs
+            syncToAdminPrograms();
             return;
         }
         alert("Program not found.");
@@ -604,7 +633,14 @@ window.joinProgram = async (id, joined) => {
         await updateDoc(doc(db, "programs_empty", id), {
             joined: arrayUnion(currentUser.id)
         });
+        // Update local programDocs
+        if (program) {
+            program.joined = [...new Set([...(program.joined || []), currentUser.id])];
+        }
+        renderPrograms(programDocs);
         logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
+        // Sync join to admin programs
+        syncToAdminPrograms();
     } catch (err) {
         console.error(err);
         logActivityEvent('error', `Failed to join program - ${err.message}`, { error: true });
@@ -639,8 +675,13 @@ async function uploadProgramImage(file) {
 }
 
 window.submitProgram = async () => {
+    console.log("submitProgram called");
+    console.log("currentUser:", currentUser);
+    console.log("currentUser.role:", currentUser.role);
+    console.log("useFirestore:", useFirestore);
+
     if (currentUser.role !== "admin") {
-        alert("Only admins can add programs.");
+        alert("Only admins can add programs. Current role: " + currentUser.role);
         return;
     }
 
@@ -651,12 +692,15 @@ window.submitProgram = async () => {
         const desc = document.getElementById("programDesc").value.trim();
         const file = document.getElementById("programImage").files[0];
 
+        console.log("Form values:", { title, hours, requirement, desc, file: file ? "file selected" : "no file" });
+
         if (!title) {
             alert("Title required");
             return;
         }
 
         const isEditing = window.editingProgramId !== undefined;
+        console.log("isEditing:", isEditing, "editingProgramId:", window.editingProgramId);
         
         // Try to upload image, but don't fail if it doesn't work
         let imageURL = defaultImage;
@@ -682,6 +726,8 @@ window.submitProgram = async () => {
             joined: []
         };
 
+        console.log("Program data to save:", programData);
+
         if (isEditing) {
             // Update existing program
             const index = programDocs.findIndex(p => p.id === window.editingProgramId);
@@ -690,6 +736,7 @@ window.submitProgram = async () => {
             }
             if (useFirestore) {
                 try {
+                    console.log("Updating Firestore document:", window.editingProgramId);
                     await updateDoc(doc(db, "programs_empty", window.editingProgramId), programData);
                     console.log("Firestore update successful");
                     logActivityEvent('program_update', `Updated program: "${title}"`, { programId: window.editingProgramId, hours });
@@ -699,27 +746,34 @@ window.submitProgram = async () => {
                     throw fsErr;
                 }
             }
+            // Also sync to admin programs
+            syncToAdminPrograms();
             window.editingProgramId = undefined;
             alert("Program updated!");
         } else {
             // Add new program
             const newProgram = { id: `local-${Date.now()}`, ...programData };
+            console.log("New program object:", newProgram);
 
             if (useFirestore) {
                 try {
-                    console.log("Adding to Firestore:", programData);
+                    console.log("Adding to Firestore collection: programs_empty");
+                    console.log("Auth state - currentUser:", auth.currentUser);
                     const docRef = await addDoc(collection(db, "programs_empty"), programData);
                     newProgram.id = docRef.id;
                     console.log("Firestore add successful, doc ID:", newProgram.id);
                     logActivityEvent('program_add', `Created program: "${title}" (${hours} hours)`, { programId: newProgram.id, hours });
                 } catch (fsErr) {
                     console.error("Firestore add failed", fsErr);
+                    console.error("Error details:", fsErr.code, fsErr.message);
                     logActivityEvent('error', `Failed to create program: "${title}" - ${fsErr.message}`, { error: true });
                     throw fsErr;
                 }
             }
 
             programDocs.push(newProgram);
+            // Also sync to admin programs
+            syncToAdminPrograms();
             alert("Program added!");
         }
         
@@ -739,53 +793,59 @@ window.submitProgram = async () => {
         closeModal();
     } catch (err) {
         console.error("submitProgram error:", err);
+        console.error("Error code:", err.code);
+        console.error("Error message:", err.message);
         alert("ERROR: " + (err.message || err));
     }
 };
 
 function listenPrograms() {
     if (!useFirestore) {
+        // Offline mode: try to sync from admin programs first, then load local
+        syncProgramsFromProgramsIfNeeded();
         programDocs.length = 0;
         const loaded = loadLocalPrograms();
-        console.log("listenPrograms (offline mode): loaded", loaded.length, "programs from", (loaded[0]?.title || 'unknown'));
+        console.log("listenPrograms (offline mode): loaded", loaded.length, "programs");
         programDocs.push(...loaded);
-        console.log("listenPrograms: programDocs now has", programDocs.length, "programs");
         renderPrograms(programDocs);
-        console.log("listenPrograms: renderPrograms complete");
         return;
     }
 
     try {
+        // Online mode: listen to Firestore, but also sync from admin programs if they exist
+        syncProgramsFromProgramsIfNeeded();
+
         onSnapshot(collection(db, "programs_empty"), (snap) => {
             programDocs.length = 0;
             snap.forEach((d) => {
                 programDocs.push({ id: d.id, ...d.data() });
             });
+            console.log("listenPrograms (online): loaded", programDocs.length, "programs from Firestore");
             renderPrograms(programDocs);
         }, (err) => {
-            console.warn("Realtime program list unavailable", err);
+            console.warn("Realtime program list unavailable, falling back to local", err);
             programDocs.length = 0;
+            const loaded = loadLocalPrograms();
+            programDocs.push(...loaded);
             renderPrograms(programDocs);
         });
     } catch (err) {
-        console.warn("Realtime program list unavailable", err);
+        console.warn("Realtime program list unavailable, falling back to local", err);
         programDocs.length = 0;
+        const loaded = loadLocalPrograms();
+        programDocs.push(...loaded);
         renderPrograms(programDocs);
     }
 }
 
-window.debugAddSampleProgram = () => {
-    programDocs.push({
-        id: `debug-${Date.now()}`,
-        title: "Debug Sample Program",
-        hours: "2",
-        desc: "Check hover, popup, and card display.",
-        image: defaultImage,
-        joined: []
-    });
-    saveLocalPrograms();
-    renderPrograms(programDocs);
-    alert("Debug sample program added.");
+window.debugAuthState = () => {
+    console.log("=== AUTH DEBUG ===");
+    console.log("auth.currentUser:", auth.currentUser);
+    console.log("currentUser (local):", currentUser);
+    console.log("useFirestore:", useFirestore);
+    console.log("Firebase config projectId:", firebaseConfig.projectId);
+    console.log("==================");
+    alert(`Auth: ${auth.currentUser ? 'Logged in as ' + auth.currentUser.email : 'Not logged in'}\nRole: ${currentUser.role}\nFirestore: ${useFirestore ? 'Enabled' : 'Disabled'}`);
 };
 
 window.debugShowPrograms = () => {
