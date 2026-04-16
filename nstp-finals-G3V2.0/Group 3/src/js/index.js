@@ -62,8 +62,12 @@ const localStorageKey = "itanimLocalPrograms";
 const localProgramsKey = "itanimPrograms";
 const initialFallbackPrograms = [];
 
+function normalizeRole(role) {
+    return String(role || '').toLowerCase();
+}
+
 function getCurrentUserData() {
-    if (currentUser.role === "user") {
+    if (normalizeRole(currentUser.role) === "user") {
         const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
         if (storedUsers.length > 0) {
             return storedUsers[0];
@@ -110,15 +114,16 @@ function updateUserUI() {
 }
 
 function updateAuthLinks() {
-    const signedIn = isAuthenticated && (currentUser.role === "user" || currentUser.role === "admin");
+    const role = normalizeRole(currentUser.role);
+    const signedIn = isAuthenticated && (role === "user" || role === "admin");
 
     if (navLoginLink) navLoginLink.style.display = signedIn ? "none" : "inline";
     if (navRegisterLink) navRegisterLink.style.display = signedIn ? "none" : "inline";
     if (pageLoginBtn) pageLoginBtn.style.display = signedIn ? "none" : "inline";
     if (pageRegisterBtn) pageRegisterBtn.style.display = signedIn ? "none" : "inline";
 
-    if (userDashboardLink) userDashboardLink.style.display = signedIn && currentUser.role === "user" ? "inline" : "none";
-    if (adminLink) adminLink.style.display = signedIn && currentUser.role === "admin" ? "inline" : "none";
+    if (userDashboardLink) userDashboardLink.style.display = signedIn && role === "user" ? "inline" : "none";
+    if (adminLink) adminLink.style.display = signedIn && role === "admin" ? "inline" : "none";
 }
 
 async function loadCurrentUserFromAuth(user) {
@@ -149,6 +154,10 @@ async function loadCurrentUserFromAuth(user) {
         currentUser = { id: user.uid, role: "user" };
     }
 
+    if (currentUser.role) {
+        currentUser.role = normalizeRole(currentUser.role);
+    }
+
     updateUserUI();
     updateAuthLinks();
     setRoleBasedUI();
@@ -171,8 +180,9 @@ function ensureProgramListener() {
 onAuthStateChanged(auth, loadCurrentUserFromAuth);
 
 function setRoleBasedUI() {
-    const isAdmin = currentUser.role === "admin";
-    const isUser = currentUser.role === "user";
+    const role = normalizeRole(currentUser.role);
+    const isAdmin = role === "admin";
+    const isUser = role === "user";
     addBtn.style.display = isAuthenticated && isAdmin ? "block" : "none";
     if (adminLink) {
         adminLink.style.display = isAuthenticated && isAdmin ? "inline" : "none";
@@ -181,7 +191,7 @@ function setRoleBasedUI() {
         userDashboardLink.style.display = isAuthenticated && isUser ? "inline" : "none";
     }
     if (roleSwitcher) {
-        roleSwitcher.value = currentUser.role;
+        roleSwitcher.value = role;
     }
     setDebugPanelVisibility();
     setTempUserSwitcherVisibility();
@@ -189,17 +199,17 @@ function setRoleBasedUI() {
 
 function setDebugPanelVisibility() {
     if (!adminDebugPanel) return;
-    adminDebugPanel.style.display = currentUser.role === "admin" ? "flex" : "none";
+    adminDebugPanel.style.display = normalizeRole(currentUser.role) === "admin" ? "flex" : "none";
 }
 
 function setTempUserSwitcherVisibility() {
     const tempUserSwitcher = document.getElementById("tempUserSwitcher");
     if (!tempUserSwitcher) return;
-    tempUserSwitcher.style.display = isAuthenticated && currentUser.role === "admin" ? "flex" : "none";
+    tempUserSwitcher.style.display = isAuthenticated && normalizeRole(currentUser.role) === "admin" ? "flex" : "none";
 }
 
 roleSwitcher.addEventListener("change", (e) => {
-    currentUser.role = e.target.value;
+    currentUser.role = normalizeRole(e.target.value);
     updateUserUI();
     setRoleBasedUI();
     renderPrograms(programDocs);
@@ -603,10 +613,12 @@ function showProgramDetail(program) {
     detailJoined.textContent = `${(program.joined || []).length}`;
     document.getElementById('detailRequirement').textContent = program.requirement || 'None';
     
+    console.log('showProgramDetail:', { isAuthenticated, currentUser, program });
+
     const detailAction = document.getElementById('detailAction');
     if (detailAction) {
         detailAction.innerHTML = '';
-        if (currentUser.role === 'user' || currentUser.role === 'admin') {
+        if (isAuthenticated) {
             const joinBtn = document.createElement('button');
             joinBtn.textContent = (program.joined || []).includes(currentUser.id) ? 'Joined' : 'Join';
             joinBtn.style.flex = '1';
@@ -621,6 +633,11 @@ function showProgramDetail(program) {
                 joinProgram(program.id, program.joined || []);
             };
             detailAction.appendChild(joinBtn);
+        } else {
+            const loginHint = document.createElement('small');
+            loginHint.textContent = 'Login to join';
+            loginHint.style.opacity = '0.7';
+            detailAction.appendChild(loginHint);
         }
     }
     
@@ -951,7 +968,12 @@ function listenPrograms() {
                 const data = snap.data();
                 const programs = data.programs || [];
                 console.log("listenPrograms (online): loaded", programs.length, "programs from admin/state");
-                
+
+                if (programs.length === 0 && programDocs.length > 0) {
+                    console.warn("admin/state returned empty programs but local list exists; preserving current list.");
+                    return;
+                }
+
                 programDocs.length = 0;
                 programs.forEach((p) => {
                     programDocs.push({ 
@@ -968,17 +990,23 @@ function listenPrograms() {
             }
         }, (err) => {
             console.warn("Could not listen to admin/state", err);
-            programDocs.length = 0;
+            if (programDocs.length > 0) {
+                console.warn("Keeping existing program list after Firestore listen error.");
+                return;
+            }
             const loaded = loadLocalPrograms();
+            programDocs.length = 0;
             programDocs.push(...loaded);
             renderPrograms(programDocs);
         });
     } catch (err) {
         console.warn("Realtime program list unavailable, falling back to local", err);
-        programDocs.length = 0;
-        const loaded = loadLocalPrograms();
-        programDocs.push(...loaded);
-        renderPrograms(programDocs);
+        if (programDocs.length === 0) {
+            const loaded = loadLocalPrograms();
+            programDocs.length = 0;
+            programDocs.push(...loaded);
+            renderPrograms(programDocs);
+        }
     }
 }
 
