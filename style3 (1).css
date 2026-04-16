@@ -1,0 +1,510 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #FFF8EC;
+    font-family: Arial, sans-serif;
+    padding: 30px 20px;
+    min-height: 100vh;
+    font-size: 14px;
+}
+
+/* --- Navigation Styles --- */
+.navbar {
+    background-color: #546B41;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    margin: 0 0 30px 0;
+    border-radius: 50px;
+    height: 70px;
+    color: white;
+    font-weight: bold;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo-circle {
+    width: 45px;
+    height: 45px;
+    background: #FFF8EC;
+    border-radius: 50%;
+    margin-right: 12px;
+    overflow: hidden;
+    background-image: url('https://png.pngtree.com/png-vector/20190521/ourmid/pngtree-nature-logo-png-image_1052608.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.brand-container {
+    position: relative;
+    margin: 0 20px;
+    cursor: pointer;
+}
+
+.brand-highlight {
+    background-color: #99AD7A;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    padding: 0 25px;
+}
+
+.brand-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #546B41;
+    z-index: 100;
+}
+
+.brand-container:hover .brand-dropdown {
+    display: block;
+}
+
+.side-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #FFF8EC;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: bold;
+    gap: 15px;
+    font-family: Arial, sans-serif;
+    text-transform: uppercase;
+}
+
+.side-item i {
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.side-item.active { background-color: #546B41; }
+.side-item:not(.active) { background-color: #99AD7A; }
+.side-item:hover { background-color: #546B41; }
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 30px;
+}
+
+.nav-links a {
+    color: #FFF8EC;
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
+/* --- Profile Dropdown --- */
+.profile-container {
+    position: relative;
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.profile-icon { font-size: 40px; }
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 120px;
+    background-color: #99ad7a;
+    z-index: 100;
+}
+
+.profile-container:hover .dropdown-menu { display: block; }
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px;
+    color: #FFF8EC;
+    text-decoration: none;
+    font-size: 14px;
+    text-align: center;
+}
+
+.dropdown-menu a:first-child { background-color: #546B41; }
+
+/* --- Search Bar --- */
+.search-container {
+    display: flex;
+    justify-content: center;
+    
+}
+
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 600px;
+    padding: 15px 25px 15px 60px;
+    border: 3px solid #546B41;
+    border-radius: 50px;
+    background-color: #99ad7a;
+    font-size: 1em;
+    color: #333;
+    outline: none;
+    font-style: italic;
+}
+
+.search-bar::placeholder { color: #888; font-style: italic; }
+.search-bar:focus { border-color: #546B41; background-color: #FFF8EC; }
+.search-icons { position: absolute; left: 20px; font-size: 1.2em; pointer-events: none; }
+.microphone-icon { position: absolute; right: 20px; cursor: pointer; color: #333; font-size: 1.1em; }
+
+/* --- Tools Grid --- */
+.tools-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.tool_item {
+    text-align: center;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    display: block;
+}
+
+.tool_item:hover { transform: translateY(-10px); }
+
+.tool-card {
+    background-color: #FFF8EC;
+    border: 6px solid #546B41;
+    border-radius: 20px;
+    padding: 20px;
+    transition: box-shadow 0.3s ease;
+}
+
+.tool_item:hover .tool-card { box-shadow: 0 10px 20px rgba(84, 107, 65, 0.2); }
+
+.tool-icon {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 110px;
+    margin-bottom: 0;
+}
+
+.tool-title {
+    color: #546B41;
+    font-size: 1.6em;
+    font-style: italic;
+    margin-top: 12px;
+    display: block;
+    text-decoration: none;
+}
+
+/* Soil Preparation Tool Detail UI */
+.tool-info-page .tools-section {
+    padding: 50px 20px;
+    max-width: 1320px;
+    margin: 0 auto;
+}
+
+.tool-info-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.45fr 0.9fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.preview-panel,
+.info-panel,
+.recommend-panel {
+    opacity: 0;
+    animation: fadeInUp 0.7s ease both;
+}
+
+.preview-card,
+.info-card,
+.recommend-card {
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 24px 55px rgba(37, 53, 25, 0.12);
+    border: 1px solid rgba(89, 110, 76, 0.12);
+    position: relative;
+}
+
+.preview-card {
+    min-height: 560px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.preview-card:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 26px 60px rgba(37, 53, 25, 0.18);
+}
+
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.info-card {
+    padding-top: 0;
+}
+
+.info-header {
+    background-color: #3f7045;
+    color: #ffffff;
+    padding: 0 28px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.info-body {
+    padding: 34px 34px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+}
+
+.floating-action {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid rgba(89, 110, 76, 0.18);
+    box-shadow: 0 18px 34px rgba(89, 110, 76, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.floating-action:hover {
+    transform: translateY(-3px) scale(1.05) rotate(3deg);
+    box-shadow: 0 22px 40px rgba(89, 110, 76, 0.22);
+}
+
+.floating-action i {
+    color: #3f7045;
+    font-size: 1.2rem;
+}
+
+.info-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: #5f7a56;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.tool-title-large {
+    margin: 0;
+    font-size: clamp(2.4rem, 2vw, 3rem);
+    color: #20321b;
+    line-height: 1.02;
+}
+
+.tool-description {
+    margin: 0;
+    color: #4d5f43;
+    line-height: 1.85;
+    font-size: 1rem;
+    max-width: 60ch;
+}
+
+.tool-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.tool-action-button {
+    background-color: #3f7045;
+    color: #ffffff;
+    border: none;
+    padding: 16px 26px;
+    border-radius: 999px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: transform 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 16px 30px rgba(63, 112, 69, 0.18);
+    min-width: 160px;
+}
+
+.tool-action-button:hover {
+    transform: translateY(-2px);
+    background-color: #335d3b;
+    box-shadow: 0 22px 38px rgba(63, 112, 69, 0.24);
+}
+
+.tool-action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 12px 18px rgba(63, 112, 69, 0.18);
+}
+
+.recommend-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.recommend-header {
+    background-color: #3f7045;
+    color: #ffffff;
+    text-align: center;
+    padding: 18px 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.92rem;
+}
+
+.recommend-list {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.recommend-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: #fbfcf8;
+    border-radius: 18px;
+    border: 1px solid rgba(89, 110, 76, 0.1);
+    cursor: pointer;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+    text-align: left;
+}
+
+.recommend-item:hover {
+    transform: translateX(4px);
+    background: #f4f8ee;
+    box-shadow: 0 16px 30px rgba(89, 110, 76, 0.12);
+}
+
+.recommend-item.active {
+    background: #e8f2dc;
+    border-color: #3f7045;
+}
+
+.recommend-thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.recommend-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recommend-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.recommend-category {
+    font-size: 0.77rem;
+    color: #6c7f5c;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.recommend-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #24321a;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 1180px) {
+    .tool-info-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .preview-card {
+        min-height: 420px;
+    }
+}
+
+@media (max-width: 760px) {
+    .tool-info-page .tools-section {
+        padding: 28px 16px;
+    }
+
+    .info-header {
+        height: 54px;
+    }
+
+    .tool-actions {
+        flex-direction: column;
+    }
+
+    .tool-action-button {
+        width: 100%;
+    }
+
+    .recommend-list {
+        max-height: none;
+    }
+}
+
+
