@@ -6,11 +6,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
     getFirestore,
     collection,
     addDoc,
     onSnapshot,
     doc,
+    getDoc,
     updateDoc,
     deleteDoc,
     arrayUnion
@@ -18,6 +23,7 @@ import {
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
@@ -48,6 +54,10 @@ const detailHours = document.getElementById("detailHours");
 const detailJoined = document.getElementById("detailJoined");
 const adminLink = document.getElementById("adminLink");
 const userDashboardLink = document.getElementById("userDashboardLink");
+const navLoginLink = document.getElementById("navLoginLink");
+const navRegisterLink = document.getElementById("navRegisterLink");
+const pageLoginBtn = document.getElementById("pageLoginBtn");
+const pageRegisterBtn = document.getElementById("pageRegisterBtn");
 
 const localStorageKey = "itanimLocalPrograms";
 const localProgramsKey = "itanimPrograms";
@@ -75,6 +85,50 @@ function updateUserUI() {
         userLabel.innerText += " (offline demo)";
     }
 }
+
+function updateAuthLinks() {
+    const signedIn = currentUser.role === "user" || currentUser.role === "admin";
+
+    if (navLoginLink) navLoginLink.style.display = signedIn ? "none" : "inline";
+    if (navRegisterLink) navRegisterLink.style.display = signedIn ? "none" : "inline";
+    if (pageLoginBtn) pageLoginBtn.style.display = signedIn ? "none" : "inline";
+    if (pageRegisterBtn) pageRegisterBtn.style.display = signedIn ? "none" : "inline";
+
+    if (userDashboardLink) userDashboardLink.style.display = currentUser.role === "user" ? "inline" : "none";
+    if (adminLink) adminLink.style.display = currentUser.role === "admin" ? "inline" : "none";
+}
+
+async function loadCurrentUserFromAuth(user) {
+    if (!user) {
+        currentUser = { id: "visitor", role: "visitor" };
+        updateUserUI();
+        updateAuthLinks();
+        setRoleBasedUI();
+        return;
+    }
+
+    try {
+        const userDoc = await getDoc(doc(db, "volunteers", user.uid));
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            currentUser = {
+                id: user.uid,
+                role: data.role || "user"
+            };
+        } else {
+            currentUser = { id: user.uid, role: "user" };
+        }
+    } catch (err) {
+        console.warn("Could not read user profile from Firestore", err);
+        currentUser = { id: user.uid, role: "user" };
+    }
+
+    updateUserUI();
+    updateAuthLinks();
+    setRoleBasedUI();
+}
+
+onAuthStateChanged(auth, loadCurrentUserFromAuth);
 
 function setRoleBasedUI() {
     const isAdmin = currentUser.role === "admin";

@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -9,7 +9,7 @@ const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const adminStateDoc = doc(db, 'admin', 'state');
 const programsCollection = collection(db, 'programs_empty');
-const currentUserId = 'user1';
+let currentUserId = null;
 
 let users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
 let programs = [];
@@ -34,12 +34,21 @@ function getCurrentUser() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (useFirestore) {
-        initFirestoreUserState();
-        listenFirestorePrograms();
-    } else {
-        loadUserDashboard();
-    }
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        currentUserId = user.uid;
+
+        if (useFirestore) {
+            initFirestoreUserState();
+            listenFirestorePrograms();
+        } else {
+            loadUserDashboard();
+        }
+    });
 });
 
 async function initFirestoreUserState() {

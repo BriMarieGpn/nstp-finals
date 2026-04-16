@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -646,38 +646,62 @@ async function logoutAdmin() {
     }
 }
 
+async function loadAdminSession() {
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        try {
+            const userDoc = await getDoc(doc(db, 'volunteers', user.uid));
+            if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+                window.location.href = 'user.html';
+                return;
+            }
+        } catch (err) {
+            console.warn('Could not verify admin role', err);
+            window.location.href = 'login.html';
+            return;
+        }
+
+        updateDashboard();
+        updateAnalytics();
+        updateVolunteers();
+        loadRestrictionsUI();
+        updateSkills();
+        updateTasks();
+        updateValidation();
+        updateBadges();
+        updateCertifications();
+        updateNotifications();
+
+        // Attachment preview behavior
+        const attachmentInput = document.getElementById('taskAttachments');
+        if (attachmentInput) {
+            attachmentInput.addEventListener('change', async () => {
+                try {
+                    const atts = await getAttachmentsFromInput();
+                    renderTaskAttachmentPreview(atts);
+                } catch (err) {
+                    console.warn(err);
+                    renderTaskAttachmentPreview([]);
+                }
+            });
+        }
+
+        // Ensure programs mirror is present on load
+        syncProgramsFromTasks();
+        initFirestoreAdminState();
+        window.logoutAdmin = logoutAdmin;
+        window.showTab = showTab;
+    });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    updateDashboard();
-    updateAnalytics();
-    updateVolunteers();
-    loadRestrictionsUI();
-    updateSkills();
-    updateTasks();
-    updateValidation();
-    updateBadges();
-    updateCertifications();
-    updateNotifications();
-
-    // Attachment preview behavior
-    const attachmentInput = document.getElementById('taskAttachments');
-    if (attachmentInput) {
-        attachmentInput.addEventListener('change', async () => {
-            try {
-                const atts = await getAttachmentsFromInput();
-                renderTaskAttachmentPreview(atts);
-            } catch (err) {
-                console.warn(err);
-                renderTaskAttachmentPreview([]);
-            }
-        });
-    }
-
-    // Ensure programs mirror is present on load
-    syncProgramsFromTasks();
-    initFirestoreAdminState();
-    window.logoutAdmin = logoutAdmin;
-    window.showTab = showTab;
+    loadAdminSession();
+});
     window.saveRestrictionsFromUI = saveRestrictionsFromUI;
     window.addSkill = addSkill;
     window.deleteSkill = deleteSkill;
