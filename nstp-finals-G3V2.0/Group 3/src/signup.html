@@ -75,13 +75,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
     getAuth,
-    createUserWithEmailAndPassword
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
     getFirestore,
     doc,
-    setDoc
+    setDoc,
+    getDoc
 } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import firebaseConfig from "./js/firebaseConfig.js";
@@ -89,6 +91,34 @@ import firebaseConfig from "./js/firebaseConfig.js";
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+async function validateRegistrationRestrictions(age, address) {
+    try {
+        const adminState = await getDoc(doc(db, 'admin', 'state'));
+        if (!adminState.exists()) return { ok: true };
+        const restrictions = adminState.data()?.restrictions || {};
+        const minAge = Number(restrictions.minAge || 0);
+        const validBarangaysRaw = String(restrictions.validBarangays || 'All').trim();
+        const validBarangays = validBarangaysRaw.toLowerCase() === 'all'
+            ? []
+            : validBarangaysRaw.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
+        const ageNumber = Number(age);
+        if (minAge > 0 && ageNumber < minAge) {
+            return { ok: false, message: `Registration is restricted to age ${minAge} and above.` };
+        }
+        if (validBarangays.length > 0) {
+            const addressLower = String(address || '').toLowerCase();
+            const matchesAnyBarangay = validBarangays.some((barangay) => addressLower.includes(barangay));
+            if (!matchesAnyBarangay) {
+                return { ok: false, message: `Address is outside allowed barangays: ${validBarangays.join(', ')}` };
+            }
+        }
+        return { ok: true };
+    } catch (err) {
+        console.warn('Could not validate restrictions, allowing registration fallback', err);
+        return { ok: true };
+    }
+}
 
 document.getElementById("reg-btn").onclick = async () => {
     const email = document.getElementById("email").value.trim();
@@ -110,7 +140,25 @@ document.getElementById("reg-btn").onclick = async () => {
         return;
     }
 
+    const restrictionCheck = await validateRegistrationRestrictions(age, address);
+    if (!restrictionCheck.ok) {
+        alert(restrictionCheck.message);
+        return;
+    }
+
     try {
+        const existingMethods = await fetchSignInMethodsForEmail(auth, email);
+        if (existingMethods && existingMethods.length > 0) {
+            if (existingMethods.includes('password')) {
+                alert('An account already exists with this email. Please log in or reset your password.');
+            } else if (existingMethods.includes('google.com')) {
+                alert('This email is already registered with Google sign-in. Please use Google login.');
+            } else {
+                alert('An account already exists with this email. Please use the existing sign-in method.');
+            }
+            return;
+        }
+
         const res = await createUserWithEmailAndPassword(auth, email, pass);
 
         await setDoc(doc(db, "volunteers", res.user.uid), {
@@ -121,9 +169,13 @@ document.getElementById("reg-btn").onclick = async () => {
             address: address,
             skillCategory: skillCategory,
             otherSkills: otherSkills,
-            status: "Pending",
+            status: "pending",
             role: "user",
-            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase()
+            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
+            createdAt: new Date().toISOString(),
+            hours: 0,
+            enrolledPrograms: [],
+            completedPrograms: []
         });
 
         // Also save to localStorage for local fallback
@@ -136,9 +188,13 @@ document.getElementById("reg-btn").onclick = async () => {
             address: address,
             skillCategory: skillCategory,
             otherSkills: otherSkills,
-            status: "Pending",
+            status: "pending",
             volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
-            role: "user"
+            role: "user",
+            createdAt: new Date().toISOString(),
+            hours: 0,
+            enrolledPrograms: [],
+            completedPrograms: []
         };
         let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
         users.push(userData);
@@ -148,8 +204,14 @@ document.getElementById("reg-btn").onclick = async () => {
         window.location.href = "user.html";
 
     } catch (e) {
-        logSignupEvent('signup_failed', email, { error: e.message });
-        alert(`Signup failed: ${e.message}`);
+        logSignupEvent('signup_failed', email, { error: e.message, code: e.code });
+        if (e.code === 'auth/email-already-in-use') {
+            alert('That email is already registered. Please use the login page or reset your password.');
+        } else if (e.code === 'auth/invalid-email') {
+            alert('The email address is invalid. Please enter a valid email.');
+        } else {
+            alert(`Signup failed: ${e.message}`);
+        }
     }
 };
 

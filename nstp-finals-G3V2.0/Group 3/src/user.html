@@ -86,11 +86,11 @@
             </div>
         </div>
 
-        <!-- Assigned Tasks Section -->
+        <!-- Assigned Programs Section -->
         <div class="dashboard-section">
-            <h2>My Tasks</h2>
+            <h2>My Assigned Programs</h2>
             <div id="assignedProgramsList" class="programs-list">
-                <!-- Tasks will be loaded here -->
+                <!-- Programs will be loaded here -->
             </div>
         </div>
 
@@ -105,6 +105,11 @@
         <!-- Certifications Section -->
         <div class="dashboard-section">
             <h2>My Certifications</h2>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <textarea id="certRequestReason" placeholder="Why are you requesting certification?" style="width:100%; min-height:70px;"></textarea>
+                <textarea id="certProofDetails" placeholder="Proof details (programs completed, proof links, evidence notes)" style="width:100%; min-height:70px; margin-top:8px;"></textarea>
+                <button id="requestCertButton" class="btn-primary" style="margin-top:8px;">Request Certification</button>
+            </div>
             <div id="userCertificationsList" class="certifications-list">
                 <!-- Certifications will be loaded here -->
             </div>

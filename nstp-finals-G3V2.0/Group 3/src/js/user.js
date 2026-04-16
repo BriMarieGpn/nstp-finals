@@ -12,12 +12,16 @@ const programsCollection = collection(db, 'programs_empty');
 let currentUserId = null;
 let currentUserProfile = null;
 
+function normalizeRole(role) {
+    return String(role || '').toLowerCase().trim();
+}
+
 let users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
 let programs = [];
 
 let badges = JSON.parse(localStorage.getItem('badges') || '[]');
-let certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
-let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+let certifications = JSON.parse(localStorage.getItem('itanimCerts') || localStorage.getItem('certifications') || '[]');
+let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || localStorage.getItem('notifications') || '[]');
 
 // Activity logging for user actions
 function logUserActivity(actionType, actionDetail, metadata = {}) {
@@ -62,7 +66,7 @@ async function fetchCurrentUserProfile(uid, email) {
                 profile.name = profile.name || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.email || 'Volunteer';
                 profile.enrolledPrograms = profile.enrolledPrograms || [];
                 profile.hours = profile.hours || 0;
-                profile.badges = profile.badges || [];
+                profile.badges = Array.isArray(profile.badges) ? profile.badges : (profile.badge ? [profile.badge] : []);
                 profile.certifications = profile.certifications || [];
                 profile.skills = profile.skills || [];
             }
@@ -86,6 +90,56 @@ async function fetchCurrentUserProfile(uid, email) {
     }
 
     return profile;
+}
+
+function normalizeProgram(program) {
+    return {
+        ...program,
+        id: program.id,
+        title: program.title || program.name || 'Untitled Program',
+        description: program.description || program.desc || 'No description available.',
+        date: program.date || 'TBD',
+        location: program.location || 'Community Area',
+        duration: Number(program.duration ?? program.hours ?? 0),
+        hours: Number(program.hours ?? program.duration ?? 0),
+        joined: Array.isArray(program.joined) ? program.joined : [],
+        assigned: Array.isArray(program.assigned) ? program.assigned : []
+    };
+}
+
+function getUserBadgeCount(user) {
+    if (Array.isArray(user.badges) && user.badges.length > 0) return user.badges.length;
+    if (user.badge && user.badge !== 'None') return 1;
+    return 0;
+}
+
+function getUserCertificationCount(user) {
+    const approvedCerts = certifications.filter((cert) => cert.userId === user.id && cert.status === 'approved');
+    if (approvedCerts.length > 0) return approvedCerts.length;
+    return Array.isArray(user.certifications) ? user.certifications.length : 0;
+}
+
+function getCertificationEligibility(user) {
+    const completedPrograms = Array.isArray(user.completedPrograms) ? user.completedPrograms.length : 0;
+    const hours = Number(user.hours || 0);
+    return {
+        eligible: hours > 0 && completedPrograms > 0,
+        hours,
+        completedPrograms
+    };
+}
+
+function getCertificationStatusBadge(status) {
+    const normalized = String(status || '').toLowerCase().trim();
+    const colorMap = {
+        requested: { bg: '#f0ad4e', text: '#1f1f1f', label: 'Requested' },
+        approved: { bg: '#5cb85c', text: '#ffffff', label: 'Approved' },
+        rejected: { bg: '#d9534f', text: '#ffffff', label: 'Rejected' },
+        cancelled: { bg: '#6c757d', text: '#ffffff', label: 'Cancelled' },
+        pending: { bg: '#f0ad4e', text: '#1f1f1f', label: 'Pending' }
+    };
+    const style = colorMap[normalized] || { bg: '#6c757d', text: '#ffffff', label: normalized || 'Unknown' };
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${style.bg};color:${style.text};font-size:12px;font-weight:700;">${style.label}</span>`;
 }
 
 function getCurrentUser() {
@@ -144,7 +198,7 @@ async function initFirestoreUserState() {
             }
             const state = snapshot.data();
             users = Array.isArray(state.users) ? state.users : users;
-            programs = Array.isArray(state.programs) ? state.programs : programs;
+            programs = Array.isArray(state.programs) ? state.programs.map(normalizeProgram) : programs;
             badges = Array.isArray(state.badges) ? state.badges : badges;
             certifications = Array.isArray(state.certifications) ? state.certifications : certifications;
             notifications = Array.isArray(state.notifications) ? state.notifications : notifications;
@@ -161,7 +215,7 @@ async function listenFirestorePrograms() {
         onSnapshot(programsCollection, (snapshot) => {
             programs = [];
             snapshot.forEach((docSnapshot) => {
-                programs.push({ id: docSnapshot.id, ...docSnapshot.data() });
+                programs.push(normalizeProgram({ id: docSnapshot.id, ...docSnapshot.data() }));
             });
             loadUserDashboard();
         });
@@ -180,8 +234,8 @@ function loadUserDashboard() {
     // Update stats
     document.getElementById('totalHours').textContent = currentUser.hours || 0;
     document.getElementById('enrolledPrograms').textContent = currentUser.enrolledPrograms?.length || 0;
-    document.getElementById('badgesEarned').textContent = currentUser.badges?.length || 0;
-    document.getElementById('certificationsCount').textContent = currentUser.certifications?.length || 0;
+    document.getElementById('badgesEarned').textContent = getUserBadgeCount(currentUser);
+    document.getElementById('certificationsCount').textContent = getUserCertificationCount(currentUser);
 
     // Load enrolled programs
     loadEnrolledPrograms(currentUser, programs);
@@ -199,9 +253,75 @@ function loadUserDashboard() {
 
     // Load user certifications
     loadUserCertifications(currentUser, certifications);
+    attachCertificationRequestControls(currentUser);
 
     // Load user notifications
     loadUserNotifications(currentUser, notifications);
+}
+
+async function persistCertifications() {
+    localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+    if (!useFirestore) return;
+    try {
+        await setDoc(adminStateDoc, { certifications }, { merge: true });
+    } catch (err) {
+        console.warn('Could not persist certifications', err);
+    }
+}
+
+function attachCertificationRequestControls(user) {
+    const requestButton = document.getElementById('requestCertButton');
+    if (!requestButton) return;
+
+    const eligibility = getCertificationEligibility(user);
+    requestButton.disabled = !eligibility.eligible;
+    requestButton.textContent = eligibility.eligible
+        ? 'Request Certification'
+        : `Not Eligible (${eligibility.hours} hrs, ${eligibility.completedPrograms} completed)`;
+
+    requestButton.onclick = async () => {
+        const reason = (document.getElementById('certRequestReason')?.value || '').trim();
+        const proof = (document.getElementById('certProofDetails')?.value || '').trim();
+        const current = getCurrentUser();
+        const currentEligibility = getCertificationEligibility(current);
+        if (!currentEligibility.eligible) {
+            alert('You are not yet eligible for certification. Complete programs and gain more hours first.');
+            return;
+        }
+        if (!reason) {
+            alert('Please provide your certification request reason.');
+            return;
+        }
+        if (!proof || proof.length < 10) {
+            alert('Please provide proof details (minimum 10 characters).');
+            return;
+        }
+
+        const latest = certifications.find((c) => c.userId === current.id && ['requested', 'eligible', 'approved'].includes(c.status));
+        if (latest) {
+            alert(`You already have an active certification status: ${latest.status}.`);
+            return;
+        }
+
+        const certRequest = {
+            id: `cert-${Date.now()}`,
+            userId: current.id,
+            userEmail: current.email || '',
+            status: 'requested',
+            reason,
+            proofDetails: proof,
+            requestedAt: new Date().toISOString(),
+            hoursAtRequest: Number(current.hours || 0),
+            completedProgramsAtRequest: Array.isArray(current.completedPrograms) ? current.completedPrograms.length : 0,
+            badgeAtRequest: current.badge || 'None'
+        };
+
+        certifications.unshift(certRequest);
+        await persistCertifications();
+        logUserActivity('certification_request', 'User submitted certification request', { certId: certRequest.id });
+        loadUserDashboard();
+        alert('Certification request submitted for admin review.');
+    };
 }
 
 function loadUserSkills(user) {
@@ -272,7 +392,7 @@ function loadEnrolledPrograms(user, programs) {
         return;
     }
 
-    const enrolledPrograms = programs.filter(p => enrolledIds.includes(p.id));
+    const enrolledPrograms = programs.filter(p => enrolledIds.includes(p.id)).map(normalizeProgram);
 
     container.innerHTML = enrolledPrograms.map(program => `
         <div class="program-card">
@@ -296,14 +416,18 @@ function loadEnrolledPrograms(user, programs) {
 function loadAvailablePrograms(user, programs) {
     const container = document.getElementById('availableProgramsList');
     const enrolledIds = user.enrolledPrograms || [];
-    const availablePrograms = programs.filter(p => !enrolledIds.includes(p.id));
+    const availablePrograms = programs.filter(p => !enrolledIds.includes(p.id)).map(normalizeProgram);
 
     if (availablePrograms.length === 0) {
         container.innerHTML = '<p>No available programs to join at the moment.</p>';
         return;
     }
 
-    container.innerHTML = availablePrograms.map(program => `
+    container.innerHTML = availablePrograms.map(program => {
+        const joinedCount = Array.isArray(program.joined) ? program.joined.length : 0;
+        const maxVolunteers = Number(program.maxVolunteers || 0);
+        const isFull = maxVolunteers > 0 && joinedCount >= maxVolunteers;
+        return `
         <div class="program-card">
             <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
             <div class="program-info">
@@ -313,13 +437,17 @@ function loadAvailablePrograms(user, programs) {
                     <span>📅 ${program.date}</span>
                     <span>📍 ${program.location}</span>
                     <span>⏰ ${program.duration} hours</span>
+                    <span>👥 ${joinedCount}${maxVolunteers > 0 ? `/${maxVolunteers}` : ''}</span>
                 </div>
                 <div class="program-actions">
-                    <button class="btn-primary" onclick="joinProgram('${program.id}')">Join</button>
+                    <button class="btn-primary" onclick="joinProgram('${program.id}')" ${isFull ? 'disabled' : ''}>
+                        ${isFull ? 'Unavailable (Full)' : 'Join'}
+                    </button>
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 async function joinProgram(programId) {
@@ -332,6 +460,14 @@ async function joinProgram(programId) {
     currentUser.enrolledPrograms = currentUser.enrolledPrograms || [];
     if (currentUser.enrolledPrograms.includes(programId)) {
         alert('You have already joined this program.');
+        return;
+    }
+
+    const selectedProgram = normalizeProgram(programs.find((p) => p.id === programId) || {});
+    const joinedCount = Array.isArray(selectedProgram?.joined) ? selectedProgram.joined.length : 0;
+    const maxVolunteers = Number(selectedProgram?.maxVolunteers || 0);
+    if (maxVolunteers > 0 && joinedCount >= maxVolunteers) {
+        alert('This program is already full and unavailable.');
         return;
     }
 
@@ -428,20 +564,25 @@ function loadUserBadges(user, badges) {
 
 function loadUserCertifications(user, certifications) {
     const container = document.getElementById('userCertificationsList');
-    const userCerts = certifications.filter(c => user.certifications?.includes(c.id));
+    const userCerts = certifications.filter((c) =>
+        (Array.isArray(user.certifications) && user.certifications.includes(c.id)) ||
+        (c.userId === user.id)
+    );
 
     if (userCerts.length === 0) {
-        container.innerHTML = '<p>No certifications completed.</p>';
+        container.innerHTML = '<p>No certifications yet.</p>';
         return;
     }
 
     container.innerHTML = userCerts.map(cert => `
         <div class="cert-item">
-            <h4>${cert.name}</h4>
-            <p>${cert.description}</p>
+            <h4>${cert.name || 'Volunteer Certification'}</h4>
+            <p>${cert.description || cert.reason || 'No details provided.'}</p>
             <div class="cert-meta">
+                <span>Status: ${getCertificationStatusBadge(cert.status)}</span>
                 <span>Issued: ${cert.issuedDate || 'N/A'}</span>
                 <span>Valid until: ${cert.validUntil || 'N/A'}</span>
+                ${cert.adminNote ? `<span>Admin note: ${cert.adminNote}</span>` : ''}
             </div>
         </div>
     `).join('');
@@ -449,7 +590,11 @@ function loadUserCertifications(user, certifications) {
 
 function loadUserNotifications(user, notifications) {
     const container = document.getElementById('userNotificationsList');
-    const userNotifications = notifications.filter(n => n.recipient === user.email).slice(-5); // Last 5
+    const userNotifications = notifications.filter((n) => {
+        if (!n || !n.recipient || !user.email) return false;
+        const recipientText = String(n.recipient).toLowerCase();
+        return recipientText.split(',').map((item) => item.trim()).includes(String(user.email).toLowerCase());
+    }).slice(-5);
 
     if (userNotifications.length === 0) {
         container.innerHTML = '<p>No recent notifications.</p>';

@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion, addDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -15,13 +15,17 @@ function normalizeRole(role) {
     return String(role || '').toLowerCase().trim();
 }
 
+function normalizeStatus(status) {
+    return String(status || 'pending').toLowerCase().trim();
+}
+
 // Data structures
 let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
 let programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
 let certifications = JSON.parse(localStorage.getItem('itanimCerts') || '[]');
 let skills = JSON.parse(localStorage.getItem('itanimSkills') || '[]');
-let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{}');
-let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{}');
+let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge":18,"validBarangays":"All"}');
+let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze":10,"silver":25,"gold":50,"platinum":100}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
 const programsKey = "itanimLocalPrograms";
 
@@ -146,25 +150,31 @@ async function initFirestoreAdminState() {
             syncProgramsFromPrograms();
         });
 
-        // Load users from volunteers collection
-        const volunteersSnap = await getDocs(collection(db, 'volunteers'));
-        users = [];
-        volunteersSnap.forEach(doc => {
-            const data = doc.data();
-            users.push({
-                id: doc.id,
-                name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Volunteer',
-                email: data.email || '',
-                age: data.age || '',
-                barangay: data.barangay || '',
-                skills: data.skills || [],
-                status: data.status || 'pending',
-                hours: data.hours || 0,
-                badge: data.badge || 'None',
-                enrolledPrograms: data.enrolledPrograms || []
+        // Live-sync volunteers so hours are always reflected in dashboard analytics.
+        onSnapshot(collection(db, 'volunteers'), (volunteersSnap) => {
+            users = [];
+            volunteersSnap.forEach((volunteerDoc) => {
+                const data = volunteerDoc.data();
+                users.push({
+                    id: volunteerDoc.id,
+                    name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Volunteer',
+                    email: data.email || '',
+                    age: data.age || '',
+                    barangay: data.barangay || data.address || '',
+                    skills: data.skills || [],
+                    status: normalizeStatus(data.status),
+                    hours: Number(data.hours || 0),
+                    badge: data.badge || 'None',
+                    enrolledPrograms: data.enrolledPrograms || [],
+                    completedPrograms: data.completedPrograms || [],
+                    createdAt: data.createdAt || data.registeredAt || null
+                });
             });
+            updateVolunteers();
+            updateDashboard();
+            updateAnalytics();
+            updateVolunteerProgramParticipants();
         });
-        updateVolunteers(); // Update the UI with loaded users
     } catch (err) {
         console.warn('Firestore admin state listener failed', err);
     }
@@ -287,10 +297,10 @@ function updateTab(tabName) {
 
 // Dashboard
 function updateDashboard() {
-    const totalVolunteers = users.filter(u => u.status === 'approved').length;
-    const pendingApps = users.filter(u => u.status === 'pending').length;
-    const approvedUsers = users.filter(u => u.status === 'approved').length;
-    const rejectedUsers = users.filter(u => u.status === 'rejected').length;
+    const totalVolunteers = users.filter(u => normalizeStatus(u.status) === 'approved').length;
+    const pendingApps = users.filter(u => normalizeStatus(u.status) === 'pending').length;
+    const approvedUsers = users.filter(u => normalizeStatus(u.status) === 'approved').length;
+    const rejectedUsers = users.filter(u => normalizeStatus(u.status) === 'rejected').length;
     const activePrograms = programs.filter(p => p.status === 'active').length;
     const completedPrograms = programs.filter(p => p.status === 'completed').length;
 
@@ -305,8 +315,8 @@ function updateDashboard() {
 // Analytics
 function updateAnalytics() {
     const totalHours = users.reduce((sum, u) => sum + (u.hours || 0), 0);
-    const activeVolunteers = users.filter(u => u.status === 'approved' && u.hours > 0).length;
-    const inactiveVolunteers = users.filter(u => u.status === 'approved' && u.hours === 0).length;
+    const activeVolunteers = users.filter(u => normalizeStatus(u.status) === 'approved' && u.hours > 0).length;
+    const inactiveVolunteers = users.filter(u => normalizeStatus(u.status) === 'approved' && u.hours === 0).length;
     const completedProgramsCount = programs.filter(p => p.status === 'completed').length;
     const totalPrograms = programs.length;
     const completionRate = totalPrograms > 0 ? Math.round((completedProgramsCount / totalPrograms) * 100) : 0;
@@ -323,7 +333,9 @@ function updateAnalytics() {
         }
     });
     const topPrograms = Object.entries(programCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
-    document.getElementById('topTasks').innerHTML = topPrograms.map(([name, count]) => `<li>${name}: ${count} completions</li>`).join('');
+    document.getElementById('topPrograms').innerHTML = topPrograms.length > 0
+        ? topPrograms.map(([name, count]) => `<li>${name}: ${count} completions</li>`).join('')
+        : '<li>No completed programs yet.</li>';
 
     // Badge distribution
     const badges = { Bronze: 0, Silver: 0, Gold: 0, Platinum: 0, None: 0 };
@@ -331,6 +343,15 @@ function updateAnalytics() {
         badges[u.badge || 'None']++;
     });
     document.getElementById('badgeChart').innerHTML = Object.entries(badges).map(([badge, count]) => `<div>${badge}: ${count}</div>`).join('');
+
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newThisMonth = users.filter((u) => {
+        if (!u.createdAt) return false;
+        const createdDate = new Date(u.createdAt);
+        return !Number.isNaN(createdDate.getTime()) && createdDate >= monthStart;
+    }).length;
+    document.getElementById('volunteerGrowth').textContent = `Growth over time: +${newThisMonth} this month`;
 }
 
 // Volunteers
@@ -349,10 +370,10 @@ function updateVolunteers() {
                             Skills: ${Array.isArray(u.skills) ? u.skills.join(', ') : ''}<br>
                             Enrolled: ${Array.isArray(u.enrolledPrograms) ? u.enrolledPrograms.join(', ') : 'None'}<br>
                             Completed: ${Array.isArray(u.completedPrograms) ? u.completedPrograms.join(', ') : 'None'}<br>
-                            Status: ${u.status || 'pending'}, Hours: ${u.hours || 0}, Badge: ${u.badge || 'None'}
+                            Status: ${normalizeStatus(u.status)}, Hours: ${u.hours || 0}, Badge: ${u.badge || 'None'}
                         </div>
                         <div>
-                            ${u.status === 'pending' ? `
+                            ${normalizeStatus(u.status) === 'pending' ? `
                                 <button class="approve-btn" onclick="approveUser('${u.id}')">Approve</button>
                                 <button class="reject-btn" onclick="rejectUser('${u.id}')">Reject</button>
                             ` : ''}
@@ -508,7 +529,7 @@ function saveRestrictionsFromUI() {
 // Skills
 function updateSkills() {
     document.getElementById('skillList').innerHTML = skills.map(skill => `
-        <li>${skill} <button class="delete-btn" onclick="deleteSkill('${skill}')">Delete</button></li>
+        <li>${skill} <button class="edit-btn" onclick="editSkill('${skill.replace(/'/g, "\\'")}')">Edit</button> <button class="delete-btn" onclick="deleteSkill('${skill.replace(/'/g, "\\'")}')">Delete</button></li>
     `).join('');
 }
 
@@ -528,6 +549,20 @@ function deleteSkill(skill) {
     updateSkills();
 }
 
+function editSkill(skill) {
+    const updated = prompt('Edit skill category:', skill);
+    if (!updated) return;
+    const normalized = updated.trim();
+    if (!normalized) return;
+    if (skills.includes(normalized) && normalized !== skill) {
+        alert('Skill already exists.');
+        return;
+    }
+    skills = skills.map((s) => s === skill ? normalized : s);
+    saveSkills();
+    updateSkills();
+}
+
 // Programs
 function updatePrograms() {
     const list = document.getElementById('programList');
@@ -541,7 +576,7 @@ function updatePrograms() {
                 ${p.desc || ''}<br>
                 Hours: ${p.hours ?? 0}, Requirement: ${p.requirement || 'None'}<br>
                 Max Volunteers: ${maxVolunteers}, Assigned: ${assignedCount}/${maxVolunteers}<br>
-                Status: ${p.status || 'active'}
+                Status: ${assignedCount >= maxVolunteers && maxVolunteers > 0 ? 'unavailable (full)' : (p.status || 'active')}
             </div>
             <div>
                 <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
@@ -749,7 +784,8 @@ function rejectProgram(id) {
         program.validated = false;
         savePrograms();
         updateValidation();
-        sendNotification(`Program "${program.name}" has been rejected and returned to In Progress.`, 'program', program.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
+        const participants = Array.isArray(program.assigned) ? program.assigned : Array.isArray(program.joined) ? program.joined : [];
+        sendNotification(`Program "${program.name}" has been rejected and returned to In Progress.`, 'program', participants.map(uid => users.find(u => u.id === uid)?.email).filter(Boolean));
     }
 }
 
@@ -783,36 +819,112 @@ function updateBadgeThresholds() {
 }
 
 // Certifications
+function getUserCertificationEligibility(user) {
+    const hours = Number(user?.hours || 0);
+    const completedCount = Array.isArray(user?.completedPrograms) ? user.completedPrograms.length : 0;
+    return {
+        eligible: hours > 0 && completedCount > 0,
+        hours,
+        completedCount
+    };
+}
+
+function getCertificationStatusBadge(status) {
+    const normalized = String(status || '').toLowerCase().trim();
+    const colorMap = {
+        requested: { bg: '#f0ad4e', text: '#1f1f1f', label: 'Requested' },
+        approved: { bg: '#5cb85c', text: '#ffffff', label: 'Approved' },
+        rejected: { bg: '#d9534f', text: '#ffffff', label: 'Rejected' },
+        cancelled: { bg: '#6c757d', text: '#ffffff', label: 'Cancelled' },
+        pending: { bg: '#f0ad4e', text: '#1f1f1f', label: 'Pending' }
+    };
+    const style = colorMap[normalized] || { bg: '#6c757d', text: '#ffffff', label: normalized || 'Unknown' };
+    return `<span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${style.bg};color:${style.text};font-size:12px;font-weight:700;">${style.label}</span>`;
+}
+
 function updateCertifications() {
     const list = document.getElementById('certRequests');
-    list.innerHTML = certifications.map(c => {
+    const eligibleUsers = users.filter((u) => {
+        const eligibility = getUserCertificationEligibility(u);
+        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['requested', 'approved'].includes(c.status));
+        return eligibility.eligible && !hasActiveOrApproved;
+    });
+
+    const requested = certifications.filter((c) => c.status === 'requested');
+    const reviewed = certifications.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
+
+    const eligibleMarkup = eligibleUsers.length > 0
+        ? eligibleUsers.map((u) => {
+            const e = getUserCertificationEligibility(u);
+            return `<li>${u.name} (${u.email}) - ${e.hours} hrs, ${e.completedCount} completed programs</li>`;
+        }).join('')
+        : '<li>No additional eligible users right now.</li>';
+
+    const certMarkup = [...requested, ...reviewed].map(c => {
         const user = users.find(u => u.id === c.userId);
+        const eligibility = getUserCertificationEligibility(user || {});
         return `
             <div class="cert-item">
                 <div>
                     <strong>${user?.name || 'Unknown'}</strong><br>
                     Email: ${user?.email || 'N/A'}<br>
-                    Hours: ${user?.hours || 0}, Badge: ${user?.badge || 'None'}<br>
-                    Status: ${c.status}
+                    Hours: ${eligibility.hours}, Badge: ${user?.badge || 'None'}<br>
+                    Completed Programs: ${eligibility.completedCount}<br>
+                    Status: ${getCertificationStatusBadge(c.status)}<br>
+                    Requested: ${c.requestedAt ? new Date(c.requestedAt).toLocaleString() : 'N/A'}<br>
+                    Proof: ${c.proofDetails || 'Not provided'}<br>
+                    ${c.adminNote ? `Admin Note: ${c.adminNote}<br>` : ''}
                 </div>
                 <div>
                     ${c.status === 'pending' ? `
                         <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
                         <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
-                    ` : ''}
+                    ` : c.status === 'requested' ? `
+                        <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
+                        <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
+                        <button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>
+                        <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
+                    ` : `
+                        <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
+                        ${c.status !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}
+                    `}
                 </div>
             </div>
         `;
     }).join('');
+
+    list.innerHTML = `
+        <div class="cert-item">
+            <strong>Eligible Users (No active request yet)</strong>
+            <ul style="margin:8px 0 0 18px;">${eligibleMarkup}</ul>
+        </div>
+        ${certMarkup || '<p>No certification records yet.</p>'}
+    `;
 }
 
 function approveCert(id) {
     const cert = certifications.find(c => c.id === id);
     if (cert) {
+        const user = users.find(u => u.id === cert.userId);
+        const eligibility = getUserCertificationEligibility(user || {});
+        if (!eligibility.eligible) {
+            alert('Cannot approve: user is not eligible (hours/completed programs requirements not met).');
+            return;
+        }
+        if (!cert.proofDetails || String(cert.proofDetails).trim().length < 10) {
+            alert('Cannot approve: proof details are missing or too short.');
+            return;
+        }
         cert.status = 'approved';
+        cert.name = cert.name || 'Volunteer Certification';
+        cert.description = cert.description || `Approved certification for ${user?.name || cert.userEmail || 'volunteer'}`;
+        cert.issuedDate = new Date().toISOString().slice(0, 10);
+        cert.validUntil = `${new Date().getFullYear() + 1}-12-31`;
+        cert.approvedAt = new Date().toISOString();
+        cert.certificateType = user?.badge && user.badge !== 'None' ? 'with_badge' : 'without_badge';
+        cert.adminNote = cert.adminNote || `Approved after verification (${eligibility.hours} hrs, ${eligibility.completedCount} completed).`;
         saveCerts();
         updateCertifications();
-        const user = users.find(u => u.id === cert.userId);
         sendNotification(`Your certification request has been approved!`, 'certification', user?.email);
     }
 }
@@ -820,12 +932,42 @@ function approveCert(id) {
 function rejectCert(id) {
     const cert = certifications.find(c => c.id === id);
     if (cert) {
+        const reason = prompt('Reject reason (optional):', cert.adminNote || '') || '';
         cert.status = 'rejected';
+        cert.adminNote = reason.trim() || 'Rejected by admin.';
+        cert.rejectedAt = new Date().toISOString();
         saveCerts();
         updateCertifications();
         const user = users.find(u => u.id === cert.userId);
-        sendNotification(`Your certification request has been rejected.`, 'certification', user?.email);
+        sendNotification(`Your certification request has been rejected.${reason ? ` Reason: ${reason}` : ''}`, 'certification', user?.email);
     }
+}
+
+function cancelCert(id) {
+    const cert = certifications.find(c => c.id === id);
+    if (!cert) return;
+    const reason = prompt('Cancellation note:', cert.adminNote || '') || '';
+    cert.status = 'cancelled';
+    cert.adminNote = reason.trim() || 'Cancelled by admin.';
+    cert.cancelledAt = new Date().toISOString();
+    saveCerts();
+    updateCertifications();
+    const user = users.find(u => u.id === cert.userId);
+    sendNotification(`Your certification has been cancelled.${reason ? ` Note: ${reason}` : ''}`, 'certification', user?.email);
+}
+
+function editCert(id) {
+    const cert = certifications.find(c => c.id === id);
+    if (!cert) return;
+    const nextName = prompt('Certificate title:', cert.name || 'Volunteer Certification');
+    if (!nextName) return;
+    const nextDescription = prompt('Certificate description:', cert.description || '');
+    if (nextDescription === null) return;
+    cert.name = nextName.trim() || cert.name || 'Volunteer Certification';
+    cert.description = nextDescription.trim() || cert.description || '';
+    cert.updatedAt = new Date().toISOString();
+    saveCerts();
+    updateCertifications();
 }
 
 // Notifications
@@ -839,6 +981,25 @@ function updateNotifications() {
 }
 
 function sendNotification(message, type, recipient) {
+    if (!message || !type || !recipient) {
+        const inputMessage = document.getElementById('notificationMessage')?.value?.trim();
+        const inputType = document.getElementById('notificationType')?.value || 'application';
+        if (!inputMessage) {
+            alert('Please enter a notification message.');
+            return;
+        }
+        const approvedEmails = users
+            .filter((u) => normalizeStatus(u.status) === 'approved' && u.email)
+            .map((u) => u.email);
+        if (approvedEmails.length === 0) {
+            alert('No approved users available to notify.');
+            return;
+        }
+        message = inputMessage;
+        type = inputType;
+        recipient = approvedEmails;
+    }
+
     const notification = {
         id: Date.now(),
         message,
@@ -976,7 +1137,6 @@ async function logAction(actionType, actionDetail, metadata = {}) {
     if (useFirestore) {
         try {
             const logsRef = collection(db, 'admin_logs');
-            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
             await addDoc(logsRef, logEntry);
         } catch (err) {
             console.warn('Could not save log to Firestore', err);
@@ -1090,6 +1250,7 @@ document.addEventListener('DOMContentLoaded', () => {
 window.saveRestrictionsFromUI = saveRestrictionsFromUI;
 window.addSkill = addSkill;
 window.deleteSkill = deleteSkill;
+window.editSkill = editSkill;
 window.showTaskModal = showTaskModal;
 window.closeTaskModal = closeTaskModal;
 window.saveTask = saveTask;
@@ -1101,6 +1262,8 @@ window.rejectUser = rejectUser;
 window.updateBadgeThresholds = updateBadgeThresholds;
 window.approveCert = approveCert;
 window.rejectCert = rejectCert;
+window.cancelCert = cancelCert;
+window.editCert = editCert;
 window.sendNotification = sendNotification;
 window.updateRestrictions = saveRestrictionsFromUI;
 window.showProgramModal = showProgramModal;
@@ -1115,9 +1278,8 @@ window.rejectProgram = rejectProgram;
 window.debugAuthState = () => {
     console.log("=== ADMIN AUTH DEBUG ===");
     console.log("auth.currentUser:", auth.currentUser);
-    console.log("currentUser (local):", currentUser);
     console.log("useFirestore:", useFirestore);
     console.log("Firebase config projectId:", firebaseConfig.projectId);
     console.log("========================");
-    alert(`Auth: ${auth.currentUser ? 'Logged in as ' + auth.currentUser.email : 'Not logged in'}\nRole: ${currentUser.role}\nFirestore: ${useFirestore ? 'Enabled' : 'Disabled'}`);
+    alert(`Auth: ${auth.currentUser ? 'Logged in as ' + auth.currentUser.email : 'Not logged in'}\nFirestore: ${useFirestore ? 'Enabled' : 'Disabled'}`);
 };

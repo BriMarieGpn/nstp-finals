@@ -131,7 +131,11 @@ async function ensureVolunteerProfile(user) {
         await setDoc(doc(db, 'volunteers', user.uid), {
             email: user.email || '',
             role: 'user',
-            status: 'approved'
+            status: 'approved',
+            createdAt: new Date().toISOString(),
+            hours: 0,
+            enrolledPrograms: [],
+            completedPrograms: []
         });
     } catch (err) {
         console.warn('Could not create volunteer profile for signed in user', err);
@@ -148,6 +152,8 @@ function getFriendlyAuthErrorMessage(code) {
             return 'The password is incorrect. Please try again or reset your password.';
         case 'auth/too-many-requests':
             return 'Too many login attempts. Please wait a moment and try again.';
+        case 'permission-denied':
+            return 'Signed in, but your Firestore access was denied. Check Firestore rules/deployment for this project.';
         default:
             return 'Login failed: ' + (code || 'unknown error');
     }
@@ -210,27 +216,17 @@ document.getElementById("login-btn").onclick = async () => {
             password
         );
 
-        await redirectToDashboard(result.user);
-        logLoginEvent('email_login', email, { remembered: isRemembered });
+        try {
+            await redirectToDashboard(result.user);
+            logLoginEvent('email_login', email, { remembered: isRemembered });
+        } catch (dbError) {
+            logLoginEvent('login_failed', email, { error: dbError.message, code: dbError.code || 'unknown' });
+            alert(getFriendlyAuthErrorMessage(dbError.code));
+        }
     } catch (e) {
         if (e.code === 'auth/user-not-found') {
-            const volunteerDoc = await getVolunteerProfileByUidOrEmail(null, email);
-            if (volunteerDoc && volunteerDoc.exists()) {
-                try {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    const newUser = auth.currentUser;
-                    if (newUser) {
-                        await ensureVolunteerProfile(newUser);
-                        await redirectToDashboard(newUser);
-                        logLoginEvent('email_signup_after_missing_user', email, { created: true });
-                        return;
-                    }
-                } catch (createError) {
-                    console.warn('Could not auto-create account for existing volunteer', createError);
-                    alert(getFriendlyAuthErrorMessage(createError.code));
-                    return;
-                }
-            }
+            alert('No account was found for this email. Please sign up first.');
+            return;
         }
 
         logLoginEvent('login_failed', email, { error: e.message, code: e.code });
@@ -241,11 +237,16 @@ document.getElementById("login-btn").onclick = async () => {
 document.getElementById("google-btn").onclick = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
-        await redirectToDashboard(result.user);
-        logLoginEvent('google_login', result.user.email, true);
+        try {
+            await redirectToDashboard(result.user);
+            logLoginEvent('google_login', result.user.email, true);
+        } catch (dbError) {
+            logLoginEvent('login_failed', result.user.email || 'google', { error: dbError.message, code: dbError.code || 'unknown' });
+            alert(getFriendlyAuthErrorMessage(dbError.code));
+        }
     } catch (e) {
         logLoginEvent('login_failed', 'google', { error: e.message });
-        alert(e.message);
+        alert(getFriendlyAuthErrorMessage(e.code));
     }
 };
 
