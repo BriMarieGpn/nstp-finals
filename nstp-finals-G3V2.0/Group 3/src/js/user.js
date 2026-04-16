@@ -119,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initFirestoreUserState();
             listenFirestorePrograms();
         } else {
+            programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || '[]');
             loadUserDashboard();
         }
     });

@@ -140,6 +140,26 @@ async function initFirestoreAdminState() {
             updateNotifications();
             syncProgramsFromPrograms();
         });
+
+        // Load users from volunteers collection
+        const volunteersSnap = await getDocs(collection(db, 'volunteers'));
+        users = [];
+        volunteersSnap.forEach(doc => {
+            const data = doc.data();
+            users.push({
+                id: doc.id,
+                name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Volunteer',
+                email: data.email || '',
+                age: data.age || '',
+                barangay: data.barangay || '',
+                skills: data.skills || [],
+                status: data.status || 'pending',
+                hours: data.hours || 0,
+                badge: data.badge || 'None',
+                enrolledPrograms: data.enrolledPrograms || []
+            });
+        });
+        updateVolunteers(); // Update the UI with loaded users
     } catch (err) {
         console.warn('Firestore admin state listener failed', err);
     }
@@ -337,7 +357,11 @@ function approveUser(id) {
         saveUsers();
         updateVolunteers();
         sendNotification(`Your application has been approved!`, 'application', user.email);
-        logAction('volunteer_approve', `Approved volunteer: ${user.firstName} ${user.lastName} (${user.email})`, { userId: id, userEmail: user.email });
+        logAction('volunteer_approve', `Approved volunteer: ${user.name} (${user.email})`, { userId: id, userEmail: user.email });
+        // Update Firestore
+        if (useFirestore) {
+            updateDoc(doc(db, 'volunteers', id), { status: 'approved' }).catch(err => console.warn('Could not update Firestore', err));
+        }
     }
 }
 
@@ -348,7 +372,11 @@ function rejectUser(id) {
         saveUsers();
         updateVolunteers();
         sendNotification(`Your application has been rejected.`, 'application', user.email);
-        logAction('volunteer_reject', `Rejected volunteer: ${user.firstName} ${user.lastName} (${user.email})`, { userId: id, userEmail: user.email });
+        logAction('volunteer_reject', `Rejected volunteer: ${user.name} (${user.email})`, { userId: id, userEmail: user.email });
+        // Update Firestore
+        if (useFirestore) {
+            updateDoc(doc(db, 'volunteers', id), { status: 'rejected' }).catch(err => console.warn('Could not update Firestore', err));
+        }
     }
 }
 

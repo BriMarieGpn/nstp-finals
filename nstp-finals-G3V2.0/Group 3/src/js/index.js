@@ -578,10 +578,19 @@ function renderPrograms(programs) {
             });
             actionArea.appendChild(joinButton);
         } else {
-            const loginHint = document.createElement("small");
-            loginHint.textContent = "Login to join";
-            loginHint.style.opacity = "0.7";
-            actionArea.appendChild(loginHint);
+            const signupButton = document.createElement("button");
+            signupButton.textContent = "Sign up to join";
+            signupButton.style.padding = "8px 12px";
+            signupButton.style.borderRadius = "12px";
+            signupButton.style.border = "none";
+            signupButton.style.background = "rgba(255,255,255,0.12)";
+            signupButton.style.color = "white";
+            signupButton.style.cursor = "pointer";
+            signupButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                window.location.href = "signup.html";
+            });
+            actionArea.appendChild(signupButton);
         }
 
         row.appendChild(joinedLabel);
