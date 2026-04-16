@@ -30,13 +30,25 @@
           <p>Sign in and continue your community service journey.</p>
         </div>
 
-        <form class="softPanel formPanel loginPanel" onsubmit="return false;">
+        <div id="authStatusBanner" class="auth-status-banner" style="display:none; padding:16px; margin-bottom:16px; background: rgba(255, 248, 236, 0.12); border: 1px solid rgba(255,248,236,0.25); border-radius: 16px; color: #FFF8EC;">
+          <p id="authStatusMessage" style="margin: 0 0 12px 0;"></p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="continueDashboardBtn" class="btn" style="flex:1; min-width:120px;">Go to Dashboard</button>
+            <button id="signOutBtn" class="btn ghostBtn" style="flex:1; min-width:120px;">Sign Out</button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="softPanel formPanel loginPanel" onsubmit="return false;">
           <div class="fieldRow">
             <input type="email" id="email" placeholder="Email Address">
           </div>
           <div class="fieldRow">
             <input type="password" id="password" placeholder="Password">
           </div>
+          <div class="fieldRow">
+            <label class="checkboxLabel"><input type="checkbox" id="remember"> Remember me</label>
+          </div>
+
           <div class="fieldRow submitRow">
             <button type="button" class="wideBtn" id="login-btn">LOG IN</button>
           </div>
@@ -60,6 +72,7 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     onAuthStateChanged,
+    signOut,
     setPersistence,
     browserLocalPersistence,
     browserSessionPersistence
@@ -68,7 +81,11 @@ import {
 import {
     getFirestore,
     doc,
-    getDoc
+    getDoc,
+    collection,
+    query,
+    where,
+    getDocs
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import firebaseConfig from "./js/firebaseConfig.js";
@@ -77,16 +94,54 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
+const authStatusBanner = document.getElementById('authStatusBanner');
+const authStatusMessage = document.getElementById('authStatusMessage');
+const continueDashboardBtn = document.getElementById('continueDashboardBtn');
+const signOutBtn = document.getElementById('signOutBtn');
+const loginForm = document.getElementById('loginForm');
+
+function showLoginForm() {
+    authStatusBanner.style.display = 'none';
+    loginForm.style.display = 'block';
+}
+
+async function getVolunteerProfileByUidOrEmail(uid, email) {
+    const userDoc = await getDoc(doc(db, 'volunteers', uid));
+    if (userDoc.exists()) {
+        return userDoc;
+    }
+    if (!email) {
+        return null;
+    }
+    const q = query(collection(db, 'volunteers'), where('email', '==', email));
+    const snap = await getDocs(q);
+    return snap.docs[0] || null;
+}
+
+function showSignedInBanner(user, role) {
+    loginForm.style.display = 'none';
+    authStatusBanner.style.display = 'block';
+    authStatusMessage.textContent = `You are already signed in as ${user.email}. Redirected to your ${role === 'admin' ? 'admin' : 'user'} dashboard.`;
+    continueDashboardBtn.onclick = () => {
+        window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
+    };
+    signOutBtn.onclick = async () => {
+        try {
+            await signOut(auth);
+            window.location.reload();
+        } catch (e) {
+            alert('Could not sign out. Please try again.');
+        }
+    };
+}
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        const userDoc = await getDoc(doc(db, 'volunteers', user.uid));
-        if (userDoc.exists()) {
-            const role = userDoc.data().role || 'user';
-            window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
-        } else {
-            window.location.href = 'user.html'; // fallback
-        }
+        const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
+        const role = userDoc && userDoc.exists() ? userDoc.data().role || 'user' : 'user';
+        showSignedInBanner(user, role);
+    } else {
+        showLoginForm();
     }
 });
 

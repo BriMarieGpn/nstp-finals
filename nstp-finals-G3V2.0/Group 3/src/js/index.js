@@ -29,10 +29,6 @@ const storage = getStorage(app);
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 const programDocs = [];
 
-// Clear any existing local programs to start fresh
-localStorage.removeItem('itanimPrograms');
-localStorage.removeItem('itanimTasks');
-
 let selectedProgramId = null;
 
 let currentUser = {
@@ -140,6 +136,9 @@ function setRoleBasedUI() {
     if (userDashboardLink) {
         userDashboardLink.style.display = isUser ? "inline" : "none";
     }
+    if (roleSwitcher) {
+        roleSwitcher.value = currentUser.role;
+    }
     setDebugPanelVisibility();
     setTempUserSwitcherVisibility();
 }
@@ -173,6 +172,25 @@ addBtn.addEventListener("click", () => {
     modal.style.display = "flex";
 });
 
+// Add image preview handler
+const programImageInput = document.getElementById("programImage");
+if (programImageInput) {
+    programImageInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        const preview = document.getElementById("programImagePreview");
+        if (file && preview) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                preview.src = event.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        } else if (preview) {
+            preview.style.display = "none";
+        }
+    });
+}
+
 window.closeModal = () => {
     console.log("Closing modal");
     if (modal) modal.style.display = "none";
@@ -204,7 +222,7 @@ window.deleteSelectedProgram = async () => {
     
     try {
         if (useFirestore) {
-            await deleteDoc(doc(db, "programs", selectedProgramId));
+            await deleteDoc(doc(db, "programs_empty", selectedProgramId));
         }
         // Remove from programDocs array
         const index = programDocs.findIndex(p => p.id === selectedProgramId);
@@ -555,7 +573,7 @@ window.joinProgram = async (id, joined) => {
     }
 
     try {
-        await updateDoc(doc(db, "programs", id), {
+        await updateDoc(doc(db, "programs_empty", id), {
             joined: arrayUnion(currentUser.id)
         });
     } catch (err) {
@@ -598,7 +616,7 @@ window.submitProgram = async () => {
 
     try {
         const title = document.getElementById("programTitle").value.trim();
-        const hours = document.getElementById("programHours").value.trim();
+        const hours = String(document.getElementById("programHours").value).trim();
         const requirement = document.getElementById("programRequirement").value || 'None';
         const desc = document.getElementById("programDesc").value.trim();
         const file = document.getElementById("programImage").files[0];
@@ -610,58 +628,61 @@ window.submitProgram = async () => {
 
         const isEditing = window.editingProgramId !== undefined;
         
-        // If editing and no new image selected, keep the old one
-        let imageURL;
-        if (isEditing && !file) {
+        // Try to upload image, but don't fail if it doesn't work
+        let imageURL = defaultImage;
+        if (!isEditing || file) {
+            try {
+                imageURL = await uploadProgramImage(file);
+                console.log("Image upload successful:", imageURL ? "URL received" : "default image used");
+            } catch (imageErr) {
+                console.warn("Image upload failed, continuing with default image", imageErr);
+                imageURL = defaultImage;
+            }
+        } else if (isEditing) {
             const existingProgram = programDocs.find(p => p.id === window.editingProgramId);
-            imageURL = existingProgram.image;
-        } else {
-            imageURL = await uploadProgramImage(file);
+            imageURL = existingProgram ? existingProgram.image : defaultImage;
         }
         
+        const programData = {
+            title,
+            hours,
+            requirement,
+            desc,
+            image: imageURL,
+            joined: []
+        };
+
         if (isEditing) {
             // Update existing program
             const index = programDocs.findIndex(p => p.id === window.editingProgramId);
             if (index > -1) {
-                programDocs[index].title = title;
-                programDocs[index].hours = hours;
-                programDocs[index].requirement = requirement;
-                programDocs[index].desc = desc;
-                programDocs[index].image = imageURL;
+                programDocs[index] = { ...programDocs[index], ...programData };
             }
             if (useFirestore) {
-                await updateDoc(doc(db, "programs", window.editingProgramId), {
-                    title,
-                    hours,
-                    requirement,
-                    desc,
-                    image: imageURL
-                });
+                try {
+                    await updateDoc(doc(db, "programs_empty", window.editingProgramId), programData);
+                    console.log("Firestore update successful");
+                } catch (fsErr) {
+                    console.error("Firestore update failed", fsErr);
+                    throw fsErr;
+                }
             }
             window.editingProgramId = undefined;
             alert("Program updated!");
         } else {
             // Add new program
-            const newProgram = {
-                id: `local-${Date.now()}`,
-                title,
-                hours,
-                requirement,
-                desc,
-                image: imageURL,
-                joined: []
-            };
+            const newProgram = { id: `local-${Date.now()}`, ...programData };
 
             if (useFirestore) {
-                const docRef = await addDoc(collection(db, "programs"), {
-                    title,
-                    hours,
-                    requirement,
-                    desc,
-                    image: imageURL,
-                    joined: []
-                });
-                newProgram.id = docRef.id;
+                try {
+                    console.log("Adding to Firestore:", programData);
+                    const docRef = await addDoc(collection(db, "programs_empty"), programData);
+                    newProgram.id = docRef.id;
+                    console.log("Firestore add successful, doc ID:", newProgram.id);
+                } catch (fsErr) {
+                    console.error("Firestore add failed", fsErr);
+                    throw fsErr;
+                }
             }
 
             programDocs.push(newProgram);
@@ -670,10 +691,21 @@ window.submitProgram = async () => {
         
         saveLocalPrograms();
         renderPrograms(programDocs);
+        
+        // Clear form
+        document.getElementById("programTitle").value = "";
+        document.getElementById("programHours").value = "";
+        document.getElementById("programRequirement").value = "None";
+        document.getElementById("programDesc").value = "";
+        document.getElementById("programImage").value = "";
+        if (document.getElementById("programImagePreview")) {
+            document.getElementById("programImagePreview").style.display = "none";
+        }
+        
         closeModal();
     } catch (err) {
-        console.error(err);
-        alert("ERROR: " + err.message);
+        console.error("submitProgram error:", err);
+        alert("ERROR: " + (err.message || err));
     }
 };
 

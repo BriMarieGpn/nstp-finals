@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -10,27 +10,75 @@ const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("Y
 const adminStateDoc = doc(db, 'admin', 'state');
 const programsCollection = collection(db, 'programs_empty');
 let currentUserId = null;
+let currentUserProfile = null;
 
 let users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
 let programs = [];
-
-// Clear any existing local programs to start fresh
-localStorage.removeItem('itanimPrograms');
-localStorage.removeItem('itanimTasks');
-localStorage.removeItem('itanimLocalPrograms');
-localStorage.removeItem('programs');
 
 let badges = JSON.parse(localStorage.getItem('badges') || '[]');
 let certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
 let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
 
-function getCurrentUser() {
+async function fetchCurrentUserProfile(uid, email) {
+    let profile = null;
+
     if (useFirestore) {
-        const user = users.find(u => u.id === currentUserId);
-        if (user) return user;
+        try {
+            let userDoc = await getDoc(doc(db, 'volunteers', uid));
+            if (!userDoc.exists() && email) {
+                const fallbackQuery = query(collection(db, 'volunteers'), where('email', '==', email));
+                const fallbackSnap = await getDocs(fallbackQuery);
+                if (!fallbackSnap.empty) {
+                    userDoc = fallbackSnap.docs[0];
+                }
+            }
+            if (userDoc.exists()) {
+                profile = userDoc.data();
+                profile.id = userDoc.id;
+                profile.name = profile.name || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.email || 'Volunteer';
+                profile.enrolledPrograms = profile.enrolledPrograms || [];
+                profile.hours = profile.hours || 0;
+                profile.badges = profile.badges || [];
+                profile.certifications = profile.certifications || [];
+                profile.skills = profile.skills || [];
+            }
+        } catch (err) {
+            console.warn('Could not load volunteer profile from Firestore', err);
+        }
+    }
+
+    if (!profile) {
+        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+        profile = storedUsers.find(u => u.id === uid) || storedUsers[0] || {
+            id: uid,
+            name: 'Volunteer',
+            email: '',
+            enrolledPrograms: [],
+            hours: 0,
+            badges: [],
+            certifications: [],
+            skills: []
+        };
+    }
+
+    return profile;
+}
+
+function getCurrentUser() {
+    if (currentUserProfile) {
+        return currentUserProfile;
     }
     const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-    return storedUsers[0] || { id: 'user1', name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [], skills: [] };
+    return storedUsers.find(u => u.id === currentUserId) || storedUsers[0] || {
+        id: currentUserId || 'user1',
+        name: 'Volunteer',
+        email: '',
+        enrolledPrograms: [],
+        hours: 0,
+        badges: [],
+        certifications: [],
+        skills: []
+    };
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -41,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         currentUserId = user.uid;
+        currentUserProfile = await fetchCurrentUserProfile(user.uid, user.email);
 
         if (useFirestore) {
             initFirestoreUserState();
@@ -139,14 +188,13 @@ function attachSkillControls(user) {
     const addButton = document.getElementById('addSkillButton');
     if (!addButton) return;
 
-    addButton.onclick = () => {
+    addButton.onclick = async () => {
         const select = document.getElementById('skillSelect');
         if (!select) return;
         const skill = select.value;
         if (!skill) return;
 
-        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        const current = storedUsers[0] || { id: 'user1', email: 'demo@example.com', skills: [] };
+        const current = getCurrentUser();
         current.skills = current.skills || [];
 
         if (current.skills.includes(skill)) {
@@ -155,14 +203,28 @@ function attachSkillControls(user) {
         }
 
         current.skills.push(skill);
-        storedUsers[0] = current;
+        currentUserProfile = current;
+
         if (useFirestore) {
-            users = users.map(u => u.id === current.id ? current : u);
-            await setDoc(adminStateDoc, { users }, { merge: true });
+            try {
+                await setDoc(doc(db, 'volunteers', current.id), current, { merge: true });
+            } catch (err) {
+                console.error('Could not save skills to Firestore', err);
+                alert('Could not update skills in Firestore.');
+                return;
+            }
         } else {
+            const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+            const index = storedUsers.findIndex(u => u.id === current.id);
+            if (index > -1) {
+                storedUsers[index] = current;
+            } else {
+                storedUsers.unshift(current);
+            }
             localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
             localStorage.setItem('users', JSON.stringify(storedUsers));
         }
+
         loadUserDashboard();
     };
 }
@@ -242,14 +304,15 @@ async function joinProgram(programId) {
     currentUser.enrolledPrograms.push(programId);
     if (useFirestore) {
         try {
-            const programRef = doc(db, 'programs', programId);
+            const programRef = doc(db, 'programs_empty', programId);
             await updateDoc(programRef, {
                 joined: arrayUnion(currentUser.id)
             });
 
-            const updatedUsers = users.map(u => u.id === currentUser.id ? currentUser : u);
-            users = updatedUsers;
-            await setDoc(adminStateDoc, { users }, { merge: true });
+            await setDoc(doc(db, 'volunteers', currentUser.id), {
+                enrolledPrograms: currentUser.enrolledPrograms
+            }, { merge: true });
+            loadUserDashboard();
         } catch (err) {
             console.error('Could not update Firestore join state', err);
             alert('Could not join this program in Firestore. Please try again.');
@@ -257,8 +320,14 @@ async function joinProgram(programId) {
         }
     } else {
         const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        storedUsers[0] = currentUser;
+        const index = storedUsers.findIndex(u => u.id === currentUser.id);
+        if (index > -1) {
+            storedUsers[index] = currentUser;
+        } else {
+            storedUsers.push(currentUser);
+        }
         localStorage.setItem('users', JSON.stringify(storedUsers));
+        localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
     }
 
     loadUserDashboard();
@@ -418,10 +487,10 @@ function debugAddSampleData() {
         localStorage.setItem('programs', JSON.stringify(programs));
     }
 
-    // Add sample programs
-    const programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
-    if (programs.length === 0) {
-        programs.push({
+    // Add sample tasks or assigned program records
+    const itanimPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+    if (itanimPrograms.length === 0) {
+        itanimPrograms.push({
             id: 'program1',
             title: 'Prepare materials',
             description: 'Gather cleaning supplies',
@@ -430,7 +499,7 @@ function debugAddSampleData() {
             status: 'pending',
             dueDate: '2024-05-10'
         });
-        localStorage.setItem('itanimPrograms', JSON.stringify(programs));
+        localStorage.setItem('itanimPrograms', JSON.stringify(itanimPrograms));
     }
 
     // Add sample badges
