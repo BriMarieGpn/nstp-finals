@@ -90,6 +90,22 @@
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google icon">
             Sign in with Google
           </button>
+
+          <div id="localTestPanel" class="softPanel" style="display:none; margin-top:18px; background:rgba(84,107,65,0.07); border:1px solid rgba(84,107,65,0.16); border-radius:16px; padding:14px;">
+            <h4 style="margin:0 0 8px; font-size:15px; color:#2f4f25;">Local Test Accounts</h4>
+            <p style="margin:0 0 12px; font-size:13px; color:#3f5134;">Use these for Live Server debugging on localhost.</p>
+            <div style="display:grid; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div><strong>Admin:</strong> admin@test.local</div>
+                <button id="fillAdminTest" type="button" class="btn ghostBtn">Use Admin</button>
+              </div>
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                <div><strong>User:</strong> user@test.local</div>
+                <button id="fillUserTest" type="button" class="btn ghostBtn">Use User</button>
+              </div>
+              <div style="font-size:12px; color:#5f6f44;">Password for both accounts: <strong>test123</strong></div>
+            </div>
+          </div>
         </form>
       </div>
     </main>
@@ -132,6 +148,9 @@ const authStatusMessage = document.getElementById('authStatusMessage');
 const continueDashboardBtn = document.getElementById('continueDashboardBtn');
 const signOutBtn = document.getElementById('signOutBtn');
 const loginForm = document.getElementById('loginForm');
+const localTestPanel = document.getElementById('localTestPanel');
+const fillAdminTest = document.getElementById('fillAdminTest');
+const fillUserTest = document.getElementById('fillUserTest');
 let hasResolvedAuth = false;
 
 function showLoginForm() {
@@ -140,13 +159,68 @@ function showLoginForm() {
     document.body.classList.remove('auth-pending');
 }
 
+function showLocalTestPanel() {
+    const isLocalOnly = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (!localTestPanel) return;
+    localTestPanel.style.display = isLocalOnly ? 'block' : 'none';
+    if (fillAdminTest) {
+        fillAdminTest.onclick = () => {
+            document.getElementById('email').value = 'admin@test.local';
+            document.getElementById('password').value = 'test123';
+        };
+    }
+    if (fillUserTest) {
+        fillUserTest.onclick = () => {
+            document.getElementById('email').value = 'user@test.local';
+            document.getElementById('password').value = 'test123';
+        };
+    }
+}
+
+showLocalTestPanel();
+
 function isAdminEmail(email) {
     const val = String(email || '').toLowerCase();
     return val.includes('admin');
 }
 
+const LOCAL_DEBUG_ACCOUNTS = {
+    'admin@test.local': 'test123',
+    'user@test.local': 'test123'
+};
+
 function normalizeRole(role) {
     return String(role || 'user').toLowerCase().trim();
+}
+
+function isLocalDebugAccount(email) {
+    if (!window || !(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return false;
+    }
+    const normalized = String(email || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(LOCAL_DEBUG_ACCOUNTS, normalized);
+}
+
+async function signInLocalDebugAccount(email, password) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!isLocalDebugAccount(normalized)) {
+        throw new Error('Not a local test account');
+    }
+    const expectedPassword = LOCAL_DEBUG_ACCOUNTS[normalized];
+    if (password !== expectedPassword) {
+        const err = new Error('Incorrect local test password');
+        err.code = 'auth/wrong-password';
+        throw err;
+    }
+
+    try {
+        return await signInWithEmailAndPassword(auth, normalized, password);
+    } catch (e) {
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+            return await createUserWithEmailAndPassword(auth, normalized, password);
+        }
+        throw e;
+    }
 }
 
 async function getVolunteerProfileByUidOrEmail(uid, email) {
@@ -266,11 +340,28 @@ document.getElementById("login-btn").onclick = async () => {
             isRemembered ? browserLocalPersistence : browserSessionPersistence
         );
 
-        const result = await signInWithEmailAndPassword(
-            auth,
-            email,
-            password
-        );
+        let result;
+        try {
+            if (isLocalDebugAccount(email)) {
+                result = await signInLocalDebugAccount(email, password);
+            } else {
+                result = await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+            }
+        } catch (signInError) {
+            if (isLocalDebugAccount(email) && signInError.code === 'auth/invalid-credential') {
+                try {
+                    result = await createUserWithEmailAndPassword(auth, email, password);
+                } catch (createError) {
+                    throw createError;
+                }
+            } else {
+                throw signInError;
+            }
+        }
 
         try {
             await redirectToDashboard(result.user);
