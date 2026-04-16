@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowsauYOU | User Dashboard</title>
+    <link rel="stylesheet" href="../../css/i-tanim/common.css">
+    <link rel="stylesheet" href="../../css/i-tanim/user.css">
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="itanim-page">
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+                    <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                    <a href="../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                    <a href="../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../overview.html">GREEN COMMUNITY</a></li>
+                <li><a href="user.html" class="active-link">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="login.html">Login</a>
+            <a class="nav-auth-link" href="signup.html">Register</a>
+        </div>
+    </nav>
+<div class="container">
+        <h1 id="welcomeMessage">Welcome to Your Dashboard</h1>
+
+        <div class="dashboard-grid">
+            <!-- Stats Cards -->
+            <div class="stat-card">
+                <h3>Total Hours</h3>
+                <div class="stat-value" id="totalHours">0</div>
+                <p>Community Service Hours</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Programs Enrolled</h3>
+                <div class="stat-value" id="enrolledPrograms">0</div>
+                <p>Active Programs</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Badges Earned</h3>
+                <div class="stat-value" id="badgesEarned">0</div>
+                <p>Achievement Badges</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Certifications</h3>
+                <div class="stat-value" id="certificationsCount">0</div>
+                <p>Completed Certifications</p>
+            </div>
+        </div>
+
+        <!-- Enrolled Programs Section -->
+        <div class="dashboard-section">
+            <h2>My Programs</h2>
+            <div id="enrolledProgramsList" class="programs-list">
+                <!-- Programs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Available Programs Section -->
+        <div class="dashboard-section">
+            <h2>Available Programs</h2>
+            <div id="availableProgramsList" class="programs-list">
+                <!-- Available programs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Skills Section -->
+        <div class="dashboard-section">
+            <h2>My Skills</h2>
+            <div class="skill-action-row">
+                <select id="skillSelect">
+                    <option value="environment">Environment</option>
+                    <option value="teamwork">Teamwork</option>
+                    <option value="gardening">Gardening</option>
+                    <option value="community service">Community Service</option>
+                    <option value="cleanup">Cleanup</option>
+                    <option value="leadership">Leadership</option>
+                </select>
+                <button id="addSkillButton" class="btn-primary">Add Skill</button>
+            </div>
+            <div id="userSkillsList" class="skills-list">
+                <!-- User skills will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Assigned Programs Section -->
+        <div class="dashboard-section">
+            <h2>My Assigned Programs</h2>
+            <div id="assignedProgramsList" class="programs-list">
+                <!-- Programs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Badges Section -->
+        <div class="dashboard-section">
+            <h2>My Badges</h2>
+            <div id="userBadgesList" class="badges-list">
+                <!-- Badges will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Certifications Section -->
+        <div class="dashboard-section">
+            <h2>My Certifications</h2>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <textarea id="certRequestReason" placeholder="Why are you requesting certification?" style="width:100%; min-height:70px;"></textarea>
+                <textarea id="certProofDetails" placeholder="Proof details (programs completed, proof links, evidence notes)" style="width:100%; min-height:70px; margin-top:8px;"></textarea>
+                <button id="requestCertButton" class="btn-primary" style="margin-top:8px;">Request Certification</button>
+            </div>
+            <div id="userCertificationsList" class="certifications-list">
+                <!-- Certifications will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="dashboard-section">
+            <h2>Recent Notifications</h2>
+            <div id="userNotificationsList" class="notifications-list">
+                <!-- Notifications will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../js/i-tanim/user.js"></script>
+    <script type="module" src="../../js/navbar-auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

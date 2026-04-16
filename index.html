@@ -1,93 +1,268 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grow Toolgether</title>
-    <link rel="stylesheet" href="css/styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowsauYOU | Home</title>
+
+<link rel="stylesheet" href="css/i-tanim/common.css">
+<link rel="stylesheet" href="css/i-tanim/home.css">
+<link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body>
-                <nav class="navbar">
+
+<body class="home">
+<nav class="navbar">
         <div class="nav-left">
             <div class="nav-logo-circle"></div>
-            <span class="nav-site-name">WEBSITE NAME</span>
+            <a class="nav-site-name" href="index.html">GrowsauYOU</a>
             <div class="brand-container">
                 <div class="brand-highlight">
                     <i class="fas fa-seedling"></i>
                     <span>GROW TOOLGETHER</span>
                 </div>
                 <div class="brand-dropdown">
-    <a href="index.html" class="side-item active"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
-    <a href="hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
-    <a href="pages/receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
-</div>
+                    <a href="pages/overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                    <a href="hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                    <a href="pages/receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+                </div>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html">GREEN COMMUNITY</a></li>
-                <li><a href="index.html">I-TANIM</a></li>
+                <li><a href="pages/overview.html">GREEN COMMUNITY</a></li>
+                <li><a href="pages/i-tanim/user.html">I-TANIM</a></li>
             </ul>
         </div>
         <div class="nav-right">
-            <span class="welcome-text">Welcome back, Juan!</span>
-            <div class="profile-container">
-                <i class="fas fa-user-circle profile-icon"></i>
-                <div class="dropdown-menu">
-                    <a href="#">Profile</a>
-                    <a href="#">Logout</a>
-                </div>
-            </div>
+            <a class="nav-auth-link" href="pages/i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="pages/i-tanim/signup.html">Register</a>
         </div>
     </nav>
-<section class="landing-hero page-shell">
-        <h1>Discover the right gardening tool for every task</h1>
-        <p>Browse planting, watering, harvesting, pruning, safety, and pest-control tools in one organized gardening guide designed around quick visual navigation.</p>
-    </section>
-    <section class="page-shell" id="categories">
-        <div class="category-grid">
-            <a class="category-card" href="pages/categories/soil-preparation-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/trowel.png" alt="Soil Preparation Tools">
-                </div>
-                <h2 class="category-card-title">Soil Preparation Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/planting-and-propagation-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/seed-trays.png" alt="Planting and Propagation Tools">
-                </div>
-                <h2 class="category-card-title">Planting and Propagation Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/watering-and-irrigation-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/watering-can.png" alt="Watering and Irrigation Tools">
-                </div>
-                <h2 class="category-card-title">Watering and Irrigation Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/pruning-and-maintenance-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/garden-scissors.png" alt="Pruning and Maintenance Tools">
-                </div>
-                <h2 class="category-card-title">Pruning and Maintenance Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/harvesting-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/harvest-baskets.png" alt="Harvesting Tools">
-                </div>
-                <h2 class="category-card-title">Harvesting Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/pest-control-tools.html">
-                <div class="category-card-media">
-                    <img src="assets/images/garden-sprayers.png" alt="Pest Control Tools">
-                </div>
-                <h2 class="category-card-title">Pest Control Tools</h2>
-            </a>
-            <a class="category-card" href="pages/categories/protective-and-safety-gear.html">
-                <div class="category-card-media">
-                    <img src="assets/images/gloves.png" alt="Protective and Safety Gear">
-                </div>
-                <h2 class="category-card-title">Protective and Safety Gear</h2>
-            </a>
+<!-- TEMP USER SWITCHER (DEV ONLY) -->
+<div id="tempUserSwitcher" style="
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: rgba(84,107,65,0.85);
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 99999;
+    backdrop-filter: blur(10px);
+    display: none;
+">
+    <h4 style="margin:0 0 8px 0;">TEMP USER</h4>
+
+    <select id="roleSwitcher" style="padding:5px; border-radius:6px;">
+        <option value="visitor">Visitor</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+    </select>
+
+    <p id="userLabel" style="margin:8px 0 0 0; font-size:12px;"></p>
+    <div id="adminDebugPanel" style="margin-top:10px; display:none; flex-direction:column; gap:8px;">
+        <strong style="font-size:13px; opacity:0.9;">Admin Debug Tools</strong>
+        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Add Sample Program</button>
+        <button onclick="debugShowPrograms()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Show Program List</button>
+        <button onclick="debugAddSampleUser()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample User</button>
+        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample Program</button>
+        <button onclick="debugSimulateJoin()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Simulate User Join</button>
+        <button onclick="debugShowUsers()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Show All Users</button>
+        <button onclick="debugCleanupEverything()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(220,204,172,0.35); color:#FFF8EC; font-weight:bold;">?? CLEANUP EVERYTHING</button>
+    </div>
+</div>
+<div class="container">
+  <section class="page-intro">
+    <div>
+      <span class="pill">Discover</span>
+      <h1>Find community volunteer programs with GrowsauYOU</h1>
+      <p>Keep the original carousel experience and enjoy a cleaner visual layout for browsing programs, joining activities, or registering as a volunteer.</p>
+      <div class="action-row">
+        <a id="pageRegisterBtn" class="btn" href="pages/i-tanim/signup.html">Register</a>
+        <a id="pageLoginBtn" class="btn ghostBtn" href="pages/i-tanim/login.html">Login</a>
+      </div>
+    </div>
+    <div class="status-cards">
+      <div class="status-card">
+        <strong>3+</strong>
+        <span>Active Programs</span>
+      </div>
+      <div class="status-card">
+        <strong>100+</strong>
+        <span>Community Members</span>
+      </div>
+      <div class="status-card">
+        <strong>5</strong>
+        <span>Skill Paths</span>
+      </div>
+    </div>
+  </section>
+
+<!-- CAROUSEL -->
+<div class="carousel-wrapper">
+    <button class="arrow left" onclick="prev()">�</button>
+
+    <div class="carousel" id="carousel">
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=1200&q=80')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80')"></div>
+        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80')"></div>
+    </div>
+
+    <button class="arrow right" onclick="next()">�</button>
+</div>
+
+<div class="dots" id="dots"></div>
+
+<!-- CARDS RESTORED -->
+<div class="cards">
+    <!-- VOLUNTEER -->
+    <div class="home-card" style="height:520px; display:flex; flex-direction:column; gap:10px;">
+    
+    <!-- TOP 50%: PROGRAMS TO JOIN -->
+    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
+        <h3 style="margin:0;">Available Programs</h3>
+<div id="publicProgramList" style="
+    margin-top:10px;
+    overflow-y:auto;
+    flex:1;
+    padding-right:5px;
+    max-height:100%;
+"></div>
+    </div>
+
+    <!-- BOTTOM 50%: USER AREA -->
+    <div style="flex:1; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+        <h3>Volunteer</h3>
+        <p>Login or register to start.</p>
+
+        <a class="btn" href="pages/i-tanim/login.html">Login</a>
+        <a class="btn" href="pages/i-tanim/signup.html">Register</a>
+
+        <div style="margin-top:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 style="margin:0;">Available Programs</h3>
+
+    <button id="addProgramBtn" style="
+        display:none;
+        padding:6px 10px;
+        border-radius:10px;
+        border:none;
+        cursor:pointer;
+        background:rgba(255, 255, 255, 0.15);
+        color:white;
+        ">+ Add</button>
+</div>
         </div>
-    </section>
+    </div>
+
+</div>
+
+    <!-- PLACEHOLDER 2 RESTORED BUTTON -->
+    <div class="home-card">
+        <h2>Coming Soon</h2>
+        <p>Feature placeholder</p>
+        <a class="btn" href="#">Go</a>
+    </div>
+
+    <!-- PLACEHOLDER 3 RESTORED BUTTON -->
+    <div class="home-card">
+        <h2>Coming Soon</h2>
+        <p>Feature placeholder</p>
+        <a class="btn" href="#">Soon</a>
+    </div>
+
+</div>
+
+<div id="programDetailModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(84,107,65,0.75);
+    backdrop-filter: blur(10px);
+    justify-content:center;
+    align-items:center;
+    z-index:100000;
+">
+    <div style="
+        background:rgba(84,107,65,0.96);
+        padding:20px;
+        border-radius:18px;
+        width:min(420px,92%);
+        border:1px solid rgba(255,248,236,0.22);
+        position:relative;
+    ">
+        <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:1px solid rgba(255,248,236,0.22); border-radius:50%; background:rgba(255,248,236,0.12); color:#FFF8EC; cursor:pointer; font-size:18px;">�</button>
+        <img id="detailImage" src="https://via.placeholder.com/500x280?text=Program+Image" style="width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:16px; border:1px solid rgba(255,248,236,0.18);">
+        <h3 id="detailTitle" style="margin:0 0 10px 0; color: white;">Program Title</h3>
+        <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0; color: white;">Program description appears here...</p>
+        <p style="margin:0 0 8px 0; color: white;"><strong>Hours:</strong> <span id="detailHours"></span></p>
+        <p style="margin:0 0 8px 0; color: white;"><strong>Requirement:</strong> <span id="detailRequirement"></span></p>
+        <p style="margin:0 0 16px 0; color: white;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
+        <div id="detailAction" style="display:flex; gap:10px; margin-bottom:12px;"></div>
+        <!-- Admin Edit/Delete Buttons -->
+        <div id="adminControls" style="display:none; gap:10px; display:flex;">
+            <button onclick="editSelectedProgram()" style="flex:1; padding:10px; border:1px solid rgba(255,248,236,0.22); border-radius:8px; background:rgba(153,173,122,0.30); color:#FFF8EC; cursor:pointer; font-weight:bold;">Edit</button>
+            <button onclick="deleteSelectedProgram()" style="flex:1; padding:10px; border:1px solid rgba(255,248,236,0.22); border-radius:8px; background:rgba(220,204,172,0.30); color:#FFF8EC; cursor:pointer; font-weight:bold;">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PROGRAM POPUP -->
+<div id="programModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(84,107,65,0.6);
+    backdrop-filter: blur(6px);
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+">
+    <div style="
+        background:rgba(84,107,65,0.95);
+        padding:20px;
+        border-radius:16px;
+        width:300px;
+        border:1px solid rgba(255,248,236,0.22);
+    ">
+        <h3>Add Program</h3>
+<input id="programTitle" placeholder="Program title">
+
+<input id="programHours" type="number" placeholder="Hours">
+<select id="programRequirement" style="width:100%; margin:10px 0; padding:10px; border-radius:12px; border:1px solid rgba(255,248,236,0.22); background:rgba(255,255,255,0.12); color:#FFF8EC;">
+    <option value="None">Requirement: None</option>
+    <option value="Bronze">Requirement: Bronze</option>
+    <option value="Silver">Requirement: Silver</option>
+    <option value="Gold">Requirement: Gold</option>
+    <option value="Platinum">Requirement: Platinum</option>
+</select>
+<input id="programImage" type="file" accept="image/png, image/jpeg">
+<img id="programImagePreview" alt="Selected image preview" style="display:none; width:100%; height:140px; object-fit:cover; border-radius:12px; margin:10px 0; border:1px solid rgba(255,248,236,0.18);">
+
+<textarea id="programDesc" placeholder="Description"></textarea>
+
+        <div style="display:flex; justify-content:space-between; margin-top:15px;">
+            <button onclick="closeModal()" style="padding:8px 12px;">Cancel</button>
+            <button onclick="submitProgram()" style="padding:8px 12px;">Add</button>
+        </div>
+    </div>
+</div>
+</div>
+<script type="module" src="js/i-tanim/index.js"></script>
+    <script type="module" src="js/navbar-auth.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

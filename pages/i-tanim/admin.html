@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowsauYOU | Admin Panel</title>
+    <link rel="stylesheet" href="../../css/i-tanim/common.css">
+    <link rel="stylesheet" href="../../css/i-tanim/admin.css">
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="itanim-page">
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+                    <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                    <a href="../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                    <a href="../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+                </div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../overview.html">GREEN COMMUNITY</a></li>
+                <li><a href="user.html" class="active-link">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="login.html">Login</a>
+            <a class="nav-auth-link" href="signup.html">Register</a>
+        </div>
+    </nav>
+<div class="container">
+        <div class="admin-tabs">
+            <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="showTab('analytics')">Analytics</button>
+            <button class="tab-btn" onclick="showTab('volunteers')">Volunteers</button>
+            <button class="tab-btn" onclick="showTab('restrictions')">Restrictions</button>
+            <button class="tab-btn" onclick="showTab('skills')">Skills</button>
+            <button class="tab-btn" onclick="showTab('programs')">Programs</button>
+            <button class="tab-btn" onclick="showTab('validation')">Validation</button>
+            <button class="tab-btn" onclick="showTab('badges')">Badges</button>
+            <button class="tab-btn" onclick="showTab('certifications')">Certifications</button>
+            <button class="tab-btn" onclick="showTab('notifications')">Notifications</button>
+            <button class="tab-btn" onclick="showTab('logs')">Logs</button>
+        </div>
+
+        <div id="dashboard" class="tab-content active">
+            <h2>Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Volunteers</h3>
+                    <p id="totalVolunteers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Applications</h3>
+                    <p id="pendingApps">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Approved Users</h3>
+                    <p id="approvedUsers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Rejected Users</h3>
+                    <p id="rejectedUsers">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Programs</h3>
+                    <p id="activePrograms">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed Programs</h3>
+                    <p id="completedPrograms">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="analytics" class="tab-content">
+            <h2>Data Analytics</h2>
+            <div class="analytics-grid">
+                <div class="chart-card">
+                    <h3>Total Hours Contributed</h3>
+                    <p id="totalHours">0 hours</p>
+                </div>
+                <div class="chart-card">
+                    <h3>Active vs Inactive Volunteers</h3>
+                    <p id="activeInactive">0 active, 0 inactive</p>
+                </div>
+                <div class="chart-card">
+                    <h3>Program Completion Rate</h3>
+                    <p id="completionRate">0%</p>
+                </div>
+                <div class="chart-card">
+                    <h3>Most Completed Programs</h3>
+                    <ul id="topPrograms"></ul>
+                </div>
+                <div class="chart-card">
+                    <h3>Badge Distribution</h3>
+                    <div id="badgeChart"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Volunteer Growth</h3>
+                    <p id="volunteerGrowth">Growth over time: +0 this month</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="volunteers" class="tab-content">
+            <h2>Volunteer Management</h2>
+            <div class="form-group">
+                <label>Select Program:</label>
+                <select id="volunteerProgramFilter" onchange="updateVolunteerProgramParticipants()"></select>
+            </div>
+            <div id="programParticipantList" style="margin-bottom:20px;"></div>
+            <div id="volunteerList"></div>
+        </div>
+
+        <div id="restrictions" class="tab-content">
+            <h2>User Restriction Management</h2>
+            <div class="form-group">
+                <label>Minimum Age:</label>
+                <input type="number" id="minAge" value="18">
+                <button onclick="updateRestrictions()">Update</button>
+            </div>
+            <div class="form-group">
+                <label>Valid Barangays (comma-separated):</label>
+                <input type="text" id="validBarangays" value="All">
+                <button onclick="saveRestrictionsFromUI()">Update</button>
+            </div>
+        </div>
+
+        <div id="skills" class="tab-content">
+            <h2>Skill Category Management</h2>
+            <div class="form-group">
+                <input type="text" id="newSkill" placeholder="New skill category">
+                <button onclick="addSkill()">Add</button>
+            </div>
+            <ul id="skillList"></ul>
+        </div>
+
+        <div id="programs" class="tab-content">
+            <h2>Program Management</h2>
+            <button onclick="showProgramModal()">Create New Program</button>
+            <div id="programList"></div>
+        </div>
+
+        <div id="validation" class="tab-content">
+            <h2>Program Validation</h2>
+            <div id="submittedPrograms"></div>
+        </div>
+
+        <div id="badges" class="tab-content">
+            <h2>Badge and Threshold Management</h2>
+            <div class="badge-thresholds">
+                <div class="form-group">
+                    <label>Bronze (hours):</label>
+                    <input type="number" id="bronzeThreshold" value="10">
+                </div>
+                <div class="form-group">
+                    <label>Silver (hours):</label>
+                    <input type="number" id="silverThreshold" value="25">
+                </div>
+                <div class="form-group">
+                    <label>Gold (hours):</label>
+                    <input type="number" id="goldThreshold" value="50">
+                </div>
+                <div class="form-group">
+                    <label>Platinum (hours):</label>
+                    <input type="number" id="platinumThreshold" value="100">
+                </div>
+                <button onclick="updateBadgeThresholds()">Update Thresholds</button>
+            </div>
+        </div>
+
+        <div id="certifications" class="tab-content">
+            <h2>Certification Management</h2>
+            <div id="certRequests"></div>
+        </div>
+
+        <div id="notifications" class="tab-content">
+            <h2>Notification System</h2>
+            <div class="form-group">
+                <textarea id="notificationMessage" placeholder="Notification message"></textarea>
+                <select id="notificationType">
+                    <option value="application">Application Result</option>
+                    <option value="program">Program Update</option>
+                    <option value="certification">Certification Update</option>
+                </select>
+                <button onclick="sendNotification()">Send Notification</button>
+            </div>
+            <div id="notificationHistory"></div>
+        </div>
+
+        <div id="logs" class="tab-content">
+            <h2>Activity Logs</h2>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="logSearchInput" placeholder="Search logs..." style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #9CAF88; border-radius: 6px;">
+                <select id="logFilterType" style="padding: 8px; border: 1px solid #9CAF88; border-radius: 6px;">
+                    <option value=">All Actions</option>
+                    <option value="program_add">Program Added</option>
+                    <option value="program_update">Program Updated</option>
+                    <option value="program_delete">Program Deleted</option>
+                    <option value="volunteer_join">User Joined Program</option>
+                    <option value="volunteer_approve">Volunteer Approved</option>
+                    <option value="volunteer_reject">Volunteer Rejected</option>
+                    <option value="error">Error</option>
+                </select>
+                <button onclick="clearAllLogs()" style="padding: 8px 16px; background: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer;">Clear All</button>
+                <button onclick="exportLogs()" style="padding: 8px 16px; background: #5cb85c; color: white; border: none; border-radius: 6px; cursor: pointer;">Export</button>
+            </div>
+            <div id="logsList" style="max-height: 600px; overflow-y: auto; border: 1px solid #9CAF88; border-radius: 6px;"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="programModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(84,107,65,0.6); justify-content:center; align-items:center; z-index:99999;">
+        <div style="background:rgba(255,248,236,0.96); padding:20px; border-radius:16px; width:400px; border:1px solid rgba(84,107,65,0.22);">
+            <h3 id="programModalTitle">Create Program</h3>
+            <label for="programName" style="font-weight:700; margin-top:10px; display:block;">Program Name</label>
+            <input id="programName" placeholder="Program Name" style="width:100%; margin:6px 0 10px 0; padding:10px; color:#000; background:#fff; border:1px solid rgba(84,107,65,0.3); border-radius:12px;">
+            <label for="programDesc" style="font-weight:700; margin-top:10px; display:block;">Description</label>
+            <textarea id="programDesc" placeholder="Description" style="width:100%; height:80px; margin:6px 0 10px 0; padding:10px; color:#000; background:#fff; border:1px solid rgba(84,107,65,0.3); border-radius:12px;"></textarea>
+            <label for="programHours" style="font-weight:700; margin-top:10px; display:block;">Required Hours</label>
+            <input id="programHours" type="number" placeholder="Required Hours" style="width:100%; margin:6px 0 10px 0; padding:10px; color:#000; background:#fff; border:1px solid rgba(84,107,65,0.3); border-radius:12px;">
+            <label for="programRequirement" style="font-weight:700; margin-top:10px; display:block;">Optional Requirement</label>
+            <select id="programRequirement" style="width:100%; margin:6px 0 10px 0; padding:10px; color:#000; background:#fff; border:1px solid rgba(84,107,65,0.3); border-radius:12px;">
+                <option value="None">None</option>
+                <option value="Bronze">Bronze</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+                <option value="Diamond">Diamond</option>
+            </select>
+            <label for="programMaxVolunteers" style="font-weight:700; margin-top:10px; display:block;">Max Volunteers</label>
+            <input id="programMaxVolunteers" type="number" placeholder="Max Volunteers" style="width:100%; margin:6px 0 10px 0; padding:10px; color:#000; background:#fff; border:1px solid rgba(84,107,65,0.3); border-radius:12px;">
+            <div style="margin:10px 0;">
+                <input id="programAttachments" type="file" accept="image/png, image/jpeg" multiple style="width:100%; margin:10px 0; padding:10px;">
+                <div id="programAttachmentPreview" style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:10px;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                <button onclick="closeProgramModal()">Cancel</button>
+                <button onclick="saveProgram()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../js/i-tanim/admin.js"></script>
+    <script type="module" src="../../js/navbar-auth.js"></script>
+</body>
+</html></content>
+<parameter name="filePath">c:\Users\rhejie carl\Downloads\nstp-finals-G3V2.0\nstp-finals-G3V2.0\Group 3\admin.html
+
+
+
+
+
+
+
+
+

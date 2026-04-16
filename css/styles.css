@@ -43,14 +43,14 @@ a {
 }
 
 .navbar {
-    width: 100%;
+    width: min(100%, var(--shell-width));
     min-height: 70px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 20px;
     padding: 0 30px;
-    margin: 0 0 24px;
+    margin: 0 auto 24px;
     border-radius: 999px;
     background: var(--green-600);
     color: #ffffff;
@@ -102,6 +102,8 @@ a {
 
 .nav-site-name {
     font-size: 11px;
+    color: #ffffff;
+    text-decoration: none;
 }
 
 .brand-container {
@@ -116,6 +118,9 @@ a {
     gap: 10px;
     min-height: 70px;
     padding: 0 25px;
+}
+
+.brand-highlight.active {
     background: var(--green-300);
 }
 
@@ -178,23 +183,63 @@ a {
 
 .nav-links {
     list-style: none;
-    gap: 30px;
+    gap: 0;
     margin: 0;
     padding: 0;
     flex: 1;
 }
 
 .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    height: 70px;
+    padding: 0 24px;
     color: #ffffff;
+}
+
+.nav-links a.active-link {
+    background: var(--green-300);
+}
+
+.nav-links a:hover {
+    background: var(--green-300);
 }
 
 .nav-right {
     gap: 14px;
     margin-left: auto;
+    flex-shrink: 0;
+}
+
+.nav-auth-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.nav-auth-button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.nav-auth-link:hover {
+    opacity: 0.9;
 }
 
 .welcome-text {
     font-size: 11px;
+}
+
+body.itanim-page.home {
+    padding: 18px;
 }
 
 .profile-container {
