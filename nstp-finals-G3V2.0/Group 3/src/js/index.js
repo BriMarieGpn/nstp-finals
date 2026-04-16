@@ -169,10 +169,6 @@ async function loadCurrentUserFromAuth(user) {
 
 function ensureProgramListener() {
     if (programsListenerStarted) return;
-    if (useFirestore && !auth.currentUser) {
-        console.warn("Firestore program listener waiting for auth state...");
-        return;
-    }
     programsListenerStarted = true;
     listenPrograms();
 }
