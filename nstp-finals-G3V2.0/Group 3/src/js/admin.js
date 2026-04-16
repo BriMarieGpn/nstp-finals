@@ -1,6 +1,6 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -10,6 +10,10 @@ const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("Y
 const adminStateDoc = doc(db, 'admin', 'state');
 
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
+
+function normalizeRole(role) {
+    return String(role || '').toLowerCase().trim();
+}
 
 // Data structures
 let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
@@ -124,7 +128,8 @@ async function initFirestoreAdminState() {
             programs = Array.isArray(data.programs) ? data.programs.map(program => ({
                 ...program,
                 name: program.name || program.title || 'Untitled Program',
-                assigned: Array.isArray(program.assigned) ? program.assigned : [],
+                assigned: Array.isArray(program.assigned) ? program.assigned : Array.isArray(program.joined) ? program.joined : [],
+                joined: Array.isArray(program.joined) ? program.joined : Array.isArray(program.assigned) ? program.assigned : [],
                 maxVolunteers: program.maxVolunteers ?? 0,
                 status: program.status || 'active'
             })) : programs;
@@ -331,23 +336,126 @@ function updateAnalytics() {
 // Volunteers
 function updateVolunteers() {
     const list = document.getElementById('volunteerList');
-    list.innerHTML = users.map(u => `
-        <div class="volunteer-item">
-            <div>
-                <strong>${u.name}</strong><br>
-                Email: ${u.email}<br>
-                Age: ${u.age}, Barangay: ${u.barangay}<br>
-                Skills: ${u.skills.join(', ')}<br>
-                Status: ${u.status}, Hours: ${u.hours || 0}, Badge: ${u.badge || 'None'}
+    list.innerHTML = `
+        <div class="volunteer-section">
+            <div class="volunteer-card">
+                <strong>All Volunteers</strong>
+                ${users.map(u => `
+                    <div class="volunteer-item">
+                        <div>
+                            <strong>${u.name}</strong><br>
+                            Email: ${u.email}<br>
+                            Age: ${u.age}, Barangay: ${u.barangay}<br>
+                            Skills: ${Array.isArray(u.skills) ? u.skills.join(', ') : ''}<br>
+                            Enrolled: ${Array.isArray(u.enrolledPrograms) ? u.enrolledPrograms.join(', ') : 'None'}<br>
+                            Completed: ${Array.isArray(u.completedPrograms) ? u.completedPrograms.join(', ') : 'None'}<br>
+                            Status: ${u.status || 'pending'}, Hours: ${u.hours || 0}, Badge: ${u.badge || 'None'}
+                        </div>
+                        <div>
+                            ${u.status === 'pending' ? `
+                                <button class="approve-btn" onclick="approveUser('${u.id}')">Approve</button>
+                                <button class="reject-btn" onclick="rejectUser('${u.id}')">Reject</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('')}
             </div>
-            <div>
-                ${u.status === 'pending' ? `
-                    <button class="approve-btn" onclick="approveUser('${u.id}')">Approve</button>
-                    <button class="reject-btn" onclick="rejectUser('${u.id}')">Reject</button>
-                ` : ''}
-            </div>
-        </div>
+        `;
+
+    updateVolunteerProgramFilter();
+    updateVolunteerProgramParticipants();
+}
+
+function updateVolunteerProgramFilter() {
+    const filter = document.getElementById('volunteerProgramFilter');
+    if (!filter) return;
+    filter.innerHTML = programs.map(program => `
+        <option value="${program.id}">${program.name || program.title || 'Untitled Program'}</option>
     `).join('');
+    if (!filter.value && programs.length > 0) {
+        filter.value = programs[0].id;
+    }
+}
+
+function getParticipantsForProgram(programId) {
+    return users.filter(user => Array.isArray(user.enrolledPrograms) && user.enrolledPrograms.includes(programId));
+}
+
+function updateVolunteerProgramParticipants() {
+    const filter = document.getElementById('volunteerProgramFilter');
+    const participantContainer = document.getElementById('programParticipantList');
+    if (!filter || !participantContainer) return;
+
+    const programId = filter.value;
+    const program = programs.find(p => p.id === programId) || {};
+    const participants = getParticipantsForProgram(programId);
+
+    participantContainer.innerHTML = `
+        <div style="padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.08); margin-bottom: 18px;">
+            <strong>Participants for:</strong> ${program.name || program.title || 'Selected Program'}<br>
+            <small>${participants.length} participant(s) enrolled</small>
+        </div>
+        ${participants.length > 0 ? participants.map(user => `
+            <div class="volunteer-item">
+                <div>
+                    <strong>${user.name}</strong><br>
+                    Email: ${user.email || 'N/A'}<br>
+                    Hours: ${user.hours || 0}<br>
+                    Completed Programs: ${Array.isArray(user.completedPrograms) ? user.completedPrograms.join(', ') : 'None'}
+                </div>
+                <div>
+                    ${Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId) ? `
+                        <span style="display:inline-block;padding:8px 12px;border-radius:12px;background:#5cb85c;color:#fff;">Finished</span>
+                    ` : `
+                        <button class="approve-btn" onclick="markVolunteerCompleted('${programId}','${user.id}')">Mark finished</button>
+                    `}
+                </div>
+            </div>
+        `).join('') : '<div>No participants have joined this program yet.</div>'}
+    `;
+}
+
+async function markVolunteerCompleted(programId, userId) {
+    const program = programs.find(p => p.id === programId);
+    const user = users.find(u => u.id === userId);
+    if (!program || !user) {
+        alert('Program or user not found.');
+        return;
+    }
+    user.enrolledPrograms = Array.isArray(user.enrolledPrograms) ? user.enrolledPrograms : [];
+    user.completedPrograms = Array.isArray(user.completedPrograms) ? user.completedPrograms : [];
+    if (user.completedPrograms.includes(programId)) {
+        alert('This participant is already marked finished.');
+        return;
+    }
+    user.completedPrograms.push(programId);
+    user.hours = (user.hours || 0) + (program.hours || 0);
+    updateBadge(user);
+    saveUsers();
+
+    if (useFirestore) {
+        try {
+            await setDoc(doc(db, 'volunteers', userId), {
+                hours: user.hours,
+                enrolledPrograms: arrayUnion(programId),
+                completedPrograms: arrayUnion(programId)
+            }, { merge: true });
+        } catch (err) {
+            console.warn('Could not update volunteer completion in Firestore', err);
+        }
+    }
+
+    updateVolunteerProgramParticipants();
+    updateVolunteers();
+    updateDashboard();
+    updateAnalytics();
+    alert(`${user.name} has been marked finished for ${program.name || program.title}. Hours updated.`);
+}
+
+window.markVolunteerCompleted = markVolunteerCompleted;
+
+function hasCompletedProgram(user, programId) {
+    return Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId);
 }
 
 function approveUser(id) {
@@ -593,21 +701,44 @@ function updateValidation() {
     `).join('');
 }
 
-function approveProgram(id) {
+async function approveProgram(id) {
     const program = programs.find(p => p.id === id);
     if (program) {
         program.validated = true;
-        program.assigned.forEach(userId => {
+        const participants = Array.isArray(program.assigned) && program.assigned.length > 0 ? program.assigned : Array.isArray(program.joined) ? program.joined : [];
+        for (const userId of participants) {
             const user = users.find(u => u.id === userId);
             if (user) {
-                user.hours = (user.hours || 0) + program.hours;
+                user.hours = (user.hours || 0) + (program.hours || 0);
+                user.enrolledPrograms = Array.isArray(user.enrolledPrograms) ? user.enrolledPrograms : [];
+                if (!user.enrolledPrograms.includes(id)) {
+                    user.enrolledPrograms.push(id);
+                }
+                user.completedPrograms = Array.isArray(user.completedPrograms) ? user.completedPrograms : [];
+                if (!user.completedPrograms.includes(id)) {
+                    user.completedPrograms.push(id);
+                }
                 updateBadge(user);
+
+                if (useFirestore) {
+                    try {
+                        await setDoc(doc(db, 'volunteers', user.id), {
+                            hours: user.hours,
+                            enrolledPrograms: arrayUnion(id),
+                            completedPrograms: arrayUnion(id)
+                        }, { merge: true });
+                    } catch (err) {
+                        console.warn('Could not update volunteer completion in Firestore', err);
+                    }
+                }
             }
-        });
+        }
         saveUsers();
         savePrograms();
         updateValidation();
-        sendNotification(`Program "${program.name}" has been approved! You earned ${program.hours} hours.`, 'program', program.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
+        updateDashboard();
+        updateAnalytics();
+        sendNotification(`Program "${program.name}" has been approved! You earned ${program.hours} hours.`, 'program', participants.map(uid => users.find(u => u.id === uid)?.email).filter(Boolean));
     }
 }
 
@@ -752,7 +883,8 @@ async function loadAdminSession() {
                     userDoc = fallbackSnap.docs[0];
                 }
             }
-            if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+            const role = userDoc.exists() ? normalizeRole(userDoc.data().role) : 'user';
+            if (role !== 'admin') {
                 window.location.href = 'user.html';
                 return;
             }

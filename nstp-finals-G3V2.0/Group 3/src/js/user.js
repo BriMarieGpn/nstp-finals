@@ -93,7 +93,11 @@ function getCurrentUser() {
         return currentUserProfile;
     }
     const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-    return storedUsers.find(u => u.id === currentUserId) || storedUsers[0] || {
+    const fallbackUser = storedUsers.find(u => u.id === currentUserId) || storedUsers[0];
+    if (fallbackUser) {
+        return fallbackUser;
+    }
+    return {
         id: currentUserId || 'user1',
         name: 'Volunteer',
         email: '',
@@ -114,6 +118,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         currentUserId = user.uid;
         currentUserProfile = await fetchCurrentUserProfile(user.uid, user.email);
+
+        if (normalizeRole(currentUserProfile.role) === 'admin') {
+            window.location.href = 'admin.html';
+            return;
+        }
 
         if (useFirestore) {
             initFirestoreUserState();
@@ -565,7 +574,7 @@ function debugAddSampleData() {
         notifications.push({
             id: 'notif1',
             title: 'Welcome!',
-            message: 'Welcome to I-Tanim! Start by enrolling in programs.',
+            message: 'Welcome to GrowsauYOU! Start by enrolling in programs.',
             recipient: 'john@example.com',
             timestamp: new Date().toLocaleString()
         });

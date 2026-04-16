@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>I-Tanim | Login</title>
+<title>GrowsauYOU | Login</title>
 <link rel="stylesheet" href="css/style.css">
 <header class="topbar">
   <div class="brand">
-    <span class="brandName">I-TANIM</span>
+    <span class="brandName">GrowsauYOU</span>
   </div>
   <div class="topbar-right">
     <span class="hotline">Volunteer Hotline: 0919 096 6996</span>
@@ -22,7 +22,7 @@
       <div class="formPage loginLayout">
         <a class="backLink" href="index.html">
           <span class="arrow">&#8592;</span>
-          <span class="miniBrand">I-TANIM</span>
+          <span class="miniBrand">GrowsauYOU</span>
         </a>
 
         <div class="pageTitle compact">
@@ -65,7 +65,7 @@
   </div>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import {
     getAuth,
     signInWithEmailAndPassword,
@@ -76,7 +76,7 @@ import {
     setPersistence,
     browserLocalPersistence,
     browserSessionPersistence
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 
 import {
     getFirestore,
@@ -87,7 +87,7 @@ import {
     query,
     where,
     getDocs
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 import firebaseConfig from "./js/firebaseConfig.js";
 
@@ -145,11 +145,18 @@ function showSignedInBanner(user, role) {
     signOutBtn.onclick = async () => {
         try {
             await signOut(auth);
-            window.location.reload();
+            window.location.href = 'login.html';
         } catch (e) {
             alert('Could not sign out. Please try again.');
         }
     };
+}
+
+async function redirectToDashboard(user) {
+    await ensureVolunteerProfile(user);
+    const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
+    const role = userDoc && userDoc.exists() ? userDoc.data().role || 'user' : 'user';
+    window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -164,8 +171,14 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 document.getElementById("login-btn").onclick = async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
     const isRemembered = document.getElementById("remember")?.checked;
-    const email = document.getElementById("email").value;
+
+    if (!email || !password) {
+        alert('Please enter both email and password.');
+        return;
+    }
 
     try {
         await setPersistence(
@@ -173,14 +186,14 @@ document.getElementById("login-btn").onclick = async () => {
             isRemembered ? browserLocalPersistence : browserSessionPersistence
         );
 
-        await signInWithEmailAndPassword(
+        const result = await signInWithEmailAndPassword(
             auth,
             email,
-            document.getElementById("password").value
+            password
         );
 
-        // Log login event to admin logs
-        logLoginEvent('email_login', email, isRemembered);
+        await redirectToDashboard(result.user);
+        logLoginEvent('email_login', email, { remembered: isRemembered });
     } catch (e) {
         logLoginEvent('login_failed', email, { error: e.message });
         alert(e.message);
@@ -190,7 +203,7 @@ document.getElementById("login-btn").onclick = async () => {
 document.getElementById("google-btn").onclick = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
-        await ensureVolunteerProfile(result.user);
+        await redirectToDashboard(result.user);
         logLoginEvent('google_login', result.user.email, true);
     } catch (e) {
         logLoginEvent('login_failed', 'google', { error: e.message });

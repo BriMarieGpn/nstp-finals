@@ -133,6 +133,7 @@ async function loadCurrentUserFromAuth(user) {
         updateUserUI();
         updateAuthLinks();
         setRoleBasedUI();
+        ensureProgramListener();
         return;
     }
 
@@ -639,10 +640,20 @@ function showProgramDetail(program) {
             };
             detailAction.appendChild(joinBtn);
         } else {
-            const loginHint = document.createElement('small');
-            loginHint.textContent = 'Login to join';
-            loginHint.style.opacity = '0.7';
-            detailAction.appendChild(loginHint);
+            const signInBtn = document.createElement('button');
+            signInBtn.textContent = 'Sign in to join';
+            signInBtn.style.flex = '1';
+            signInBtn.style.padding = '10px';
+            signInBtn.style.borderRadius = '10px';
+            signInBtn.style.border = '1px solid rgba(255,248,236,0.22)';
+            signInBtn.style.background = 'rgba(255,255,255,0.12)';
+            signInBtn.style.color = '#FFF8EC';
+            signInBtn.style.cursor = 'pointer';
+            signInBtn.onclick = (event) => {
+                event.stopPropagation();
+                window.location.href = 'login.html';
+            };
+            detailAction.appendChild(signInBtn);
         }
     }
     
@@ -717,6 +728,27 @@ window.joinProgram = async (id, joined) => {
         await updateDoc(doc(db, "admin", "state"), { programs });
         console.log("Join successful");
         
+        // Persist enrollment to the volunteer record
+        if (currentUser.id && useFirestore) {
+            try {
+                await setDoc(doc(db, 'volunteers', currentUser.id), {
+                    enrolledPrograms: arrayUnion(id),
+                    role: 'user'
+                }, { merge: true });
+            } catch (profileErr) {
+                console.warn('Could not update volunteer enrollment in Firestore', profileErr);
+            }
+        }
+
+        const localUser = users.find(u => u.id === currentUser.id);
+        if (localUser) {
+            localUser.enrolledPrograms = Array.isArray(localUser.enrolledPrograms) ? localUser.enrolledPrograms : [];
+            if (!localUser.enrolledPrograms.includes(id)) {
+                localUser.enrolledPrograms.push(id);
+            }
+            saveUsers();
+        }
+
         // Update local programDocs
         if (program) {
             program.joined = updatedJoined;

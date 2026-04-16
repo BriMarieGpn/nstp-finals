@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I-Tanim | Admin Panel</title>
+    <title>GrowsauYOU | Admin Panel</title>
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
     <div class="navbar">
         <div class="nav-inner">
-            <div class="logo">I-TANIM ADMIN</div>
+            <div class="logo">GrowsauYOU ADMIN</div>
             <div class="nav-links">
                 <a href="index.html">Home</a>
                 <a href="#" onclick="logoutAdmin()">Logout</a>
@@ -95,6 +95,11 @@
 
         <div id="volunteers" class="tab-content">
             <h2>Volunteer Management</h2>
+            <div class="form-group">
+                <label>Select Program:</label>
+                <select id="volunteerProgramFilter" onchange="updateVolunteerProgramParticipants()"></select>
+            </div>
+            <div id="programParticipantList" style="margin-bottom:20px;"></div>
             <div id="volunteerList"></div>
         </div>
 
