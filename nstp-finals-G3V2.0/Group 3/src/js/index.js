@@ -35,6 +35,7 @@ let currentUser = {
     id: "user1",
     role: "visitor"
 };
+let isAuthenticated = false;
 
 const roleSwitcher = document.getElementById("roleSwitcher");
 const userLabel = document.getElementById("userLabel");
@@ -107,25 +108,28 @@ function updateUserUI() {
 }
 
 function updateAuthLinks() {
-    const signedIn = currentUser.role === "user" || currentUser.role === "admin";
+    const signedIn = isAuthenticated && (currentUser.role === "user" || currentUser.role === "admin");
 
     if (navLoginLink) navLoginLink.style.display = signedIn ? "none" : "inline";
     if (navRegisterLink) navRegisterLink.style.display = signedIn ? "none" : "inline";
     if (pageLoginBtn) pageLoginBtn.style.display = signedIn ? "none" : "inline";
     if (pageRegisterBtn) pageRegisterBtn.style.display = signedIn ? "none" : "inline";
 
-    if (userDashboardLink) userDashboardLink.style.display = currentUser.role === "user" ? "inline" : "none";
-    if (adminLink) adminLink.style.display = currentUser.role === "admin" ? "inline" : "none";
+    if (userDashboardLink) userDashboardLink.style.display = signedIn && currentUser.role === "user" ? "inline" : "none";
+    if (adminLink) adminLink.style.display = signedIn && currentUser.role === "admin" ? "inline" : "none";
 }
 
 async function loadCurrentUserFromAuth(user) {
     if (!user) {
+        isAuthenticated = false;
         currentUser = { id: "visitor", role: "visitor" };
         updateUserUI();
         updateAuthLinks();
         setRoleBasedUI();
         return;
     }
+
+    isAuthenticated = true;
 
     try {
         const userDoc = await getDoc(doc(db, "volunteers", user.uid));
@@ -153,12 +157,12 @@ onAuthStateChanged(auth, loadCurrentUserFromAuth);
 function setRoleBasedUI() {
     const isAdmin = currentUser.role === "admin";
     const isUser = currentUser.role === "user";
-    addBtn.style.display = isAdmin ? "block" : "none";
+    addBtn.style.display = isAuthenticated && isAdmin ? "block" : "none";
     if (adminLink) {
-        adminLink.style.display = isAdmin ? "inline" : "none";
+        adminLink.style.display = isAuthenticated && isAdmin ? "inline" : "none";
     }
     if (userDashboardLink) {
-        userDashboardLink.style.display = isUser ? "inline" : "none";
+        userDashboardLink.style.display = isAuthenticated && isUser ? "inline" : "none";
     }
     if (roleSwitcher) {
         roleSwitcher.value = currentUser.role;
@@ -175,7 +179,7 @@ function setDebugPanelVisibility() {
 function setTempUserSwitcherVisibility() {
     const tempUserSwitcher = document.getElementById("tempUserSwitcher");
     if (!tempUserSwitcher) return;
-    tempUserSwitcher.style.display = currentUser.role === "admin" ? "flex" : "none";
+    tempUserSwitcher.style.display = isAuthenticated && currentUser.role === "admin" ? "flex" : "none";
 }
 
 roleSwitcher.addEventListener("change", (e) => {
@@ -676,9 +680,15 @@ async function uploadProgramImage(file) {
 
 window.submitProgram = async () => {
     console.log("submitProgram called");
+    console.log("isAuthenticated:", isAuthenticated);
     console.log("currentUser:", currentUser);
     console.log("currentUser.role:", currentUser.role);
     console.log("useFirestore:", useFirestore);
+
+    if (!isAuthenticated || !auth.currentUser) {
+        alert("You must be signed in with an admin account to add programs.");
+        return;
+    }
 
     if (currentUser.role !== "admin") {
         alert("Only admins can add programs. Current role: " + currentUser.role);

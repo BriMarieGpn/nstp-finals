@@ -82,6 +82,7 @@ import {
     getFirestore,
     doc,
     getDoc,
+    setDoc,
     collection,
     query,
     where,
@@ -118,6 +119,22 @@ async function getVolunteerProfileByUidOrEmail(uid, email) {
     return snap.docs[0] || null;
 }
 
+async function ensureVolunteerProfile(user) {
+    const existing = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
+    if (existing) {
+        return;
+    }
+    try {
+        await setDoc(doc(db, 'volunteers', user.uid), {
+            email: user.email || '',
+            role: 'user',
+            status: 'approved'
+        });
+    } catch (err) {
+        console.warn('Could not create volunteer profile for signed in user', err);
+    }
+}
+
 function showSignedInBanner(user, role) {
     loginForm.style.display = 'none';
     authStatusBanner.style.display = 'block';
@@ -137,6 +154,7 @@ function showSignedInBanner(user, role) {
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        await ensureVolunteerProfile(user);
         const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
         const role = userDoc && userDoc.exists() ? userDoc.data().role || 'user' : 'user';
         showSignedInBanner(user, role);
@@ -172,6 +190,7 @@ document.getElementById("login-btn").onclick = async () => {
 document.getElementById("google-btn").onclick = async () => {
     try {
         const result = await signInWithPopup(auth, provider);
+        await ensureVolunteerProfile(result.user);
         logLoginEvent('google_login', result.user.email, true);
     } catch (e) {
         logLoginEvent('login_failed', 'google', { error: e.message });
