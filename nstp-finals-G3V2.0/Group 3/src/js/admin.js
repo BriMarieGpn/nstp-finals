@@ -121,6 +121,13 @@ async function initFirestoreAdminState() {
             restrictions = data.restrictions || restrictions;
             badgeThresholds = data.badgeThresholds || badgeThresholds;
             notifications = Array.isArray(data.notifications) ? data.notifications : notifications;
+            programs = Array.isArray(data.programs) ? data.programs.map(program => ({
+                ...program,
+                name: program.name || program.title || 'Untitled Program',
+                assigned: Array.isArray(program.assigned) ? program.assigned : [],
+                maxVolunteers: program.maxVolunteers ?? 0,
+                status: program.status || 'active'
+            })) : programs;
             updateDashboard();
             updateAnalytics();
             updateVolunteers();
@@ -388,14 +395,17 @@ function deleteSkill(skill) {
 // Programs
 function updatePrograms() {
     const list = document.getElementById('programList');
-    list.innerHTML = programs.map(p => `
+    list.innerHTML = programs.map(p => {
+        const assignedCount = Array.isArray(p.assigned) ? p.assigned.length : 0;
+        const maxVolunteers = p.maxVolunteers ?? 0;
+        return `
         <div class="program-item">
             <div>
-                <strong>${p.name}</strong><br>
-                ${p.desc}<br>
-                Hours: ${p.hours}, Requirement: ${p.requirement || 'None'}<br>
-                Max Volunteers: ${p.maxVolunteers}, Assigned: ${p.assigned.length}/${p.maxVolunteers}<br>
-                Status: ${p.status}
+                <strong>${p.name || p.title || 'Untitled Program'}</strong><br>
+                ${p.desc || ''}<br>
+                Hours: ${p.hours ?? 0}, Requirement: ${p.requirement || 'None'}<br>
+                Max Volunteers: ${maxVolunteers}, Assigned: ${assignedCount}/${maxVolunteers}<br>
+                Status: ${p.status || 'active'}
             </div>
             <div>
                 <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
@@ -403,7 +413,8 @@ function updatePrograms() {
                 <button class="delete-btn" onclick="deleteProgram('${p.id}')">Delete</button>
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function showProgramModal(programId = null) {

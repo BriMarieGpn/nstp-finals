@@ -16,6 +16,7 @@ import {
     onSnapshot,
     doc,
     getDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
     arrayUnion
@@ -28,6 +29,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 const programDocs = [];
+let programsListenerStarted = false;
 
 let selectedProgramId = null;
 
@@ -150,6 +152,20 @@ async function loadCurrentUserFromAuth(user) {
     updateUserUI();
     updateAuthLinks();
     setRoleBasedUI();
+    ensureProgramListener();
+    if (programDocs.length > 0) {
+        renderPrograms(programDocs);
+    }
+}
+
+function ensureProgramListener() {
+    if (programsListenerStarted) return;
+    if (useFirestore && !auth.currentUser) {
+        console.warn("Firestore program listener waiting for auth state...");
+        return;
+    }
+    programsListenerStarted = true;
+    listenPrograms();
 }
 
 onAuthStateChanged(auth, loadCurrentUserFromAuth);
@@ -248,25 +264,38 @@ window.deleteSelectedProgram = async () => {
         return;
     }
     
+    if (!useFirestore) {
+        alert('Firestore is not configured. Cannot delete program.');
+        return;
+    }
+    
     try {
-        if (useFirestore) {
-            await deleteDoc(doc(db, "programs_empty", selectedProgramId));
+        console.log("Deleting program from admin/state:", selectedProgramId);
+        console.log("Auth state - currentUser:", auth.currentUser);
+        
+        const stateDoc = await getDoc(doc(db, "admin", "state"));
+        console.log("State doc exists:", stateDoc.exists());
+        
+        if (!stateDoc.exists()) {
+            throw new Error("Admin state document not found");
         }
-        // Remove from programDocs array
-        const index = programDocs.findIndex(p => p.id === selectedProgramId);
-        if (index > -1) {
-            programDocs.splice(index, 1);
-            saveLocalPrograms();
-            renderPrograms(programDocs);
-            window.closeDetailModal();
-            alert('Program deleted successfully!');
-        } else {
-            alert('Program not found.');
-        }
-        // Sync deletion to admin programs
-        syncToAdminPrograms();
+        
+        const programs = stateDoc.data().programs || [];
+        console.log("Current programs count:", programs.length);
+        
+        const filteredPrograms = programs.filter(p => p.id !== selectedProgramId);
+        console.log("Filtered programs count:", filteredPrograms.length);
+        
+        await updateDoc(doc(db, "admin", "state"), { programs: filteredPrograms });
+        console.log("Program deleted successfully from admin/state");
+        logActivityEvent('program_delete', `Deleted program: ${selectedProgramId}`, { programId: selectedProgramId });
+        window.closeDetailModal();
+        alert('Program deleted successfully!');
     } catch (err) {
-        console.error(err);
+        console.error("Delete error:", err);
+        console.error("Error code:", err.code);
+        console.error("Error message:", err.message);
+        logActivityEvent('error', `Failed to delete program: ${err.message}`, { error: true });
         alert('Error deleting program: ' + err.message);
     }
 };
@@ -575,22 +604,24 @@ function showProgramDetail(program) {
     document.getElementById('detailRequirement').textContent = program.requirement || 'None';
     
     const detailAction = document.getElementById('detailAction');
-    detailAction.innerHTML = '';
-    if (currentUser.role === 'user') {
-        const joinBtn = document.createElement('button');
-        joinBtn.textContent = (program.joined || []).includes(currentUser.id) ? 'Joined' : 'Join';
-        joinBtn.style.flex = '1';
-        joinBtn.style.padding = '10px';
-        joinBtn.style.borderRadius = '10px';
-        joinBtn.style.border = '1px solid rgba(255,248,236,0.22)';
-        joinBtn.style.background = 'rgba(255,255,255,0.12)';
-        joinBtn.style.color = '#FFF8EC';
-        joinBtn.style.cursor = 'pointer';
-        joinBtn.onclick = (event) => {
-            event.stopPropagation();
-            joinProgram(program.id, program.joined || []);
-        };
-        detailAction.appendChild(joinBtn);
+    if (detailAction) {
+        detailAction.innerHTML = '';
+        if (currentUser.role === 'user' || currentUser.role === 'admin') {
+            const joinBtn = document.createElement('button');
+            joinBtn.textContent = (program.joined || []).includes(currentUser.id) ? 'Joined' : 'Join';
+            joinBtn.style.flex = '1';
+            joinBtn.style.padding = '10px';
+            joinBtn.style.borderRadius = '10px';
+            joinBtn.style.border = '1px solid rgba(255,248,236,0.22)';
+            joinBtn.style.background = 'rgba(255,255,255,0.12)';
+            joinBtn.style.color = '#FFF8EC';
+            joinBtn.style.cursor = 'pointer';
+            joinBtn.onclick = (event) => {
+                event.stopPropagation();
+                joinProgram(program.id, program.joined || []);
+            };
+            detailAction.appendChild(joinBtn);
+        }
     }
     
     // Show/hide admin controls
@@ -623,8 +654,6 @@ window.joinProgram = async (id, joined) => {
             renderPrograms(programDocs);
             const programName = program.title || 'Unknown Program';
             logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
-            // Sync join to admin programs
-            syncToAdminPrograms();
             return;
         }
         alert("Program not found.");
@@ -634,19 +663,48 @@ window.joinProgram = async (id, joined) => {
     try {
         const program = programDocs.find((item) => item.id === id);
         const programName = program?.title || 'Unknown Program';
-        await updateDoc(doc(db, "programs_empty", id), {
-            joined: arrayUnion(currentUser.id)
-        });
+        
+        console.log("Joining program ID:", id);
+        console.log("Auth state - currentUser:", auth.currentUser);
+        console.log("CurrentUser role:", currentUser.role);
+        
+        // Get current programs array
+        const stateDoc = await getDoc(doc(db, "admin", "state"));
+        console.log("State doc exists:", stateDoc.exists());
+        
+        if (!stateDoc.exists()) {
+            throw new Error("Admin state document not found");
+        }
+        
+        const programs = stateDoc.data().programs || [];
+        console.log("Programs array:", programs);
+        
+        const programIndex = programs.findIndex(p => p.id === id);
+        console.log("Program index:", programIndex);
+        
+        if (programIndex === -1) {
+            throw new Error("Program not found");
+        }
+        
+        // Add user to joined array
+        const updatedJoined = [...new Set([...(programs[programIndex].joined || []), currentUser.id])];
+        programs[programIndex].joined = updatedJoined;
+        
+        console.log("Updating joined array to:", updatedJoined);
+        
+        await updateDoc(doc(db, "admin", "state"), { programs });
+        console.log("Join successful");
+        
         // Update local programDocs
         if (program) {
-            program.joined = [...new Set([...(program.joined || []), currentUser.id])];
+            program.joined = updatedJoined;
         }
         renderPrograms(programDocs);
         logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
-        // Sync join to admin programs
-        syncToAdminPrograms();
     } catch (err) {
-        console.error(err);
+        console.error("Join failed:", err);
+        console.error("Error code:", err.code);
+        console.error("Error message:", err.message);
         logActivityEvent('error', `Failed to join program - ${err.message}`, { error: true });
         alert("Could not join program. Please try again.");
     }
@@ -739,52 +797,117 @@ window.submitProgram = async () => {
         console.log("Program data to save:", programData);
 
         if (isEditing) {
-            // Update existing program
-            const index = programDocs.findIndex(p => p.id === window.editingProgramId);
-            if (index > -1) {
-                programDocs[index] = { ...programDocs[index], ...programData };
+            // Update existing program in admin/state/programs array
+            console.log("Updating program in admin/state:", window.editingProgramId);
+            
+            if (!useFirestore) {
+                alert("Firestore is not configured. Cannot update program.");
+                return;
             }
-            if (useFirestore) {
-                try {
-                    console.log("Updating Firestore document:", window.editingProgramId);
-                    await updateDoc(doc(db, "programs_empty", window.editingProgramId), programData);
-                    console.log("Firestore update successful");
-                    logActivityEvent('program_update', `Updated program: "${title}"`, { programId: window.editingProgramId, hours });
-                } catch (fsErr) {
-                    console.error("Firestore update failed", fsErr);
-                    logActivityEvent('error', `Failed to update program: "${title}" - ${fsErr.message}`, { error: true });
-                    throw fsErr;
+
+            try {
+                // Get current programs array
+                const stateDoc = await getDoc(doc(db, "admin", "state"));
+                if (!stateDoc.exists()) {
+                    throw new Error("Admin state document not found");
                 }
+                
+                const programs = stateDoc.data().programs || [];
+                const programIndex = programs.findIndex(p => p.id === window.editingProgramId);
+                
+                if (programIndex === -1) {
+                    throw new Error("Program not found in admin/state");
+                }
+                
+                // Update the program
+                programs[programIndex] = {
+                    ...programs[programIndex],
+                    name: title,
+                    title,
+                    hours: parseInt(hours) || 0,
+                    requirement,
+                    desc,
+                    image: imageURL
+                };
+                
+                await updateDoc(doc(db, "admin", "state"), { programs });
+                console.log("Firestore update successful");
+                logActivityEvent('program_update', `Updated program: "${title}"`, { programId: window.editingProgramId, hours });
+                alert("Program updated successfully!");
+            } catch (fsErr) {
+                console.error("Firestore update failed", fsErr);
+                logActivityEvent('error', `Failed to update program: "${title}" - ${fsErr.message}`, { error: true });
+                alert("ERROR: Could not update program in database - " + fsErr.message);
+                throw fsErr;
             }
-            // Also sync to admin programs
-            syncToAdminPrograms();
             window.editingProgramId = undefined;
-            alert("Program updated!");
         } else {
-            // Add new program
-            const newProgram = { id: `local-${Date.now()}`, ...programData };
-            console.log("New program object:", newProgram);
-
-            if (useFirestore) {
-                try {
-                    console.log("Adding to Firestore collection: programs_empty");
-                    console.log("Auth state - currentUser:", auth.currentUser);
-                    const docRef = await addDoc(collection(db, "programs_empty"), programData);
-                    newProgram.id = docRef.id;
-                    console.log("Firestore add successful, doc ID:", newProgram.id);
-                    logActivityEvent('program_add', `Created program: "${title}" (${hours} hours)`, { programId: newProgram.id, hours });
-                } catch (fsErr) {
-                    console.error("Firestore add failed", fsErr);
-                    console.error("Error details:", fsErr.code, fsErr.message);
-                    logActivityEvent('error', `Failed to create program: "${title}" - ${fsErr.message}`, { error: true });
-                    throw fsErr;
-                }
+            // Add new program to admin/state/programs array
+            console.log("Adding new program to admin/state");
+            console.log("Auth state - currentUser:", auth.currentUser);
+            console.log("Auth UID:", auth.currentUser?.uid);
+            
+            if (!useFirestore) {
+                alert("Firestore is not configured. Cannot add program.");
+                return;
             }
 
-            programDocs.push(newProgram);
-            // Also sync to admin programs
-            syncToAdminPrograms();
-            alert("Program added!");
+            try {
+                const programId = `prog-${Date.now()}`;
+                const newProgram = {
+                    id: programId,
+                    name: title,
+                    title,
+                    hours: parseInt(hours) || 0,
+                    requirement,
+                    desc,
+                    image: imageURL,
+                    joined: []
+                };
+                
+                console.log("New program to save:", newProgram);
+                
+                // First check if admin/state exists and has programs array
+                const stateRef = doc(db, "admin", "state");
+                const stateSnapshot = await getDoc(stateRef);
+                
+                console.log("Admin/state exists:", stateSnapshot.exists());
+                
+                if (stateSnapshot.exists()) {
+                    const currentData = stateSnapshot.data();
+                    console.log("Current admin/state data:", currentData);
+                    
+                    // If programs array exists, use arrayUnion; otherwise set it
+                    if (Array.isArray(currentData.programs)) {
+                        console.log("Programs array exists, using arrayUnion");
+                        await updateDoc(stateRef, {
+                            programs: arrayUnion(newProgram)
+                        });
+                    } else {
+                        console.log("Programs array doesn't exist, creating it");
+                        await updateDoc(stateRef, {
+                            programs: [newProgram]
+                        });
+                    }
+                } else {
+                    console.log("Admin/state doesn't exist, creating it");
+                    await setDoc(stateRef, {
+                        programs: [newProgram]
+                    });
+                }
+                
+                console.log("Firestore add successful");
+                logActivityEvent('program_add', `Created program: "${title}" (${hours} hours)`, { programId, hours });
+                alert("Program added successfully!");
+            } catch (fsErr) {
+                console.error("Firestore add failed", fsErr);
+                console.error("Error code:", fsErr.code);
+                console.error("Error message:", fsErr.message);
+                console.error("Full error:", fsErr);
+                logActivityEvent('error', `Failed to create program: "${title}" - ${fsErr.message}`, { error: true });
+                alert("ERROR: Could not save program to database - " + fsErr.message);
+                throw fsErr;
+            }
         }
         
         saveLocalPrograms();
@@ -822,18 +945,29 @@ function listenPrograms() {
     }
 
     try {
-        // Online mode: listen to Firestore, but also sync from admin programs if they exist
-        syncProgramsFromProgramsIfNeeded();
-
-        onSnapshot(collection(db, "programs_empty"), (snap) => {
-            programDocs.length = 0;
-            snap.forEach((d) => {
-                programDocs.push({ id: d.id, ...d.data() });
-            });
-            console.log("listenPrograms (online): loaded", programDocs.length, "programs from Firestore");
-            renderPrograms(programDocs);
+        // Online mode: listen to admin/state document for programs array
+        onSnapshot(doc(db, "admin", "state"), (snap) => {
+            if (snap.exists()) {
+                const data = snap.data();
+                const programs = data.programs || [];
+                console.log("listenPrograms (online): loaded", programs.length, "programs from admin/state");
+                
+                programDocs.length = 0;
+                programs.forEach((p) => {
+                    programDocs.push({ 
+                        id: p.id || `prog-${Date.now()}`,
+                        title: p.name || p.title || '',
+                        hours: p.hours || 0,
+                        desc: p.desc || '',
+                        image: p.image || p.attachments?.[0]?.dataUrl || defaultImage,
+                        requirement: p.requirement || 'None',
+                        joined: p.joined || []
+                    });
+                });
+                renderPrograms(programDocs);
+            }
         }, (err) => {
-            console.warn("Realtime program list unavailable, falling back to local", err);
+            console.warn("Could not listen to admin/state", err);
             programDocs.length = 0;
             const loaded = loadLocalPrograms();
             programDocs.push(...loaded);
@@ -945,8 +1079,7 @@ if (!useFirestore) {
     console.warn("Firebase is not configured. Using local demo data instead.");
 }
 
-// Initialize programs
-listenPrograms();
+// Initialize programs once auth state is known
 
 // Fallback: ensure programs are rendered even if listenPrograms doesn't work
 // This handles browser caching issues
@@ -970,11 +1103,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 preview.src = '';
             }
         });
-    }
-
-    if (programDocs.length === 0) {
-        console.warn("Programs not loaded, attempting fallback...");
-        listenPrograms();
     }
 });
 
