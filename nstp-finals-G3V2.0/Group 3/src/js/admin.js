@@ -8,6 +8,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const adminStateDoc = doc(db, 'admin', 'state');
+let hasResolvedAuth = false;
+let realtimeInitialized = false;
+
+const ROLE_CACHE_KEY = 'growsauyouRoleCache';
 
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 
@@ -17,6 +21,54 @@ function normalizeRole(role) {
 
 function normalizeStatus(status) {
     return String(status || 'pending').toLowerCase().trim();
+}
+
+function isAdminEmail(email) {
+    const val = String(email || '').toLowerCase();
+    return val.includes('admin');
+}
+
+function revealApp() {
+    document.body.classList.remove('auth-pending');
+}
+
+function redirectOnce(path) {
+    if (hasResolvedAuth) return;
+    hasResolvedAuth = true;
+    window.location.href = path;
+}
+
+function cacheRole(uid, role) {
+    try {
+        localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify({ uid, role: normalizeRole(role) }));
+    } catch {
+        // ignore cache errors
+    }
+}
+
+function getCachedRole(uid) {
+    try {
+        const raw = localStorage.getItem(ROLE_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || cached.uid !== uid) return null;
+        return normalizeRole(cached.role);
+    } catch {
+        return null;
+    }
+}
+
+function renderAdminShell() {
+    updateDashboard();
+    updateAnalytics();
+    updateVolunteers();
+    loadRestrictionsUI();
+    updateSkills();
+    updateTasks();
+    updateValidation();
+    updateBadges();
+    updateCertifications();
+    updateNotifications();
 }
 
 // Data structures
@@ -1031,8 +1083,20 @@ async function logoutAdmin() {
 async function loadAdminSession() {
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
-            window.location.href = 'login.html';
+            redirectOnce('login.html');
             return;
+        }
+
+        if (isAdminEmail(user.email)) {
+            cacheRole(user.uid, 'admin');
+            renderAdminShell();
+            revealApp();
+        }
+
+        const cachedRole = getCachedRole(user.uid);
+        if (cachedRole === 'admin') {
+            renderAdminShell();
+            revealApp();
         }
 
         try {
@@ -1045,26 +1109,19 @@ async function loadAdminSession() {
                 }
             }
             const role = userDoc.exists() ? normalizeRole(userDoc.data().role) : 'user';
-            if (role !== 'admin') {
-                window.location.href = 'user.html';
+            if (role !== 'admin' && !isAdminEmail(user.email)) {
+                redirectOnce('user.html');
                 return;
             }
+            cacheRole(user.uid, role === 'admin' ? role : 'admin');
         } catch (err) {
             console.warn('Could not verify admin role', err);
-            window.location.href = 'login.html';
+            redirectOnce('login.html');
             return;
         }
 
-        updateDashboard();
-        updateAnalytics();
-        updateVolunteers();
-        loadRestrictionsUI();
-        updateSkills();
-        updateTasks();
-        updateValidation();
-        updateBadges();
-        updateCertifications();
-        updateNotifications();
+        renderAdminShell();
+        revealApp();
 
         // Attachment preview behavior
         const attachmentInput = document.getElementById('taskAttachments');
@@ -1081,8 +1138,12 @@ async function loadAdminSession() {
         }
 
         // Ensure programs mirror is present on load
-        syncProgramsFromTasks();
-        initFirestoreAdminState();
+        if (!realtimeInitialized) {
+            realtimeInitialized = true;
+            syncProgramsFromTasks();
+            initFirestoreAdminState();
+        }
+        hasResolvedAuth = true;
     });
 }
 

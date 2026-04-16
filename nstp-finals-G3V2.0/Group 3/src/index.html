@@ -9,7 +9,39 @@
 <link rel="stylesheet" href="css/home.css">
 </head>
 
-<body class="home">
+<body class="home auth-pending">
+<style>
+  #appContent {
+    opacity: 1;
+    transition: opacity 220ms ease;
+  }
+  body.auth-pending #appContent {
+    opacity: 0;
+    pointer-events: none;
+  }
+  #authLoadingGate {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff8ec;
+    color: #546b41;
+    z-index: 9999;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+</style>
+<div id="authLoadingGate">Checking session...</div>
+<div id="appContent">
 <div class="navbar">
     <div class="nav-inner">
         <div class="logo">GrowsauYOU</div>
@@ -19,6 +51,7 @@
             <a id="navRegisterLink" href="signup.html">Register</a>
             <a id="userDashboardLink" href="user.html" style="display:none;">Dashboard</a>
             <a id="adminLink" href="admin.html" style="display:none;">Admin Panel</a>
+            <a id="navLogoutLink" href="#" style="display:none;">Logout</a>
         </div>
     </div>
 </div>
@@ -237,5 +270,6 @@
 </div>
 </div>
 <script type="module" src="js/index.js"></script>
+</div>
 </body>
 </html>

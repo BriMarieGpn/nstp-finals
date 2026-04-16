@@ -11,9 +11,63 @@ const adminStateDoc = doc(db, 'admin', 'state');
 const programsCollection = collection(db, 'programs_empty');
 let currentUserId = null;
 let currentUserProfile = null;
+let hasResolvedAuth = false;
+let listenersInitialized = false;
+
+const ROLE_CACHE_KEY = 'growsauyouRoleCache';
+const PROFILE_CACHE_KEY = 'growsauyouProfileCache';
 
 function normalizeRole(role) {
     return String(role || '').toLowerCase().trim();
+}
+
+function revealApp() {
+    document.body.classList.remove('auth-pending');
+}
+
+function redirectOnce(path) {
+    if (hasResolvedAuth) return;
+    hasResolvedAuth = true;
+    window.location.href = path;
+}
+
+function getCachedProfileForUser(uid) {
+    try {
+        const raw = localStorage.getItem(PROFILE_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        return cached && cached.id === uid ? cached : null;
+    } catch {
+        return null;
+    }
+}
+
+function cacheUserProfile(profile) {
+    try {
+        if (!profile || !profile.id) return;
+        localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+        localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify({ uid: profile.id, role: normalizeRole(profile.role || 'user') }));
+    } catch {
+        // ignore cache failures
+    }
+}
+
+function getCachedRoleForUser(uid) {
+    try {
+        const raw = localStorage.getItem(ROLE_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || cached.uid !== uid) return null;
+        return normalizeRole(cached.role);
+    } catch {
+        return null;
+    }
+}
+
+function isAdminEmail(email) {
+    const val = String(email || '').toLowerCase();
+    // Lightweight fallback: treat emails containing "admin" as admin accounts.
+    return val.includes('admin');
 }
 
 let users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
@@ -165,25 +219,64 @@ function getCurrentUser() {
 
 document.addEventListener('DOMContentLoaded', function() {
     onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            window.location.href = 'login.html';
-            return;
-        }
+        let revealFallbackTimer = null;
+        try {
+            if (!user) {
+                redirectOnce('login.html');
+                return;
+            }
 
-        currentUserId = user.uid;
-        currentUserProfile = await fetchCurrentUserProfile(user.uid, user.email);
+            currentUserId = user.uid;
 
-        if (normalizeRole(currentUserProfile.role) === 'admin') {
-            window.location.href = 'admin.html';
-            return;
-        }
+            // Fail-safe to prevent the auth loading gate from getting stuck.
+            revealFallbackTimer = setTimeout(() => {
+                revealApp();
+            }, 3000);
 
-        if (useFirestore) {
-            initFirestoreUserState();
-            listenFirestorePrograms();
-        } else {
-            programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || '[]');
-            loadUserDashboard();
+            const cachedRole = getCachedRoleForUser(user.uid);
+            if (cachedRole === 'admin' || isAdminEmail(user.email)) {
+                redirectOnce('admin.html');
+                return;
+            }
+
+            const cachedProfile = getCachedProfileForUser(user.uid);
+            if (cachedProfile) {
+                currentUserProfile = cachedProfile;
+                if (normalizeRole(currentUserProfile.role) === 'admin') {
+                    redirectOnce('admin.html');
+                    return;
+                }
+                loadUserDashboard();
+                revealApp();
+            }
+
+            currentUserProfile = await fetchCurrentUserProfile(user.uid, user.email);
+            cacheUserProfile(currentUserProfile);
+
+            if (normalizeRole(currentUserProfile.role) === 'admin' || isAdminEmail(user.email)) {
+                redirectOnce('admin.html');
+                return;
+            }
+
+            if (!listenersInitialized) {
+                listenersInitialized = true;
+                if (useFirestore) {
+                    initFirestoreUserState();
+                    listenFirestorePrograms();
+                } else {
+                    programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || '[]');
+                    loadUserDashboard();
+                }
+            }
+            revealApp();
+            hasResolvedAuth = true;
+        } catch (err) {
+            console.warn('User auth gate fallback triggered due to runtime error', err);
+            revealApp();
+        } finally {
+            if (revealFallbackTimer) {
+                clearTimeout(revealFallbackTimer);
+            }
         }
     });
 });

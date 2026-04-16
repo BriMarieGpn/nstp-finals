@@ -7,6 +7,7 @@ import {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
     getAuth,
+    signOut,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
@@ -55,15 +56,42 @@ const adminLink = document.getElementById("adminLink");
 const userDashboardLink = document.getElementById("userDashboardLink");
 const navLoginLink = document.getElementById("navLoginLink");
 const navRegisterLink = document.getElementById("navRegisterLink");
+const navLogoutLink = document.getElementById("navLogoutLink");
 const pageLoginBtn = document.getElementById("pageLoginBtn");
 const pageRegisterBtn = document.getElementById("pageRegisterBtn");
 
 const localStorageKey = "itanimLocalPrograms";
 const localProgramsKey = "itanimPrograms";
 const initialFallbackPrograms = [];
+const ROLE_CACHE_KEY = 'growsauyouRoleCache';
+const PROFILE_CACHE_KEY = 'growsauyouProfileCache';
 
 function normalizeRole(role) {
     return String(role || '').toLowerCase();
+}
+
+function revealApp() {
+    document.body.classList.remove('auth-pending');
+}
+
+function cacheRole(uid, role) {
+    try {
+        localStorage.setItem(ROLE_CACHE_KEY, JSON.stringify({ uid, role: normalizeRole(role) }));
+    } catch {
+        // ignore cache errors
+    }
+}
+
+function getCachedRole(uid) {
+    try {
+        const raw = localStorage.getItem(ROLE_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || cached.uid !== uid) return null;
+        return normalizeRole(cached.role);
+    } catch {
+        return null;
+    }
 }
 
 function getCurrentUserData() {
@@ -119,11 +147,29 @@ function updateAuthLinks() {
 
     if (navLoginLink) navLoginLink.style.display = signedIn ? "none" : "inline";
     if (navRegisterLink) navRegisterLink.style.display = signedIn ? "none" : "inline";
+    if (navLogoutLink) navLogoutLink.style.display = signedIn ? "inline" : "none";
     if (pageLoginBtn) pageLoginBtn.style.display = signedIn ? "none" : "inline";
     if (pageRegisterBtn) pageRegisterBtn.style.display = signedIn ? "none" : "inline";
 
     if (userDashboardLink) userDashboardLink.style.display = signedIn && role === "user" ? "inline" : "none";
     if (adminLink) adminLink.style.display = signedIn && role === "admin" ? "inline" : "none";
+}
+
+if (navLogoutLink) {
+    navLogoutLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+            await signOut(auth);
+        } finally {
+            try {
+                localStorage.removeItem(ROLE_CACHE_KEY);
+                localStorage.removeItem(PROFILE_CACHE_KEY);
+            } catch {
+                // ignore
+            }
+            window.location.href = 'index.html';
+        }
+    });
 }
 
 async function loadCurrentUserFromAuth(user) {
@@ -134,10 +180,24 @@ async function loadCurrentUserFromAuth(user) {
         updateAuthLinks();
         setRoleBasedUI();
         ensureProgramListener();
+        revealApp();
         return;
     }
 
     isAuthenticated = true;
+
+    const cachedRole = getCachedRole(user.uid);
+    if (cachedRole) {
+        currentUser = { id: user.uid, role: cachedRole };
+        updateUserUI();
+        updateAuthLinks();
+        setRoleBasedUI();
+        ensureProgramListener();
+        if (programDocs.length > 0) {
+            renderPrograms(programDocs);
+        }
+        revealApp();
+    }
 
     try {
         const userDoc = await getDoc(doc(db, "volunteers", user.uid));
@@ -158,6 +218,7 @@ async function loadCurrentUserFromAuth(user) {
     if (currentUser.role) {
         currentUser.role = normalizeRole(currentUser.role);
     }
+    cacheRole(user.uid, currentUser.role);
 
     updateUserUI();
     updateAuthLinks();
@@ -166,6 +227,7 @@ async function loadCurrentUserFromAuth(user) {
     if (programDocs.length > 0) {
         renderPrograms(programDocs);
     }
+    revealApp();
 }
 
 function ensureProgramListener() {

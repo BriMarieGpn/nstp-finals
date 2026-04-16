@@ -14,7 +14,38 @@
   </div>
 </header>
 </head>
-<body class="pageLogin">
+<body class="pageLogin auth-pending">
+  <style>
+    .app-shell {
+      opacity: 1;
+      transition: opacity 220ms ease;
+    }
+    body.auth-pending .app-shell {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #authLoadingGate {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff8ec;
+      color: #546b41;
+      z-index: 9999;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 220ms ease, visibility 220ms ease;
+    }
+    body:not(.auth-pending) #authLoadingGate {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+  </style>
+  <div id="authLoadingGate">Checking session...</div>
   <div class="app-shell">
     
 
@@ -101,10 +132,12 @@ const authStatusMessage = document.getElementById('authStatusMessage');
 const continueDashboardBtn = document.getElementById('continueDashboardBtn');
 const signOutBtn = document.getElementById('signOutBtn');
 const loginForm = document.getElementById('loginForm');
+let hasResolvedAuth = false;
 
 function showLoginForm() {
     authStatusBanner.style.display = 'none';
     loginForm.style.display = 'block';
+    document.body.classList.remove('auth-pending');
 }
 
 async function getVolunteerProfileByUidOrEmail(uid, email) {
@@ -174,6 +207,7 @@ function showSignedInBanner(user, role) {
             alert('Could not sign out. Please try again.');
         }
     };
+    document.body.classList.remove('auth-pending');
 }
 
 async function redirectToDashboard(user) {
@@ -184,6 +218,7 @@ async function redirectToDashboard(user) {
 }
 
 onAuthStateChanged(auth, async (user) => {
+    if (hasResolvedAuth) return;
     if (user) {
         await ensureVolunteerProfile(user);
         const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
@@ -192,6 +227,7 @@ onAuthStateChanged(auth, async (user) => {
     } else {
         showLoginForm();
     }
+    hasResolvedAuth = true;
 });
 
 document.getElementById("login-btn").onclick = async () => {
