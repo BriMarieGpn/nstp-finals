@@ -69,6 +69,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/fireba
 import {
     getAuth,
     signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
     GoogleAuthProvider,
     signInWithPopup,
     onAuthStateChanged,
@@ -107,9 +108,11 @@ function showLoginForm() {
 }
 
 async function getVolunteerProfileByUidOrEmail(uid, email) {
-    const userDoc = await getDoc(doc(db, 'volunteers', uid));
-    if (userDoc.exists()) {
-        return userDoc;
+    if (uid) {
+        const userDoc = await getDoc(doc(db, 'volunteers', uid));
+        if (userDoc.exists()) {
+            return userDoc;
+        }
     }
     if (!email) {
         return null;
@@ -132,6 +135,21 @@ async function ensureVolunteerProfile(user) {
         });
     } catch (err) {
         console.warn('Could not create volunteer profile for signed in user', err);
+    }
+}
+
+function getFriendlyAuthErrorMessage(code) {
+    switch (code) {
+        case 'auth/invalid-email':
+            return 'The email address is not valid. Please check and try again.';
+        case 'auth/user-not-found':
+            return 'No account was found with that email. Please sign up first or use the correct email.';
+        case 'auth/wrong-password':
+            return 'The password is incorrect. Please try again or reset your password.';
+        case 'auth/too-many-requests':
+            return 'Too many login attempts. Please wait a moment and try again.';
+        default:
+            return 'Login failed: ' + (code || 'unknown error');
     }
 }
 
@@ -195,8 +213,28 @@ document.getElementById("login-btn").onclick = async () => {
         await redirectToDashboard(result.user);
         logLoginEvent('email_login', email, { remembered: isRemembered });
     } catch (e) {
-        logLoginEvent('login_failed', email, { error: e.message });
-        alert(e.message);
+        if (e.code === 'auth/user-not-found') {
+            const volunteerDoc = await getVolunteerProfileByUidOrEmail(null, email);
+            if (volunteerDoc && volunteerDoc.exists()) {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    const newUser = auth.currentUser;
+                    if (newUser) {
+                        await ensureVolunteerProfile(newUser);
+                        await redirectToDashboard(newUser);
+                        logLoginEvent('email_signup_after_missing_user', email, { created: true });
+                        return;
+                    }
+                } catch (createError) {
+                    console.warn('Could not auto-create account for existing volunteer', createError);
+                    alert(getFriendlyAuthErrorMessage(createError.code));
+                    return;
+                }
+            }
+        }
+
+        logLoginEvent('login_failed', email, { error: e.message, code: e.code });
+        alert(getFriendlyAuthErrorMessage(e.code));
     }
 };
 
