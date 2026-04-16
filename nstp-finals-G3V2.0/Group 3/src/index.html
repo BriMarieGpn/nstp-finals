@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I-Tanim | Home</title>
 
-<link rel="stylesheet" href="common.css">
-<link rel="stylesheet" href="home.css">
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/home.css">
 </head>
 
 <body class="home">
@@ -15,7 +15,7 @@
         <div class="logo">I-TANIM</div>
         <div class="nav-links">
             <a href="#">Home</a>
-            <a href="index.html">Login</a>
+            <a href="login.html">Login</a>
             <a href="signup.html">Register</a>
             <a id="userDashboardLink" href="user.html" style="display:none;">Dashboard</a>
             <a id="adminLink" href="admin.html" style="display:none;">Admin Panel</a>
@@ -23,7 +23,7 @@
     </div>
 </div>
 <!-- TEMP USER SWITCHER (DEV ONLY) -->
-<div style="
+<div id="tempUserSwitcher" style="
     position: fixed;
     top: 70px;
     right: 20px;
@@ -32,6 +32,7 @@
     border-radius: 10px;
     z-index: 99999;
     backdrop-filter: blur(10px);
+    display: none;
 ">
     <h4 style="margin:0 0 8px 0;">TEMP USER</h4>
 
@@ -42,12 +43,12 @@
     </select>
 
     <p id="userLabel" style="margin:8px 0 0 0; font-size:12px;"></p>
-    <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
-        <strong style="font-size:13px; opacity:0.9;">Debug Test Buttons</strong>
+    <div id="adminDebugPanel" style="margin-top:10px; display:none; flex-direction:column; gap:8px;">
+        <strong style="font-size:13px; opacity:0.9;">Admin Debug Tools</strong>
         <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Add Sample Program</button>
         <button onclick="debugShowPrograms()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Show Program List</button>
         <button onclick="debugAddSampleUser()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample User</button>
-        <button onclick="debugAddSampleTask()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample Task</button>
+        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample Program</button>
         <button onclick="debugSimulateJoin()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Simulate User Join</button>
         <button onclick="debugShowUsers()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Show All Users</button>
         <button onclick="debugCleanupEverything()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(220,204,172,0.35); color:#FFF8EC; font-weight:bold;">🧹 CLEANUP EVERYTHING</button>
@@ -235,6 +236,6 @@
     </div>
 </div>
 </div>
-<script type="module" src="index.js"></script>
+<script type="module" src="js/index.js"></script>
 </body>
 </html>

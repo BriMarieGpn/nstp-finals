@@ -12,23 +12,21 @@ import {
     onSnapshot,
     doc,
     updateDoc,
+    deleteDoc,
     arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-    apiKey: "AIzaSyA_WAoRxS0XtSBHO4GKOUPeo9IxSuo9m8E",
-    authDomain: "i-tanim.firebaseapp.com",
-    projectId: "i-tanim",
-    storageBucket: "i-tanim.firebasestorage.app",
-    messagingSenderId: "543718035125",
-    appId: "1:543718035125:web:92261781c28eec00c738fc"
-};
+import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 const programDocs = [];
+
+// Clear any existing local programs to start fresh
+localStorage.removeItem('itanimPrograms');
+localStorage.removeItem('itanimTasks');
+
 let selectedProgramId = null;
 
 let currentUser = {
@@ -38,6 +36,7 @@ let currentUser = {
 
 const roleSwitcher = document.getElementById("roleSwitcher");
 const userLabel = document.getElementById("userLabel");
+const adminDebugPanel = document.getElementById("adminDebugPanel");
 const addBtn = document.getElementById("addProgramBtn");
 const modal = document.getElementById("programModal");
 const publicList = document.getElementById("publicProgramList");
@@ -51,36 +50,8 @@ const adminLink = document.getElementById("adminLink");
 const userDashboardLink = document.getElementById("userDashboardLink");
 
 const localStorageKey = "itanimLocalPrograms";
-const localTasksKey = "itanimTasks";
-const initialFallbackPrograms = [
-    {
-        id: "local-1",
-        title: "Tree Planting Drive",
-        hours: "4",
-        desc: "Join our tree planting drive to help the community.",
-        image: "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=900&q=80",
-        joined: [],
-        skills: ["tree planting", "environment", "outdoor"]
-    },
-    {
-        id: "local-2",
-        title: "Community Clean-Up",
-        hours: "2",
-        desc: "Help clean local streets and parks.",
-        image: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=900&q=80",
-        joined: [],
-        skills: ["cleanup", "teamwork", "environment"]
-    },
-    {
-        id: "local-3",
-        title: "Urban Gardening Workshop",
-        hours: "3",
-        desc: "Learn how to grow food in small spaces.",
-        image: "https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=900&q=80",
-        joined: [],
-        skills: ["gardening", "sustainability", "horticulture"]
-    }
-];
+const localProgramsKey = "itanimPrograms";
+const initialFallbackPrograms = [];
 
 function getCurrentUserData() {
     if (currentUser.role === "user") {
@@ -94,7 +65,6 @@ function getCurrentUserData() {
 }
 
 let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-let tasks = JSON.parse(localStorage.getItem('itanimTasks') || '[]');
 
 const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const useFirestore = isFirebaseConfigured;
@@ -116,6 +86,19 @@ function setRoleBasedUI() {
     if (userDashboardLink) {
         userDashboardLink.style.display = isUser ? "inline" : "none";
     }
+    setDebugPanelVisibility();
+    setTempUserSwitcherVisibility();
+}
+
+function setDebugPanelVisibility() {
+    if (!adminDebugPanel) return;
+    adminDebugPanel.style.display = currentUser.role === "admin" ? "flex" : "none";
+}
+
+function setTempUserSwitcherVisibility() {
+    const tempUserSwitcher = document.getElementById("tempUserSwitcher");
+    if (!tempUserSwitcher) return;
+    tempUserSwitcher.style.display = currentUser.role === "admin" ? "flex" : "none";
 }
 
 roleSwitcher.addEventListener("change", (e) => {
@@ -166,6 +149,9 @@ window.deleteSelectedProgram = async () => {
     }
     
     try {
+        if (useFirestore) {
+            await deleteDoc(doc(db, "programs", selectedProgramId));
+        }
         // Remove from programDocs array
         const index = programDocs.findIndex(p => p.id === selectedProgramId);
         if (index > -1) {
@@ -253,8 +239,8 @@ function saveUsers() {
     localStorage.setItem('itanimUsers', JSON.stringify(users));
 }
 
-function saveTasks() {
-    localStorage.setItem('itanimTasks', JSON.stringify(tasks));
+function savePrograms() {
+    localStorage.setItem('itanimPrograms', JSON.stringify(programs));
 }
 
 function readFileAsDataUrl(file) {
@@ -300,30 +286,30 @@ function isProbablyBlobUrl(url) {
     return typeof url === 'string' && url.startsWith('blob:');
 }
 
-function syncProgramsFromTasksIfNeeded() {
-    // If admin task management is being used, surface those tasks as "Available Programs"
+function syncProgramsFromProgramsIfNeeded() {
+    // If admin program management is being used, surface those programs as "Available Programs"
     // so add/edit/delete in admin reflects here.
     try {
-        const raw = localStorage.getItem(localTasksKey);
+        const raw = localStorage.getItem(localProgramsKey);
         if (!raw) return;
-        const adminTasks = JSON.parse(raw);
-        if (!Array.isArray(adminTasks) || adminTasks.length === 0) return;
+        const adminPrograms = JSON.parse(raw);
+        if (!Array.isArray(adminPrograms) || adminPrograms.length === 0) return;
 
         // Only overwrite if current program list is empty OR was previously synced.
         const current = loadLocalPrograms();
-        const wasSynced = Array.isArray(current) && current.every(p => p && p._source === 'task');
+        const wasSynced = Array.isArray(current) && current.every(p => p && p._source === 'program');
         if (current.length > 0 && !wasSynced) return;
 
         programDocs.length = 0;
-        programDocs.push(...adminTasks.map(t => ({
-            id: t.id,
-            title: t.name,
-            hours: String(t.hours ?? ''),
-            desc: t.desc || '',
-            image: (t.attachments && t.attachments[0] && t.attachments[0].dataUrl) ? t.attachments[0].dataUrl : defaultImage,
-            joined: t.joined || [],
-            skills: t.skills || [],
-            _source: 'task'
+        programDocs.push(...adminPrograms.map(p => ({
+            id: p.id,
+            title: p.name,
+            hours: String(p.hours ?? ''),
+            desc: p.desc || '',
+            image: (p.attachments && p.attachments[0] && p.attachments[0].dataUrl) ? p.attachments[0].dataUrl : defaultImage,
+            joined: p.joined || [],
+            skills: p.skills || [],
+            _source: 'program'
         })));
         saveLocalPrograms();
     } catch {
@@ -589,6 +575,15 @@ window.submitProgram = async () => {
                 programDocs[index].desc = desc;
                 programDocs[index].image = imageURL;
             }
+            if (useFirestore) {
+                await updateDoc(doc(db, "programs", window.editingProgramId), {
+                    title,
+                    hours,
+                    requirement,
+                    desc,
+                    image: imageURL
+                });
+            }
             window.editingProgramId = undefined;
             alert("Program updated!");
         } else {
@@ -641,7 +636,7 @@ function listenPrograms() {
     }
 
     try {
-        onSnapshot(collection(db, "programs"), (snap) => {
+        onSnapshot(collection(db, "programs_empty"), (snap) => {
             programDocs.length = 0;
             snap.forEach((d) => {
                 programDocs.push({ id: d.id, ...d.data() });
@@ -650,13 +645,11 @@ function listenPrograms() {
         }, (err) => {
             console.warn("Realtime program list unavailable", err);
             programDocs.length = 0;
-            programDocs.push(...loadLocalPrograms());
             renderPrograms(programDocs);
         });
     } catch (err) {
         console.warn("Realtime program list unavailable", err);
         programDocs.length = 0;
-        programDocs.push(...loadLocalPrograms());
         renderPrograms(programDocs);
     }
 }
@@ -697,19 +690,19 @@ window.debugAddSampleUser = () => {
     alert("Sample user added. Check admin panel for management.");
 };
 
-window.debugAddSampleTask = () => {
-    const newTask = {
-        id: `task${Date.now()}`,
-        name: "Debug Task",
-        desc: "A task for debugging purposes",
+window.debugAddSampleProgram = () => {
+    const newProgram = {
+        id: `program${Date.now()}`,
+        name: "Debug Program",
+        desc: "A program for debugging purposes",
         hours: 1,
         maxVolunteers: 2,
         assigned: [],
         status: "active"
     };
-    tasks.push(newTask);
-    saveTasks();
-    alert("Sample task added. Check admin panel for management.");
+    programs.push(newProgram);
+    savePrograms();
+    alert("Sample program added. Check admin panel for management.");
 };
 
 window.debugSimulateJoin = () => {
@@ -738,14 +731,14 @@ window.debugCleanupEverything = () => {
     programDocs.length = 0;
     programDocs.push(...initialFallbackPrograms);
     
-    // Reset users and tasks arrays
+    // Reset users and programs arrays
     users.length = 0;
-    tasks.length = 0;
+    programs.length = 0;
     
     // Save clean state
     saveLocalPrograms();
     saveUsers();
-    saveTasks();
+    savePrograms();
     
     // Re-render programs
     renderPrograms(programDocs);
@@ -763,7 +756,6 @@ if (!useFirestore) {
 }
 
 // Initialize programs
-syncProgramsFromTasksIfNeeded();
 listenPrograms();
 
 // Fallback: ensure programs are rendered even if listenPrograms doesn't work

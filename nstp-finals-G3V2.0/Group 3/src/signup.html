@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I-Tanim | Register</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 <header class="topbar">
   <div class="brand">
     <span class="brandName">I-TANIM</span>
@@ -84,14 +84,7 @@ import {
     setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyA_WAoRxS0XtSBHO4GKOUPeo9IxSuo9m8E",
-    authDomain: "i-tanim.firebaseapp.com",
-    projectId: "i-tanim",
-    storageBucket: "i-tanim.firebasestorage.app",
-    messagingSenderId: "543718035125",
-    appId: "1:543718035125:web:92261781c28eec00c738fc"
-};
+import firebaseConfig from "./js/firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -127,10 +120,47 @@ document.getElementById("reg-btn").onclick = async () => {
             volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase()
         });
 
+        // Also save to localStorage for local fallback
+        const userData = {
+            id: res.user.uid,
+            firstName: fname,
+            lastName: lname,
+            email: email,
+            age: age,
+            address: address,
+            skillCategory: skillCategory,
+            otherSkills: otherSkills,
+            status: "Pending",
+            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
+            role: "user"
+        };
+        let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        users.push(userData);
+        localStorage.setItem('itanimUsers', JSON.stringify(users));
+
         window.location.href = "user.html";
 
     } catch (e) {
-        alert(e.message);
+        alert("Firebase not configured. Using local storage instead.");
+        // Fallback to localStorage
+        const userId = "user" + Date.now();
+        const userData = {
+            id: userId,
+            firstName: fname,
+            lastName: lname,
+            email: email,
+            age: age,
+            address: address,
+            skillCategory: skillCategory,
+            otherSkills: otherSkills,
+            status: "Pending",
+            volunteerID: "ITNM-" + userId.substring(4, 9).toUpperCase(),
+            role: "user"
+        };
+        let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        users.push(userData);
+        localStorage.setItem('itanimUsers', JSON.stringify(users));
+        window.location.href = "user.html";
     }
 };
 </script>

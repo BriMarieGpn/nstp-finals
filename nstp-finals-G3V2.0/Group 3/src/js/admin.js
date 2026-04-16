@@ -1,50 +1,126 @@
-// Admin Panel JavaScript (Local Demo Version)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import firebaseConfig from "./firebaseConfig.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+const adminStateDoc = doc(db, 'admin', 'state');
+
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 
 // Data structures
 let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-let tasks = JSON.parse(localStorage.getItem('itanimTasks') || '[]');
+let programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
 let certifications = JSON.parse(localStorage.getItem('itanimCerts') || '[]');
-let skills = JSON.parse(localStorage.getItem('itanimSkills') || '["Teaching", "Cleaning", "Gardening", "Event Planning"]');
-let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge": 18, "validBarangays": "All"}');
-let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze": 10, "silver": 25, "gold": 50, "platinum": 100}');
+let skills = JSON.parse(localStorage.getItem('itanimSkills') || '[]');
+let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{}');
+let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
 const programsKey = "itanimLocalPrograms";
 
-// Initialize some demo data
-if (users.length === 0) {
-    users = [
-        { id: 'user1', name: 'John Doe', email: 'john@example.com', age: 20, barangay: 'Sample', skills: ['Teaching'], status: 'approved', hours: 15, badge: 'Bronze' },
-        { id: 'user2', name: 'Jane Smith', email: 'jane@example.com', age: 19, barangay: 'Sample', skills: ['Cleaning'], status: 'pending', hours: 0, badge: 'None' },
-        { id: 'user3', name: 'Bob Johnson', email: 'bob@example.com', age: 21, barangay: 'Sample', skills: ['Gardening'], status: 'rejected', hours: 5, badge: 'None' }
-    ];
-    saveUsers();
-}
-
-if (tasks.length === 0) {
-    tasks = [
-        { id: 'task1', name: 'Tree Planting', desc: 'Plant trees in the community', hours: 4, maxVolunteers: 10, assigned: ['user1'], status: 'active' },
-        { id: 'task2', name: 'Clean Up Drive', desc: 'Clean local streets', hours: 2, maxVolunteers: 5, assigned: [], status: 'active' },
-        { id: 'task3', name: 'Teaching Workshop', desc: 'Teach basic skills', hours: 3, maxVolunteers: 3, assigned: ['user1'], status: 'completed' }
-    ];
-    saveTasks();
-}
-
-if (certifications.length === 0) {
-    certifications = [
-        { id: 'cert1', userId: 'user1', status: 'pending', requestedAt: new Date().toISOString() }
-    ];
-    saveCerts();
-}
 
 // Save functions
-function saveUsers() { localStorage.setItem('itanimUsers', JSON.stringify(users)); }
-function saveTasks() { localStorage.setItem('itanimTasks', JSON.stringify(tasks)); }
-function saveCerts() { localStorage.setItem('itanimCerts', JSON.stringify(certifications)); }
-function saveSkills() { localStorage.setItem('itanimSkills', JSON.stringify(skills)); }
-function saveRestrictions() { localStorage.setItem('itanimRestrictions', JSON.stringify(restrictions)); }
-function saveBadges() { localStorage.setItem('itanimBadges', JSON.stringify(badgeThresholds)); }
-function saveNotifications() { localStorage.setItem('itanimNotifications', JSON.stringify(notifications)); }
+async function saveAdminStateToFirestore() {
+    if (!useFirestore) return;
+    try {
+        await setDoc(adminStateDoc, {
+            users,
+            programs,
+            certifications,
+            skills,
+            restrictions,
+            badgeThresholds,
+            notifications
+        }, { merge: true });
+    } catch (err) {
+        console.warn('Could not save admin state to Firestore', err);
+    }
+}
+
+function saveUsers() {
+    localStorage.setItem('itanimUsers', JSON.stringify(users));
+    saveAdminStateToFirestore();
+}
+function savePrograms() {
+    localStorage.setItem('itanimPrograms', JSON.stringify(programs));
+    if (useFirestore) {
+        (async () => {
+            try {
+                // Delete all existing docs in programs_empty
+                const snap = await getDocs(collection(db, 'programs_empty'));
+                const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+                await Promise.all(deletePromises);
+                // Add new ones
+                const addPromises = programs.map(p => setDoc(doc(db, 'programs_empty', p.id), p));
+                await Promise.all(addPromises);
+            } catch (err) {
+                console.warn('Could not save programs to Firestore', err);
+            }
+        })();
+    }
+    saveAdminStateToFirestore();
+}
+function saveCerts() {
+    localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+    saveAdminStateToFirestore();
+}
+function saveSkills() {
+    localStorage.setItem('itanimSkills', JSON.stringify(skills));
+    saveAdminStateToFirestore();
+}
+function saveRestrictions() {
+    localStorage.setItem('itanimRestrictions', JSON.stringify(restrictions));
+    saveAdminStateToFirestore();
+}
+function saveBadges() {
+    localStorage.setItem('itanimBadges', JSON.stringify(badgeThresholds));
+    saveAdminStateToFirestore();
+}
+function saveNotifications() {
+    localStorage.setItem('itanimNotifications', JSON.stringify(notifications));
+    saveAdminStateToFirestore();
+}
+
+async function initFirestoreAdminState() {
+    if (!useFirestore) {
+        console.warn('Firestore is not configured for admin panel. Using local demo data only.');
+        return;
+    }
+
+    try {
+        onSnapshot(adminStateDoc, (snapshot) => {
+            if (!snapshot.exists()) {
+                console.warn('Firestore admin state document not found. Local data will be used.');
+                return;
+            }
+            const data = snapshot.data();
+            if (!data) return;
+            users = Array.isArray(data.users) ? data.users : users;
+            programs = Array.isArray(data.programs) ? data.programs : programs;
+            certifications = Array.isArray(data.certifications) ? data.certifications : certifications;
+            skills = Array.isArray(data.skills) ? data.skills : skills;
+            restrictions = data.restrictions || restrictions;
+            badgeThresholds = data.badgeThresholds || badgeThresholds;
+            notifications = Array.isArray(data.notifications) ? data.notifications : notifications;
+            updateDashboard();
+            updateAnalytics();
+            updateVolunteers();
+            loadRestrictionsUI();
+            updateSkills();
+            updatePrograms();
+            updateValidation();
+            updateBadges();
+            updateCertifications();
+            updateNotifications();
+            syncProgramsFromPrograms();
+        });
+    } catch (err) {
+        console.warn('Firestore admin state listener failed', err);
+    }
+}
 
 function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {
@@ -55,8 +131,8 @@ function readFileAsDataUrl(file) {
     });
 }
 
-function renderTaskAttachmentPreview(attachments) {
-    const container = document.getElementById('taskAttachmentPreview');
+function renderProgramAttachmentPreview(attachments) {
+    const container = document.getElementById('programAttachmentPreview');
     if (!container) return;
     if (!Array.isArray(attachments) || attachments.length === 0) {
         container.innerHTML = '';
@@ -71,7 +147,7 @@ function renderTaskAttachmentPreview(attachments) {
 }
 
 async function getAttachmentsFromInput() {
-    const input = document.getElementById('taskAttachments');
+    const input = document.getElementById('programAttachments');
     if (!input || !input.files || input.files.length === 0) return [];
     const files = Array.from(input.files);
     const results = [];
@@ -83,25 +159,44 @@ async function getAttachmentsFromInput() {
 }
 
 function clearAttachmentInput() {
-    const input = document.getElementById('taskAttachments');
+    const input = document.getElementById('programAttachments');
     if (input) input.value = '';
-    renderTaskAttachmentPreview([]);
+    renderProgramAttachmentPreview([]);
 }
 
-function syncProgramsFromTasks() {
-    // Mirror tasks -> public "Available Programs" list (index.js reads this key in offline mode)
-    const programs = tasks.map(t => ({
-        id: t.id,
-        title: t.name,
-        hours: String(t.hours ?? ''),
-        requirement: t.requirement || 'None',
-        desc: t.desc || '',
-        image: (t.attachments && t.attachments[0] && t.attachments[0].dataUrl) ? t.attachments[0].dataUrl : defaultImage,
-        joined: t.joined || [],
-        skills: t.skills || [],
-        _source: 'task'
+async function syncProgramsFromPrograms() {
+    // Mirror programs -> public "Available Programs" list (index.js reads this key in offline mode)
+    const programDocs = programs.map(p => ({
+        id: p.id,
+        title: p.name,
+        hours: String(p.hours ?? ''),
+        requirement: p.requirement || 'None',
+        desc: p.desc || '',
+        image: (p.attachments && p.attachments[0] && p.attachments[0].dataUrl) ? p.attachments[0].dataUrl : defaultImage,
+        joined: p.joined || [],
+        skills: p.skills || [],
+        _source: 'program'
     }));
     localStorage.setItem(programsKey, JSON.stringify(programs));
+
+    if (!useFirestore) return;
+
+    try {
+        await Promise.all(programs.map(async (program) => {
+            await setDoc(doc(db, 'programs', program.id), {
+                title: program.title,
+                hours: program.hours,
+                requirement: program.requirement,
+                desc: program.desc,
+                image: program.image,
+                joined: program.joined,
+                skills: program.skills,
+                _source: program._source
+            }, { merge: true });
+        }));
+    } catch (err) {
+        console.warn('Could not sync programs from programs to Firestore', err);
+    }
 }
 
 // Tab switching
@@ -121,7 +216,7 @@ function updateTab(tabName) {
         case 'volunteers': updateVolunteers(); break;
         case 'restrictions': updateRestrictions(); break;
         case 'skills': updateSkills(); break;
-        case 'tasks': updateTasks(); break;
+        case 'programs': updatePrograms(); break;
         case 'validation': updateValidation(); break;
         case 'badges': updateBadges(); break;
         case 'certifications': updateCertifications(); break;
@@ -135,15 +230,15 @@ function updateDashboard() {
     const pendingApps = users.filter(u => u.status === 'pending').length;
     const approvedUsers = users.filter(u => u.status === 'approved').length;
     const rejectedUsers = users.filter(u => u.status === 'rejected').length;
-    const activeTasks = tasks.filter(t => t.status === 'active').length;
-    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    const activePrograms = programs.filter(p => p.status === 'active').length;
+    const completedPrograms = programs.filter(p => p.status === 'completed').length;
 
     document.getElementById('totalVolunteers').textContent = totalVolunteers;
     document.getElementById('pendingApps').textContent = pendingApps;
     document.getElementById('approvedUsers').textContent = approvedUsers;
     document.getElementById('rejectedUsers').textContent = rejectedUsers;
-    document.getElementById('activeTasks').textContent = activeTasks;
-    document.getElementById('completedTasks').textContent = completedTasks;
+    document.getElementById('activePrograms').textContent = activePrograms;
+    document.getElementById('completedPrograms').textContent = completedPrograms;
 }
 
 // Analytics
@@ -151,23 +246,23 @@ function updateAnalytics() {
     const totalHours = users.reduce((sum, u) => sum + (u.hours || 0), 0);
     const activeVolunteers = users.filter(u => u.status === 'approved' && u.hours > 0).length;
     const inactiveVolunteers = users.filter(u => u.status === 'approved' && u.hours === 0).length;
-    const completedTasksCount = tasks.filter(t => t.status === 'completed').length;
-    const totalTasks = tasks.length;
-    const completionRate = totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+    const completedProgramsCount = programs.filter(p => p.status === 'completed').length;
+    const totalPrograms = programs.length;
+    const completionRate = totalPrograms > 0 ? Math.round((completedProgramsCount / totalPrograms) * 100) : 0;
 
     document.getElementById('totalHours').textContent = `${totalHours} hours`;
     document.getElementById('activeInactive').textContent = `${activeVolunteers} active, ${inactiveVolunteers} inactive`;
     document.getElementById('completionRate').textContent = `${completionRate}%`;
 
-    // Top tasks
-    const taskCounts = {};
-    tasks.forEach(t => {
-        if (t.status === 'completed') {
-            taskCounts[t.name] = (taskCounts[t.name] || 0) + 1;
+    // Top programs
+    const programCounts = {};
+    programs.forEach(p => {
+        if (p.status === 'completed') {
+            programCounts[p.name] = (programCounts[p.name] || 0) + 1;
         }
     });
-    const topTasks = Object.entries(taskCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
-    document.getElementById('topTasks').innerHTML = topTasks.map(([name, count]) => `<li>${name}: ${count} completions</li>`).join('');
+    const topPrograms = Object.entries(programCounts).sort((a,b) => b[1] - a[1]).slice(0, 3);
+    document.getElementById('topTasks').innerHTML = topPrograms.map(([name, count]) => `<li>${name}: ${count} completions</li>`).join('');
 
     // Badge distribution
     const badges = { Bronze: 0, Silver: 0, Gold: 0, Platinum: 0, None: 0 };
@@ -255,55 +350,55 @@ function deleteSkill(skill) {
     updateSkills();
 }
 
-// Tasks
-function updateTasks() {
-    const list = document.getElementById('taskList');
-    list.innerHTML = tasks.map(t => `
-        <div class="task-item">
+// Programs
+function updatePrograms() {
+    const list = document.getElementById('programList');
+    list.innerHTML = programs.map(p => `
+        <div class="program-item">
             <div>
-                <strong>${t.name}</strong><br>
-                ${t.desc}<br>
-                Hours: ${t.hours}, Requirement: ${t.requirement || 'None'}<br>
-                Max Volunteers: ${t.maxVolunteers}, Assigned: ${t.assigned.length}/${t.maxVolunteers}<br>
-                Status: ${t.status}
+                <strong>${p.name}</strong><br>
+                ${p.desc}<br>
+                Hours: ${p.hours}, Requirement: ${p.requirement || 'None'}<br>
+                Max Volunteers: ${p.maxVolunteers}, Assigned: ${p.assigned.length}/${p.maxVolunteers}<br>
+                Status: ${p.status}
             </div>
             <div>
-                <button class="edit-btn" onclick="editTask('${t.id}')">Edit</button>
-                ${t.status === 'active' ? `<button class="archive-btn" onclick="archiveTask('${t.id}')">Archive</button>` : ''}
-                <button class="delete-btn" onclick="deleteTask('${t.id}')">Delete</button>
+                <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
+                ${p.status === 'active' ? `<button class="archive-btn" onclick="archiveProgram('${p.id}')">Archive</button>` : ''}
+                <button class="delete-btn" onclick="deleteProgram('${p.id}')">Delete</button>
             </div>
         </div>
     `).join('');
 }
 
-function showTaskModal(taskId = null) {
-    const modal = document.getElementById('taskModal');
-    const title = document.getElementById('taskModalTitle');
-    const name = document.getElementById('taskName');
-    const desc = document.getElementById('taskDesc');
-    const hours = document.getElementById('taskHours');
-    const maxVol = document.getElementById('taskMaxVolunteers');
+function showProgramModal(programId = null) {
+    const modal = document.getElementById('programModal');
+    const title = document.getElementById('programModalTitle');
+    const name = document.getElementById('programName');
+    const desc = document.getElementById('programDesc');
+    const hours = document.getElementById('programHours');
+    const maxVol = document.getElementById('programMaxVolunteers');
 
-    if (taskId) {
-        const task = tasks.find(t => t.id === taskId);
-        title.textContent = 'Edit Task';
-        name.value = task.name;
-        desc.value = task.desc;
-        hours.value = task.hours;
-        maxVol.value = task.maxVolunteers;
-        document.getElementById('taskRequirement').value = task.requirement || 'None';
+    if (programId) {
+        const program = programs.find(p => p.id === programId);
+        title.textContent = 'Edit Program';
+        name.value = program.name;
+        desc.value = program.desc;
+        hours.value = program.hours;
+        maxVol.value = program.maxVolunteers;
+        document.getElementById('programRequirement').value = program.requirement || 'None';
         // show existing attachments
-        renderTaskAttachmentPreview(task.attachments || []);
+        renderProgramAttachmentPreview(program.attachments || []);
         // do not auto-populate file input for security reasons
-        const input = document.getElementById('taskAttachments');
+        const input = document.getElementById('programAttachments');
         if (input) input.value = '';
-        modal.dataset.editId = taskId;
+        modal.dataset.editId = programId;
     } else {
-        title.textContent = 'Create Task';
+        title.textContent = 'Create Program';
         name.value = '';
         desc.value = '';
         hours.value = '';
-        document.getElementById('taskRequirement').value = 'None';
+        document.getElementById('programRequirement').value = 'None';
         maxVol.value = '';
         clearAttachmentInput();
         delete modal.dataset.editId;
@@ -311,42 +406,42 @@ function showTaskModal(taskId = null) {
     modal.style.display = 'flex';
 }
 
-function closeTaskModal() {
-    document.getElementById('taskModal').style.display = 'none';
+function closeProgramModal() {
+    document.getElementById('programModal').style.display = 'none';
 }
 
-async function saveTask() {
-    const name = document.getElementById('taskName').value.trim();
-    const desc = document.getElementById('taskDesc').value.trim();
-    const hours = parseInt(document.getElementById('taskHours').value);
-    const requirement = document.getElementById('taskRequirement').value || 'None';
-    const maxVol = parseInt(document.getElementById('taskMaxVolunteers').value);
+async function saveProgram() {
+    const name = document.getElementById('programName').value.trim();
+    const desc = document.getElementById('programDesc').value.trim();
+    const hours = parseInt(document.getElementById('programHours').value);
+    const requirement = document.getElementById('programRequirement').value || 'None';
+    const maxVol = parseInt(document.getElementById('programMaxVolunteers').value);
 
     if (!name || !desc || !hours || !maxVol) {
         alert('Please fill all required fields');
         return;
     }
 
-    const modal = document.getElementById('taskModal');
+    const modal = document.getElementById('programModal');
     const editId = modal.dataset.editId;
     const newAttachments = await getAttachmentsFromInput();
 
     if (editId) {
-        const task = tasks.find(t => t.id === editId);
-        task.name = name;
-        task.desc = desc;
-        task.hours = hours;
-        task.requirement = requirement;
-        task.maxVolunteers = maxVol;
+        const program = programs.find(p => p.id === editId);
+        program.name = name;
+        program.desc = desc;
+        program.hours = hours;
+        program.requirement = requirement;
+        program.maxVolunteers = maxVol;
         // Only replace attachments if user selected new ones; otherwise keep existing.
         if (newAttachments.length > 0) {
-            task.attachments = newAttachments;
+            program.attachments = newAttachments;
         } else {
-            task.attachments = task.attachments || [];
+            program.attachments = program.attachments || [];
         }
     } else {
-        const newTask = {
-            id: `task${Date.now()}`,
+        const newProgram = {
+            id: `program${Date.now()}`,
             name,
             desc,
             hours,
@@ -356,80 +451,87 @@ async function saveTask() {
             status: 'active',
             attachments: newAttachments
         };
-        tasks.push(newTask);
+        programs.push(newProgram);
     }
 
-    saveTasks();
-    syncProgramsFromTasks();
-    updateTasks();
-    closeTaskModal();
+    savePrograms();
+    syncProgramsFromPrograms();
+    updatePrograms();
+    closeProgramModal();
 }
 
-function editTask(id) {
-    showTaskModal(id);
+function editProgram(id) {
+    showProgramModal(id);
 }
 
-function archiveTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.status = 'completed';
-        saveTasks();
-        syncProgramsFromTasks();
-        updateTasks();
+function archiveProgram(id) {
+    const program = programs.find(p => p.id === id);
+    if (program) {
+        program.status = 'completed';
+        savePrograms();
+        syncProgramsFromPrograms();
+        updatePrograms();
     }
 }
 
-function deleteTask(id) {
-    tasks = tasks.filter(t => t.id !== id);
-    saveTasks();
-    syncProgramsFromTasks();
-    updateTasks();
+async function deleteProgram(id) {
+    programs = programs.filter(p => p.id !== id);
+    savePrograms();
+    await syncProgramsFromPrograms();
+    if (useFirestore) {
+        try {
+            await deleteDoc(doc(db, 'programs', id));
+        } catch (err) {
+            console.warn('Could not delete program document from Firestore', err);
+        }
+    }
+    updatePrograms();
 }
 
 // Validation
 function updateValidation() {
-    const submitted = tasks.filter(t => t.status === 'completed' && !t.validated);
-    document.getElementById('submittedTasks').innerHTML = submitted.map(t => `
-        <div class="task-item">
+    const submitted = programs.filter(p => p.status === 'completed' && !p.validated);
+    document.getElementById('submittedPrograms').innerHTML = submitted.map(p => `
+        <div class="program-item">
             <div>
                 <strong>${t.name}</strong><br>
-                Completed by: ${t.assigned.join(', ')}<br>
-                Hours: ${t.hours}
+                Completed by: ${p.assigned.join(', ')}<br>
+                Hours: ${p.hours}
             </div>
             <div>
-                <button class="approve-btn" onclick="approveTask('${t.id}')">Approve</button>
-                <button class="reject-btn" onclick="rejectTask('${t.id}')">Reject</button>
+                <button class="approve-btn" onclick="approveProgram('${p.id}')">Approve</button>
+                <button class="reject-btn" onclick="rejectProgram('${p.id}')">Reject</button>
             </div>
         </div>
     `).join('');
 }
 
-function approveTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.validated = true;
-        task.assigned.forEach(userId => {
+function approveProgram(id) {
+    const program = programs.find(p => p.id === id);
+    if (program) {
+        program.validated = true;
+        program.assigned.forEach(userId => {
             const user = users.find(u => u.id === userId);
             if (user) {
-                user.hours = (user.hours || 0) + task.hours;
+                user.hours = (user.hours || 0) + program.hours;
                 updateBadge(user);
             }
         });
         saveUsers();
-        saveTasks();
+        savePrograms();
         updateValidation();
-        sendNotification(`Task "${task.name}" has been approved! You earned ${task.hours} hours.`, 'task', task.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
+        sendNotification(`Program "${program.name}" has been approved! You earned ${program.hours} hours.`, 'program', program.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
     }
 }
 
-function rejectTask(id) {
-    const task = tasks.find(t => t.id === id);
-    if (task) {
-        task.status = 'active';
-        task.validated = false;
-        saveTasks();
+function rejectProgram(id) {
+    const program = programs.find(p => p.id === id);
+    if (program) {
+        program.status = 'active';
+        program.validated = false;
+        savePrograms();
         updateValidation();
-        sendNotification(`Task "${task.name}" has been rejected and returned to In Progress.`, 'task', task.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
+        sendNotification(`Program "${program.name}" has been rejected and returned to In Progress.`, 'program', program.assigned.map(id => users.find(u => u.id === id)?.email).filter(Boolean));
     }
 }
 
@@ -534,8 +636,14 @@ function sendNotification(message, type, recipient) {
 }
 
 // Logout
-function logoutAdmin() {
-    window.location.href = 'index.html';
+async function logoutAdmin() {
+    try {
+        await signOut(auth);
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed. Please try again.");
+    }
 }
 
 // Initialize
@@ -567,4 +675,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ensure programs mirror is present on load
     syncProgramsFromTasks();
+    initFirestoreAdminState();
+    window.logoutAdmin = logoutAdmin;
+    window.showTab = showTab;
+    window.saveRestrictionsFromUI = saveRestrictionsFromUI;
+    window.addSkill = addSkill;
+    window.deleteSkill = deleteSkill;
+    window.showTaskModal = showTaskModal;
+    window.closeTaskModal = closeTaskModal;
+    window.saveTask = saveTask;
+    window.editTask = editTask;
+    window.archiveTask = archiveTask;
+    window.deleteTask = deleteTask;
+    window.approveUser = approveUser;
+    window.rejectUser = rejectUser;
+    window.updateBadgeThresholds = updateBadgeThresholds;
+    window.approveCert = approveCert;
+    window.rejectCert = rejectCert;
+    window.sendNotification = sendNotification;
+    window.updateRestrictions = saveRestrictionsFromUI;
 });

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>I-Tanim | User Dashboard</title>
-    <link rel="stylesheet" href="common.css">
-    <link rel="stylesheet" href="user.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/user.css">
 </head>
 <body>
     <div class="navbar">
@@ -16,7 +16,7 @@
                 <a href="#" id="dashboardLink">Dashboard</a>
                 <a href="index.html">Programs</a>
                 <a href="#">Profile</a>
-                <a href="index.html">Logout</a>
+                <a href="#" onclick="logout()">Logout</a>
             </div>
         </div>
     </div>
@@ -89,7 +89,7 @@
         <!-- Assigned Tasks Section -->
         <div class="dashboard-section">
             <h2>My Tasks</h2>
-            <div id="assignedTasksList" class="tasks-list">
+            <div id="assignedProgramsList" class="programs-list">
                 <!-- Tasks will be loaded here -->
             </div>
         </div>
@@ -119,25 +119,6 @@
         </div>
     </div>
 
-    <!-- TEMP DEBUG PANEL (DEV ONLY) -->
-    <div style="
-        position: fixed;
-        top: 70px;
-        right: 20px;
-        background: rgba(84,107,65,0.85);
-        padding: 10px;
-        border-radius: 10px;
-        z-index: 99999;
-        backdrop-filter: blur(10px);
-    ">
-        <h4 style="margin:0 0 8px 0;">DEBUG</h4>
-        <div style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
-            <strong style="font-size:13px; opacity:0.9;">Debug Test Buttons</strong>
-            <button onclick="debugAddSampleData()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample Data</button>
-            <button onclick="loadUserDashboard()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Refresh Dashboard</button>
-        </div>
-    </div>
-
-    <script src="user.js"></script>
+    <script type="module" src="js/user.js"></script>
 </body>
 </html>

@@ -1,21 +1,85 @@
-// User Dashboard JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    loadUserDashboard();
-});
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import firebaseConfig from "./firebaseConfig.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+const adminStateDoc = doc(db, 'admin', 'state');
+const programsCollection = collection(db, 'programs_empty');
+const currentUserId = 'user1';
+
+let users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+let programs = [];
+
+// Clear any existing local programs to start fresh
+localStorage.removeItem('itanimPrograms');
+localStorage.removeItem('itanimTasks');
+localStorage.removeItem('itanimLocalPrograms');
+localStorage.removeItem('programs');
+
+let badges = JSON.parse(localStorage.getItem('badges') || '[]');
+let certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
+let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
 
 function getCurrentUser() {
-    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-    return users[0] || { id: 'user1', name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [], skills: [] };
+    if (useFirestore) {
+        const user = users.find(u => u.id === currentUserId);
+        if (user) return user;
+    }
+    const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+    return storedUsers[0] || { id: 'user1', name: 'Demo User', email: 'demo@example.com', enrolledPrograms: [], hours: 0, badges: [], certifications: [], skills: [] };
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (useFirestore) {
+        initFirestoreUserState();
+        listenFirestorePrograms();
+    } else {
+        loadUserDashboard();
+    }
+});
+
+async function initFirestoreUserState() {
+    try {
+        onSnapshot(adminStateDoc, (snapshot) => {
+            if (!snapshot.exists()) {
+                console.warn('Firestore user state not found, using local demo data');
+                loadUserDashboard();
+                return;
+            }
+            const state = snapshot.data();
+            users = Array.isArray(state.users) ? state.users : users;
+            programs = Array.isArray(state.programs) ? state.programs : programs;
+            badges = Array.isArray(state.badges) ? state.badges : badges;
+            certifications = Array.isArray(state.certifications) ? state.certifications : certifications;
+            notifications = Array.isArray(state.notifications) ? state.notifications : notifications;
+            loadUserDashboard();
+        });
+    } catch (err) {
+        console.warn('Could not connect to Firestore user state', err);
+        loadUserDashboard();
+    }
+}
+
+async function listenFirestorePrograms() {
+    try {
+        onSnapshot(programsCollection, (snapshot) => {
+            programs = [];
+            snapshot.forEach((docSnapshot) => {
+                programs.push({ id: docSnapshot.id, ...docSnapshot.data() });
+            });
+            loadUserDashboard();
+        });
+    } catch (err) {
+        console.warn('Could not listen to Firestore programs', err);
+        loadUserDashboard();
+    }
 }
 
 function loadUserDashboard() {
-    // Load data from localStorage (support both legacy and admin keys)
-    const tasks = JSON.parse(localStorage.getItem('itanimTasks') || localStorage.getItem('tasks') || '[]');
-    const badges = JSON.parse(localStorage.getItem('badges') || '[]');
-    const certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
-    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-    const programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || localStorage.getItem('programs') || '[]');
-
     const currentUser = getCurrentUser();
 
     // Update welcome message
@@ -31,8 +95,8 @@ function loadUserDashboard() {
     loadEnrolledPrograms(currentUser, programs);
     loadAvailablePrograms(currentUser, programs);
 
-    // Load assigned tasks
-    loadAssignedTasks(currentUser, tasks);
+    // Load assigned programs
+    loadAssignedPrograms(currentUser, programs);
 
     // Load user skills and controls
     loadUserSkills(currentUser);
@@ -83,8 +147,13 @@ function attachSkillControls(user) {
 
         current.skills.push(skill);
         storedUsers[0] = current;
-        localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
-        localStorage.setItem('users', JSON.stringify(storedUsers));
+        if (useFirestore) {
+            users = users.map(u => u.id === current.id ? current : u);
+            await setDoc(adminStateDoc, { users }, { merge: true });
+        } else {
+            localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
+            localStorage.setItem('users', JSON.stringify(storedUsers));
+        }
         loadUserDashboard();
     };
 }
@@ -148,55 +217,71 @@ function loadAvailablePrograms(user, programs) {
     `).join('');
 }
 
-function joinProgram(programId) {
-    const users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-    if (!users.length) {
+async function joinProgram(programId) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
         alert('No registered user found. Please sign in to join programs.');
         return;
     }
 
-    const currentUser = users[0];
     currentUser.enrolledPrograms = currentUser.enrolledPrograms || [];
-
     if (currentUser.enrolledPrograms.includes(programId)) {
         alert('You have already joined this program.');
         return;
     }
 
     currentUser.enrolledPrograms.push(programId);
-    users[0] = currentUser;
-    localStorage.setItem('users', JSON.stringify(users));
+    if (useFirestore) {
+        try {
+            const programRef = doc(db, 'programs', programId);
+            await updateDoc(programRef, {
+                joined: arrayUnion(currentUser.id)
+            });
+
+            const updatedUsers = users.map(u => u.id === currentUser.id ? currentUser : u);
+            users = updatedUsers;
+            await setDoc(adminStateDoc, { users }, { merge: true });
+        } catch (err) {
+            console.error('Could not update Firestore join state', err);
+            alert('Could not join this program in Firestore. Please try again.');
+            return;
+        }
+    } else {
+        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+        storedUsers[0] = currentUser;
+        localStorage.setItem('users', JSON.stringify(storedUsers));
+    }
 
     loadUserDashboard();
     alert('You have joined the program successfully!');
 }
 
 
-function loadAssignedTasks(user, tasks) {
-    const container = document.getElementById('assignedTasksList');
+function loadAssignedPrograms(user, programs) {
+    const container = document.getElementById('assignedProgramsList');
     const userId = user.id || user.email;
     const userEmail = user.email;
-    const userTasks = tasks.filter(t => {
-        if (t.assignedTo) return t.assignedTo === userEmail;
-        if (Array.isArray(t.assigned)) return t.assigned.includes(userId);
+    const userPrograms = programs.filter(p => {
+        if (p.assignedTo) return p.assignedTo === userEmail;
+        if (Array.isArray(p.assigned)) return p.assigned.includes(userId);
         return false;
     });
 
-    if (userTasks.length === 0) {
-        container.innerHTML = '<p>No tasks assigned.</p>';
+    if (userPrograms.length === 0) {
+        container.innerHTML = '<p>No programs assigned.</p>';
         return;
     }
 
-    container.innerHTML = userTasks.map(task => `
-        <div class="task-item">
-            <h4>${task.title || task.name}</h4>
-            <p>${task.description || task.desc}</p>
-            <div class="task-meta">
-                <span>Status: ${task.status || 'active'}</span>
-                <span>Hours: ${task.hours ?? ''}</span>
+    container.innerHTML = userPrograms.map(program => `
+        <div class="program-item">
+            <h4>${program.title || program.name}</h4>
+            <p>${program.description || program.desc}</p>
+            <div class="program-meta">
+                <span>Status: ${program.status || 'active'}</span>
+                <span>Hours: ${program.hours ?? ''}</span>
             </div>
-            <div class="task-actions">
-                <button onclick="updateTaskStatus('${task.id}', 'completed')" class="btn-primary">Mark Complete</button>
+            <div class="program-actions">
+                <button onclick="updateProgramStatus('${program.id}', 'completed')" class="btn-primary">Mark Complete</button>
             </div>
         </div>
     `).join('');
@@ -262,18 +347,32 @@ function loadUserNotifications(user, notifications) {
     `).join('');
 }
 
-function updateTaskStatus(taskId, status) {
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+async function updateProgramStatus(programId, status) {
+    if (useFirestore) {
+        try {
+            const program = programs.find(p => p.id === programId);
+            if (program) {
+                program.status = status;
+                await setDoc(adminStateDoc, { programs }, { merge: true });
+            }
+            loadUserDashboard();
+            alert('Program status updated!');
+            return;
+        } catch (err) {
+            console.error('Could not update Firestore program status', err);
+            alert('Could not update program status. Please try again.');
+            return;
+        }
+    }
 
-    if (taskIndex !== -1) {
-        tasks[taskIndex].status = status;
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+    const programsLocal = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+    const programIndex = programsLocal.findIndex(p => p.id === programId);
 
-        // Reload dashboard
+    if (programIndex !== -1) {
+        programsLocal[programIndex].status = status;
+        localStorage.setItem('itanimPrograms', JSON.stringify(programsLocal));
         loadUserDashboard();
-
-        alert('Task status updated!');
+        alert('Program status updated!');
     }
 }
 
@@ -310,11 +409,11 @@ function debugAddSampleData() {
         localStorage.setItem('programs', JSON.stringify(programs));
     }
 
-    // Add sample tasks
-    const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    if (tasks.length === 0) {
-        tasks.push({
-            id: 'task1',
+    // Add sample programs
+    const programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+    if (programs.length === 0) {
+        programs.push({
+            id: 'program1',
             title: 'Prepare materials',
             description: 'Gather cleaning supplies',
             assignedTo: 'john@example.com',
@@ -322,7 +421,7 @@ function debugAddSampleData() {
             status: 'pending',
             dueDate: '2024-05-10'
         });
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+        localStorage.setItem('itanimPrograms', JSON.stringify(programs));
     }
 
     // Add sample badges
@@ -367,3 +466,19 @@ function debugAddSampleData() {
     loadUserDashboard();
     alert('Sample data added!');
 }
+
+window.debugAddSampleData = debugAddSampleData;
+
+// Logout function
+window.logout = async () => {
+    try {
+        await signOut(auth);
+        window.location.href = "index.html";
+    } catch (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed. Please try again.");
+    }
+};
+window.loadUserDashboard = loadUserDashboard;
+window.joinProgram = joinProgram;
+window.updateProgramStatus = updateProgramStatus;

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>I-Tanim | Login</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/style.css">
 <header class="topbar">
   <div class="brand">
     <span class="brandName">I-TANIM</span>
@@ -65,21 +65,29 @@ import {
     browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyA_WAoRxS0XtSBHO4GKOUPeo9IxSuo9m8E",
-    authDomain: "i-tanim.firebaseapp.com",
-    projectId: "i-tanim",
-    storageBucket: "i-tanim.firebasestorage.app",
-    messagingSenderId: "543718035125",
-    appId: "1:543718035125:web:92261781c28eec00c738fc"
-};
+import {
+    getFirestore,
+    doc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+import firebaseConfig from "./js/firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
-onAuthStateChanged(auth, (user) => {
-    if (user) window.location.href = "user.html";
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        const userDoc = await getDoc(doc(db, 'volunteers', user.uid));
+        if (userDoc.exists()) {
+            const role = userDoc.data().role || 'user';
+            window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
+        } else {
+            window.location.href = 'user.html'; // fallback
+        }
+    }
 });
 
 document.getElementById("login-btn").onclick = async () => {
