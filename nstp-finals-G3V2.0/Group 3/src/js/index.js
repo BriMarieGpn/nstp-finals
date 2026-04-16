@@ -319,8 +319,9 @@ window.closeModal = () => {
     document.getElementById("programTitle").value = "";
     document.getElementById("programHours").value = "";
     document.getElementById("programRequirement").value = "None";
-    if (submitBtn) {
-        submitBtn.textContent = '+ Add Program';
+    const submitBtnEl = document.querySelector('button[onclick="submitProgram()"]');
+    if (submitBtnEl) {
+        submitBtnEl.textContent = '+ Add Program';
     }
 };
 
@@ -760,12 +761,26 @@ window.joinProgram = async (id, joined) => {
     if (!useFirestorePrograms) {
         const program = programDocs.find((item) => item.id === id);
         if (program) {
+            // Update joined list on the local program
             program.joined = [...new Set([...(program.joined || []), currentUser.id])];
             saveLocalPrograms();
             syncToAdminPrograms();
+
+            // Also update local volunteer record so admin volunteer management sees it
+            const localUser = users.find(u => u.id === currentUser.id);
+            if (localUser) {
+                localUser.enrolledPrograms = Array.isArray(localUser.enrolledPrograms)
+                    ? localUser.enrolledPrograms
+                    : [];
+                if (!localUser.enrolledPrograms.includes(id)) {
+                    localUser.enrolledPrograms.push(id);
+                }
+                saveUsers();
+            }
+
             renderPrograms(programDocs);
             const programName = program.title || 'Unknown Program';
-            logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
+            logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id, localOnly: true });
             return;
         }
         alert("Program not found.");

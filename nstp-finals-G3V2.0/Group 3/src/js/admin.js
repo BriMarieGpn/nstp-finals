@@ -79,7 +79,7 @@ let skills = JSON.parse(localStorage.getItem('itanimSkills') || '[]');
 let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge":18,"validBarangays":"All"}');
 let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze":10,"silver":25,"gold":50,"platinum":100}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
-const programsKey = "itanimLocalPrograms";
+const programsKey = "itanimPrograms";
 
 
 // Save functions
@@ -617,6 +617,16 @@ function editSkill(skill) {
 
 // Programs
 function updatePrograms() {
+    // Always pull latest programs from localStorage when not using Firestore,
+    // so changes from the home page "Add Program" sync through immediately.
+    if (!useFirestore) {
+        try {
+            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+        } catch {
+            programs = [];
+        }
+    }
+
     const list = document.getElementById('programList');
     list.innerHTML = programs.map(p => {
         const assignedCount = Array.isArray(p.assigned) ? p.assigned.length : 0;
@@ -915,6 +925,8 @@ function updateCertifications() {
     const certMarkup = [...requested, ...reviewed].map(c => {
         const user = users.find(u => u.id === c.userId);
         const eligibility = getUserCertificationEligibility(user || {});
+        const program = c.programId ? programs.find(p => p.id === c.programId) : null;
+        const programLabel = c.programTitle || program?.name || program?.title || '';
         return `
             <div class="cert-item">
                 <div>
@@ -922,6 +934,7 @@ function updateCertifications() {
                     Email: ${user?.email || 'N/A'}<br>
                     Hours: ${eligibility.hours}, Badge: ${user?.badge || 'None'}<br>
                     Completed Programs: ${eligibility.completedCount}<br>
+                    ${programLabel ? `Program: ${programLabel}<br>` : ''}
                     Status: ${getCertificationStatusBadge(c.status)}<br>
                     Requested: ${c.requestedAt ? new Date(c.requestedAt).toLocaleString() : 'N/A'}<br>
                     Proof: ${c.proofDetails || 'Not provided'}<br>

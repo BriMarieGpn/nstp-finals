@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     initFirestoreUserState();
                     listenFirestorePrograms();
                 } else {
-                    programs = JSON.parse(localStorage.getItem('itanimLocalPrograms') || '[]');
+                    programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
                     loadUserDashboard();
                 }
             }
@@ -319,6 +319,16 @@ async function listenFirestorePrograms() {
 }
 
 function loadUserDashboard() {
+    // In local/offline mode, always refresh programs from the shared key so
+    // programs added on the home page or admin stay in sync.
+    if (!useFirestore) {
+        try {
+            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+        } catch {
+            programs = [];
+        }
+    }
+
     const currentUser = getCurrentUser();
 
     // Update welcome message
@@ -346,6 +356,7 @@ function loadUserDashboard() {
 
     // Load user certifications
     loadUserCertifications(currentUser, certifications);
+    populateCertificationProgramOptions(currentUser, programs);
     attachCertificationRequestControls(currentUser);
 
     // Load user notifications
@@ -362,6 +373,45 @@ async function persistCertifications() {
     }
 }
 
+function populateCertificationProgramOptions(user, programsList) {
+    const select = document.getElementById('certProgramSelect');
+    if (!select) return;
+
+    const completedIds = Array.isArray(user.completedPrograms) ? user.completedPrograms : [];
+    const completedPrograms = programsList
+        .filter(p => completedIds.includes(p.id))
+        .map(normalizeProgram);
+
+    select.innerHTML = '';
+
+    if (!completedPrograms.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No completed programs yet';
+        opt.disabled = true;
+        opt.selected = true;
+        select.appendChild(opt);
+        select.disabled = true;
+        return;
+    }
+
+    select.disabled = false;
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select completed program for this certification';
+    placeholder.disabled = false;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
+
+    completedPrograms.forEach(program => {
+        const opt = document.createElement('option');
+        opt.value = program.id;
+        opt.textContent = program.title;
+        select.appendChild(opt);
+    });
+}
+
 function attachCertificationRequestControls(user) {
     const requestButton = document.getElementById('requestCertButton');
     if (!requestButton) return;
@@ -375,10 +425,16 @@ function attachCertificationRequestControls(user) {
     requestButton.onclick = async () => {
         const reason = (document.getElementById('certRequestReason')?.value || '').trim();
         const proof = (document.getElementById('certProofDetails')?.value || '').trim();
+        const programSelect = document.getElementById('certProgramSelect');
+        const selectedProgramId = programSelect ? programSelect.value : '';
         const current = getCurrentUser();
         const currentEligibility = getCertificationEligibility(current);
         if (!currentEligibility.eligible) {
             alert('You are not yet eligible for certification. Complete programs and gain more hours first.');
+            return;
+        }
+        if (!selectedProgramId) {
+            alert('Please select which completed program this certification is for.');
             return;
         }
         if (!reason) {
@@ -396,10 +452,14 @@ function attachCertificationRequestControls(user) {
             return;
         }
 
+        const associatedProgram = programs.find((p) => p.id === selectedProgramId);
+
         const certRequest = {
             id: `cert-${Date.now()}`,
             userId: current.id,
             userEmail: current.email || '',
+            programId: selectedProgramId,
+            programTitle: associatedProgram ? (associatedProgram.title || associatedProgram.name || '') : '',
             status: 'requested',
             reason,
             proofDetails: proof,
@@ -488,7 +548,7 @@ function loadEnrolledPrograms(user, programs) {
     const enrolledPrograms = programs.filter(p => enrolledIds.includes(p.id)).map(normalizeProgram);
 
     container.innerHTML = enrolledPrograms.map(program => `
-        <div class="program-card">
+        <div class="program-card" onclick="showUserProgramDetail('${program.id}', 'enrolled')">
             <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
             <div class="program-info">
                 <h3>${program.title}</h3>
@@ -620,7 +680,7 @@ function loadAssignedPrograms(user, programs) {
     }
 
     container.innerHTML = userPrograms.map(program => `
-        <div class="program-item">
+        <div class="program-item" onclick="showUserProgramDetail('${program.id}', 'joined')">
             <h4>${program.title || program.name}</h4>
             <p>${program.description || program.desc}</p>
             <div class="program-meta">
@@ -701,6 +761,37 @@ function loadUserNotifications(user, notifications) {
             <small>${notification.timestamp}</small>
         </div>
     `).join('');
+}
+
+function showUserProgramDetail(programId, source) {
+    const modal = document.getElementById('userProgramDetailModal');
+    if (!modal) return;
+
+    const program = normalizeProgram(programs.find(p => p.id === programId) || {});
+    if (!program.id) return;
+
+    const titleEl = document.getElementById('userProgramDetailTitle');
+    const descEl = document.getElementById('userProgramDetailDesc');
+    const hoursEl = document.getElementById('userProgramDetailHours');
+    const dateEl = document.getElementById('userProgramDetailDate');
+    const locationEl = document.getElementById('userProgramDetailLocation');
+    const statusEl = document.getElementById('userProgramDetailStatus');
+
+    if (titleEl) titleEl.textContent = program.title;
+    if (descEl) descEl.textContent = program.description;
+    if (hoursEl) hoursEl.textContent = program.hours || program.duration || 0;
+    if (dateEl) dateEl.textContent = program.date || 'TBD';
+    if (locationEl) locationEl.textContent = program.location || 'Community Area';
+    if (statusEl) statusEl.textContent = source === 'joined' ? 'Joined' : 'Enrolled';
+
+    modal.style.display = 'flex';
+}
+
+function closeUserProgramModal() {
+    const modal = document.getElementById('userProgramDetailModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 async function updateProgramStatus(programId, status) {
@@ -841,3 +932,5 @@ window.logout = async () => {
 window.loadUserDashboard = loadUserDashboard;
 window.joinProgram = joinProgram;
 window.updateProgramStatus = updateProgramStatus;
+window.showUserProgramDetail = showUserProgramDetail;
+window.closeUserProgramModal = closeUserProgramModal;
