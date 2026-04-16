@@ -19,6 +19,30 @@ let badges = JSON.parse(localStorage.getItem('badges') || '[]');
 let certifications = JSON.parse(localStorage.getItem('certifications') || '[]');
 let notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
 
+// Activity logging for user actions
+function logUserActivity(actionType, actionDetail, metadata = {}) {
+    try {
+        const logEntry = {
+            id: `log-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            actionType,
+            actionDetail,
+            userId: auth.currentUser?.uid || currentUserId || 'unknown',
+            userEmail: auth.currentUser?.email || currentUserProfile?.email || 'unknown',
+            metadata
+        };
+
+        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
+        logs.unshift(logEntry);
+        if (logs.length > 10000) logs.pop();
+        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
+
+        console.log(`[USER ACTIVITY] ${actionType}: ${actionDetail}`, metadata);
+    } catch (err) {
+        console.warn('Could not log user activity', err);
+    }
+}
+
 async function fetchCurrentUserProfile(uid, email) {
     let profile = null;
 
@@ -302,6 +326,8 @@ async function joinProgram(programId) {
     }
 
     currentUser.enrolledPrograms.push(programId);
+    const programName = programs.find(p => p.id === programId)?.title || `Program ${programId}`;
+    
     if (useFirestore) {
         try {
             const programRef = doc(db, 'programs_empty', programId);
@@ -312,9 +338,12 @@ async function joinProgram(programId) {
             await setDoc(doc(db, 'volunteers', currentUser.id), {
                 enrolledPrograms: currentUser.enrolledPrograms
             }, { merge: true });
+            
+            logUserActivity('volunteer_join', `User joined program: "${programName}"`, { programId, userName: currentUser.name });
             loadUserDashboard();
         } catch (err) {
             console.error('Could not update Firestore join state', err);
+            logUserActivity('error', `Failed to join program: "${programName}" - ${err.message}`, { error: true });
             alert('Could not join this program in Firestore. Please try again.');
             return;
         }
@@ -328,6 +357,7 @@ async function joinProgram(programId) {
         }
         localStorage.setItem('users', JSON.stringify(storedUsers));
         localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
+        logUserActivity('volunteer_join', `User joined program: "${programName}"`, { programId, userName: currentUser.name });
     }
 
     loadUserDashboard();
@@ -550,10 +580,13 @@ window.debugAddSampleData = debugAddSampleData;
 // Logout function
 window.logout = async () => {
     try {
+        const userEmail = auth.currentUser?.email || 'user';
+        logUserActivity('user_logout', `User logged out: ${userEmail}`, { userType: 'user' });
         await signOut(auth);
         window.location.href = "index.html";
     } catch (error) {
         console.error("Logout error:", error);
+        logUserActivity('error', `Logout failed: ${error.message}`, { error: true });
         alert("Logout failed. Please try again.");
     }
 };

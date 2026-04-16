@@ -30,6 +30,7 @@
             <button class="tab-btn" onclick="showTab('badges')">Badges</button>
             <button class="tab-btn" onclick="showTab('certifications')">Certifications</button>
             <button class="tab-btn" onclick="showTab('notifications')">Notifications</button>
+            <button class="tab-btn" onclick="showTab('logs')">Logs</button>
         </div>
 
         <div id="dashboard" class="tab-content active">
@@ -171,6 +172,26 @@
                 <button onclick="sendNotification()">Send Notification</button>
             </div>
             <div id="notificationHistory"></div>
+        </div>
+
+        <div id="logs" class="tab-content">
+            <h2>Activity Logs</h2>
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="logSearchInput" placeholder="Search logs..." style="flex: 1; min-width: 200px; padding: 8px; border: 1px solid #9CAF88; border-radius: 6px;">
+                <select id="logFilterType" style="padding: 8px; border: 1px solid #9CAF88; border-radius: 6px;">
+                    <option value="">All Actions</option>
+                    <option value="program_add">Program Added</option>
+                    <option value="program_update">Program Updated</option>
+                    <option value="program_delete">Program Deleted</option>
+                    <option value="volunteer_join">User Joined Program</option>
+                    <option value="volunteer_approve">Volunteer Approved</option>
+                    <option value="volunteer_reject">Volunteer Rejected</option>
+                    <option value="error">Error</option>
+                </select>
+                <button onclick="clearAllLogs()" style="padding: 8px 16px; background: #d9534f; color: white; border: none; border-radius: 6px; cursor: pointer;">Clear All</button>
+                <button onclick="exportLogs()" style="padding: 8px 16px; background: #5cb85c; color: white; border: none; border-radius: 6px; cursor: pointer;">Export</button>
+            </div>
+            <div id="logsList" style="max-height: 600px; overflow-y: auto; border: 1px solid #9CAF88; border-radius: 6px;"></div>
         </div>
     </div>
 

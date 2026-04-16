@@ -147,6 +147,7 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById("login-btn").onclick = async () => {
     const isRemembered = document.getElementById("remember")?.checked;
+    const email = document.getElementById("email").value;
 
     try {
         await setPersistence(
@@ -156,21 +157,51 @@ document.getElementById("login-btn").onclick = async () => {
 
         await signInWithEmailAndPassword(
             auth,
-            document.getElementById("email").value,
+            email,
             document.getElementById("password").value
         );
+
+        // Log login event to admin logs
+        logLoginEvent('email_login', email, isRemembered);
     } catch (e) {
+        logLoginEvent('login_failed', email, { error: e.message });
         alert(e.message);
     }
 };
 
 document.getElementById("google-btn").onclick = async () => {
     try {
-        await signInWithPopup(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        logLoginEvent('google_login', result.user.email, true);
     } catch (e) {
+        logLoginEvent('login_failed', 'google', { error: e.message });
         alert(e.message);
     }
 };
+
+function logLoginEvent(actionType, email, metadata = {}) {
+    try {
+        const logEntry = {
+            id: `log-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            actionType,
+            actionDetail: actionType === 'login_failed' ? `Login attempt failed: ${metadata.error || 'Unknown error'}` : `User logged in via ${actionType === 'google_login' ? 'Google' : 'Email'} (${email})`,
+            userId: actionType === 'login_failed' ? 'anonymous' : email,
+            userEmail: email,
+            metadata: typeof metadata === 'object' ? metadata : { remembered: metadata }
+        };
+
+        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
+        logs.unshift(logEntry);
+        if (logs.length > 10000) logs.pop();
+        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
+
+        console.log(`[LOGIN] ${actionType}: ${email}`);
+    } catch (err) {
+        console.warn('Could not log login event', err);
+    }
+}
+
 </script>
 </body>
 </html>

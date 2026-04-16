@@ -75,6 +75,30 @@ let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
 const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const useFirestore = isFirebaseConfigured;
 
+// Activity logging
+function logActivityEvent(actionType, actionDetail, metadata = {}) {
+    try {
+        const logEntry = {
+            id: `log-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            actionType,
+            actionDetail,
+            userId: auth.currentUser?.uid || 'visitor',
+            userEmail: auth.currentUser?.email || 'visitor',
+            metadata
+        };
+
+        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
+        logs.unshift(logEntry);
+        if (logs.length > 10000) logs.pop();
+        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
+
+        console.log(`[ACTIVITY] ${actionType}: ${actionDetail}`, metadata);
+    } catch (err) {
+        console.warn('Could not log activity', err);
+    }
+}
+
 function updateUserUI() {
     userLabel.innerText = `Role: ${currentUser.role}`;
     if (!useFirestore) {
@@ -566,6 +590,8 @@ window.joinProgram = async (id, joined) => {
             program.joined = [...new Set([...(program.joined || []), currentUser.id])];
             saveLocalPrograms();
             renderPrograms(programDocs);
+            const programName = program.title || 'Unknown Program';
+            logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
             return;
         }
         alert("Program not found.");
@@ -573,11 +599,15 @@ window.joinProgram = async (id, joined) => {
     }
 
     try {
+        const program = programDocs.find((item) => item.id === id);
+        const programName = program?.title || 'Unknown Program';
         await updateDoc(doc(db, "programs_empty", id), {
             joined: arrayUnion(currentUser.id)
         });
+        logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
     } catch (err) {
         console.error(err);
+        logActivityEvent('error', `Failed to join program - ${err.message}`, { error: true });
         alert("Could not join program. Please try again.");
     }
 };
@@ -662,8 +692,10 @@ window.submitProgram = async () => {
                 try {
                     await updateDoc(doc(db, "programs_empty", window.editingProgramId), programData);
                     console.log("Firestore update successful");
+                    logActivityEvent('program_update', `Updated program: "${title}"`, { programId: window.editingProgramId, hours });
                 } catch (fsErr) {
                     console.error("Firestore update failed", fsErr);
+                    logActivityEvent('error', `Failed to update program: "${title}" - ${fsErr.message}`, { error: true });
                     throw fsErr;
                 }
             }
@@ -679,8 +711,10 @@ window.submitProgram = async () => {
                     const docRef = await addDoc(collection(db, "programs_empty"), programData);
                     newProgram.id = docRef.id;
                     console.log("Firestore add successful, doc ID:", newProgram.id);
+                    logActivityEvent('program_add', `Created program: "${title}" (${hours} hours)`, { programId: newProgram.id, hours });
                 } catch (fsErr) {
                     console.error("Firestore add failed", fsErr);
+                    logActivityEvent('error', `Failed to create program: "${title}" - ${fsErr.message}`, { error: true });
                     throw fsErr;
                 }
             }

@@ -139,9 +139,13 @@ document.getElementById("reg-btn").onclick = async () => {
         users.push(userData);
         localStorage.setItem('itanimUsers', JSON.stringify(users));
 
+        // Log signup event
+        logSignupEvent('user_signup', email, fname + ' ' + lname);
+
         window.location.href = "user.html";
 
     } catch (e) {
+        logSignupEvent('signup_failed', email, { error: e.message });
         alert("Firebase not configured. Using local storage instead.");
         // Fallback to localStorage
         const userId = "user" + Date.now();
@@ -161,9 +165,36 @@ document.getElementById("reg-btn").onclick = async () => {
         let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
         users.push(userData);
         localStorage.setItem('itanimUsers', JSON.stringify(users));
+
+        // Log signup event
+        logSignupEvent('user_signup', email, fname + ' ' + lname);
+
         window.location.href = "user.html";
     }
 };
+
+function logSignupEvent(actionType, email, nameOrError = {}) {
+    try {
+        const logEntry = {
+            id: `log-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            actionType,
+            actionDetail: actionType === 'signup_failed' ? `Signup failed: ${nameOrError.error || 'Unknown error'}` : `New volunteer registered: ${typeof nameOrError === 'string' ? nameOrError : ''} (${email})`,
+            userId: 'new_user',
+            userEmail: email,
+            metadata: typeof nameOrError === 'object' ? nameOrError : { name: nameOrError }
+        };
+
+        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
+        logs.unshift(logEntry);
+        if (logs.length > 10000) logs.pop();
+        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
+
+        console.log(`[SIGNUP] ${actionType}: ${email}`);
+    } catch (err) {
+        console.warn('Could not log signup event', err);
+    }
+}
 </script>
 </body>
 </html>

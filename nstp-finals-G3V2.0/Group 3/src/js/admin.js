@@ -320,6 +320,7 @@ function approveUser(id) {
         saveUsers();
         updateVolunteers();
         sendNotification(`Your application has been approved!`, 'application', user.email);
+        logAction('volunteer_approve', `Approved volunteer: ${user.firstName} ${user.lastName} (${user.email})`, { userId: id, userEmail: user.email });
     }
 }
 
@@ -330,6 +331,7 @@ function rejectUser(id) {
         saveUsers();
         updateVolunteers();
         sendNotification(`Your application has been rejected.`, 'application', user.email);
+        logAction('volunteer_reject', `Rejected volunteer: ${user.firstName} ${user.lastName} (${user.email})`, { userId: id, userEmail: user.email });
     }
 }
 
@@ -462,6 +464,7 @@ async function saveProgram() {
         } else {
             program.attachments = program.attachments || [];
         }
+        logAction('program_update', `Updated program: "${name}"`, { programId: editId });
     } else {
         const newProgram = {
             id: `program${Date.now()}`,
@@ -475,6 +478,7 @@ async function saveProgram() {
             attachments: newAttachments
         };
         programs.push(newProgram);
+        logAction('program_add', `Created program: "${name}" (${hours} hours)`, { programId: newProgram.id, hours });
     }
 
     savePrograms();
@@ -498,6 +502,7 @@ function archiveProgram(id) {
 }
 
 async function deleteProgram(id) {
+    const programName = programs.find(p => p.id === id)?.name || 'Unknown';
     programs = programs.filter(p => p.id !== id);
     savePrograms();
     await syncProgramsFromPrograms();
@@ -508,6 +513,7 @@ async function deleteProgram(id) {
             console.warn('Could not delete program document from Firestore', err);
         }
     }
+    logAction('program_delete', `Deleted program: "${programName}"`, { programId: id });
     updatePrograms();
 }
 
@@ -661,10 +667,13 @@ function sendNotification(message, type, recipient) {
 // Logout
 async function logoutAdmin() {
     try {
+        const userEmail = auth.currentUser?.email || 'admin';
+        logAction('user_logout', `Admin logged out: ${userEmail}`, { userType: 'admin' });
         await signOut(auth);
         window.location.href = 'index.html';
     } catch (error) {
         console.error("Logout error:", error);
+        logAction('error', `Logout failed: ${error.message}`, { error: true });
         alert("Logout failed. Please try again.");
     }
 }
@@ -753,6 +762,135 @@ function archiveTask() {
 function deleteTask() {
     console.warn('deleteTask() is not implemented in this build.');
 }
+
+// ===== LOGGING SYSTEM =====
+let allLogs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
+
+async function logAction(actionType, actionDetail, metadata = {}) {
+    const logEntry = {
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        actionType,
+        actionDetail,
+        userId: auth.currentUser?.uid || 'system',
+        userEmail: auth.currentUser?.email || 'system',
+        metadata
+    };
+
+    allLogs.unshift(logEntry); // Add to beginning for most recent first
+    if (allLogs.length > 10000) allLogs.pop(); // Keep last 10000 logs
+
+    localStorage.setItem('itanimAdminLogs', JSON.stringify(allLogs));
+
+    // Also save to Firestore
+    if (useFirestore) {
+        try {
+            const logsRef = collection(db, 'admin_logs');
+            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+            await addDoc(logsRef, logEntry);
+        } catch (err) {
+            console.warn('Could not save log to Firestore', err);
+        }
+    }
+
+    console.log(`[LOG] ${actionType}: ${actionDetail}`, metadata);
+}
+
+function filterLogs(searchTerm = '', filterType = '') {
+    return allLogs.filter(log => {
+        const matchesSearch = !searchTerm || 
+            log.actionType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.actionDetail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            log.userEmail.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesType = !filterType || log.actionType === filterType;
+        
+        return matchesSearch && matchesType;
+    });
+}
+
+window.clearAllLogs = () => {
+    if (confirm('Are you sure you want to delete all logs? This cannot be undone.')) {
+        allLogs = [];
+        localStorage.setItem('itanimAdminLogs', JSON.stringify(allLogs));
+        renderLogs();
+        alert('All logs cleared.');
+    }
+};
+
+window.exportLogs = () => {
+    const logsText = allLogs.map(log => 
+        `[${log.timestamp}] ${log.actionType}: ${log.actionDetail} (${log.userEmail})`
+    ).join('\n');
+    
+    const blob = new Blob([logsText], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `admin-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+};
+
+function renderLogs() {
+    const searchTerm = document.getElementById('logSearchInput')?.value || '';
+    const filterType = document.getElementById('logFilterType')?.value || '';
+    
+    const filteredLogs = filterLogs(searchTerm, filterType);
+    const logsList = document.getElementById('logsList');
+
+    if (!logsList) return;
+
+    if (filteredLogs.length === 0) {
+        logsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No logs found</div>';
+        return;
+    }
+
+    logsList.innerHTML = filteredLogs.map(log => {
+        const date = new Date(log.timestamp);
+        const timeStr = date.toLocaleTimeString();
+        const dateStr = date.toLocaleDateString();
+        
+        let actionColor = '#546B41'; // default green
+        if (log.actionType.includes('error') || log.actionType.includes('reject')) actionColor = '#d9534f'; // red
+        if (log.actionType.includes('approve')) actionColor = '#5cb85c'; // green
+        if (log.actionType.includes('warning')) actionColor = '#f0ad4e'; // orange
+
+        return `
+            <div style="padding: 12px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: start; gap: 10px;">
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; color: ${actionColor};">${log.actionType}</div>
+                    <div style="color: #333; margin: 4px 0;">${log.actionDetail}</div>
+                    <div style="font-size: 12px; color: #999;">
+                        ${dateStr} ${timeStr} • ${log.userEmail}
+                    </div>
+                    ${Object.keys(log.metadata).length > 0 ? `
+                        <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                            <strong>Metadata:</strong> ${JSON.stringify(log.metadata)}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+window.renderLogs = renderLogs;
+
+// Initialize logs search and filter listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const logSearch = document.getElementById('logSearchInput');
+    const logFilter = document.getElementById('logFilterType');
+
+    if (logSearch) {
+        logSearch.addEventListener('input', renderLogs);
+    }
+    if (logFilter) {
+        logFilter.addEventListener('change', renderLogs);
+    }
+});
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

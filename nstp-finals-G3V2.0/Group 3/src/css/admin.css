@@ -164,3 +164,68 @@ select::placeholder {
 .edit-btn { background: var(--primary-soft); color: var(--text); border: 1px solid var(--border); }
 .delete-btn { background: var(--primary); color: var(--p-50); border: 1px solid var(--border); }
 .archive-btn { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+/* Logs Styling */
+#logsList {
+    background: var(--surface);
+    border-radius: 12px;
+}
+
+.log-entry {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    transition: background 0.2s ease;
+}
+
+.log-entry:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-timestamp {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.log-action-type {
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.log-action-type.error {
+    color: #d9534f;
+}
+
+.log-action-type.success {
+    color: #5cb85c;
+}
+
+.log-action-type.warning {
+    color: #f0ad4e;
+}
+
+.log-email {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.log-metadata {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 6px;
+    padding: 8px;
+    background: color-mix(in srgb, var(--text) 5%, transparent);
+    border-radius: 6px;
+    font-family: monospace;
+}
+
