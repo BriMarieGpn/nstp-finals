@@ -982,6 +982,10 @@ window.submitProgram = async () => {
                     
                     await updateDoc(doc(db, "admin", "state"), { programs });
                     console.log("Firestore update successful");
+                    
+                    // Sync to programs_empty collection
+                    await syncProgramsToPublicCollection(programs);
+                    
                     logActivityEvent('program_update', `Updated program: "${title}"`, { programId: window.editingProgramId, hours });
                     alert("Program updated successfully!");
                 } catch (fsErr) {
@@ -1046,17 +1050,23 @@ window.submitProgram = async () => {
                             await updateDoc(stateRef, {
                                 programs: arrayUnion(newProgram)
                             });
+                            // Read back the updated programs array
+                            const updatedSnapshot = await getDoc(stateRef);
+                            const updatedPrograms = updatedSnapshot.data().programs || [];
+                            await syncProgramsToPublicCollection(updatedPrograms);
                         } else {
                             console.log("Programs array doesn't exist, creating it");
                             await updateDoc(stateRef, {
                                 programs: [newProgram]
                             });
+                            await syncProgramsToPublicCollection([newProgram]);
                         }
                     } else {
                         console.log("Admin/state doesn't exist, creating it");
                         await setDoc(stateRef, {
                             programs: [newProgram]
                         });
+                        await syncProgramsToPublicCollection([newProgram]);
                     }
                     
                     console.log("Firestore add successful");
@@ -1405,6 +1415,36 @@ function resetAutoSlide() {
 
 update();
 let autoSlide = setInterval(next, 5000);
+
+// Sync programs to public programs_empty collection
+async function syncProgramsToPublicCollection(programsArray) {
+    if (!useFirestore) return;
+    
+    try {
+        // Delete all existing programs in programs_empty
+        const snap = await getDocs(collection(db, 'programs_empty'));
+        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+        await Promise.all(deletePromises);
+        
+        // Add all current programs
+        const addPromises = programsArray.map(async (program) => {
+            const firestoreData = {
+                title: program.name || program.title,
+                hours: program.hours,
+                requirement: program.requirement || 'None',
+                desc: program.desc || '',
+                image: program.image || defaultImage,
+                joined: program.joined || [],
+                skills: program.skills || []
+            };
+            return setDoc(doc(db, 'programs_empty', program.id), firestoreData);
+        });
+        await Promise.all(addPromises);
+        console.log('Successfully synced', programsArray.length, 'programs to programs_empty collection');
+    } catch (err) {
+        console.warn('Could not sync programs to programs_empty', err);
+    }
+}
 
 // Make functions global for onclick handlers
 window.prev = prev;
