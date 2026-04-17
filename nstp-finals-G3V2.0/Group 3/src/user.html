@@ -47,6 +47,7 @@
                 <a href="index.html">Home</a>
                 <a href="#" id="dashboardLink">Dashboard</a>
                 <a href="index.html">Programs</a>
+                <a href="#" onclick="forceSyncData()">Force Sync</a>
                 <a href="#">Profile</a>
                 <a href="#" onclick="logout()">Logout</a>
             </div>
@@ -83,19 +84,19 @@
             </div>
         </div>
 
-        <!-- Enrolled / Available Programs Section -->
-        <div class="dashboard-section">
-            <h2>Available Programs</h2>
-            <div id="enrolledProgramsList" class="programs-list">
-                <!-- Programs will be loaded here -->
-            </div>
-        </div>
-
         <!-- Available Programs Section -->
         <div class="dashboard-section">
             <h2>Available Programs</h2>
             <div id="availableProgramsList" class="programs-list">
                 <!-- Available programs will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Joined Programs Section -->
+        <div class="dashboard-section">
+            <h2>Joined Programs</h2>
+            <div id="enrolledProgramsList" class="programs-list">
+                <!-- Joined programs will be loaded here -->
             </div>
         </div>
 
@@ -115,14 +116,6 @@
             </div>
             <div id="userSkillsList" class="skills-list">
                 <!-- User skills will be loaded here -->
-            </div>
-        </div>
-
-        <!-- Joined Programs Section -->
-        <div class="dashboard-section">
-            <h2>Joined Programs</h2>
-            <div id="assignedProgramsList" class="programs-list">
-                <!-- Programs will be loaded here -->
             </div>
         </div>
 

@@ -310,6 +310,23 @@ async function listenFirestorePrograms() {
             snapshot.forEach((docSnapshot) => {
                 programs.push(normalizeProgram({ id: docSnapshot.id, ...docSnapshot.data() }));
             });
+            // Keep localhost fallback cache in sync for quick rendering and tab reloads.
+            try {
+                const localPrograms = programs.map((p) => ({
+                    id: p.id,
+                    name: p.title || p.name || '',
+                    desc: p.description || p.desc || '',
+                    hours: Number(p.hours || p.duration || 0),
+                    requirement: p.requirement || 'None',
+                    maxVolunteers: Number(p.maxVolunteers || 0),
+                    joined: Array.isArray(p.joined) ? p.joined : [],
+                    pendingJoins: Array.isArray(p.pendingJoins) ? p.pendingJoins : [],
+                    attachments: p.image ? [{ dataUrl: p.image, name: 'image', type: 'image/jpeg' }] : []
+                }));
+                localStorage.setItem('itanimPrograms', JSON.stringify(localPrograms));
+            } catch {
+                // ignore cache failures
+            }
             loadUserDashboard();
         });
     } catch (err) {
@@ -319,12 +336,22 @@ async function listenFirestorePrograms() {
 }
 
 function loadUserDashboard() {
-    // In local/offline mode, always refresh programs from the shared key so
-    // programs added on the home page or admin stay in sync.
-    if (!useFirestore) {
-        try {
-            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
-        } catch {
+    // Always merge with shared local cache so newest admin-created programs
+    // appear quickly in user dashboard, even while Firestore listeners settle.
+    try {
+        const localPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]').map(normalizeProgram);
+        if (!useFirestore) {
+            programs = localPrograms;
+        } else if (localPrograms.length > 0) {
+            const byId = new Map();
+            programs.forEach((p) => byId.set(p.id, normalizeProgram(p)));
+            localPrograms.forEach((p) => {
+                if (!byId.has(p.id)) byId.set(p.id, p);
+            });
+            programs = Array.from(byId.values());
+        }
+    } catch {
+        if (!useFirestore) {
             programs = [];
         }
     }
@@ -340,12 +367,9 @@ function loadUserDashboard() {
     document.getElementById('badgesEarned').textContent = getUserBadgeCount(currentUser);
     document.getElementById('certificationsCount').textContent = getUserCertificationCount(currentUser);
 
-    // Load enrolled programs
-    loadEnrolledPrograms(currentUser, programs);
     loadAvailablePrograms(currentUser, programs);
-
-    // Load assigned programs
-    loadAssignedPrograms(currentUser, programs);
+    // Joined programs (based on enrolledPrograms)
+    loadEnrolledPrograms(currentUser, programs);
 
     // Load user skills and controls
     loadUserSkills(currentUser);
@@ -541,7 +565,7 @@ function loadEnrolledPrograms(user, programs) {
     const enrolledIds = user.enrolledPrograms || [];
 
     if (enrolledIds.length === 0) {
-        container.innerHTML = '<p>No programs enrolled yet.</p>';
+        container.innerHTML = '<p>No programs joined yet.</p>';
         return;
     }
 
@@ -559,7 +583,7 @@ function loadEnrolledPrograms(user, programs) {
                     <span>⏰ ${program.duration} hours</span>
                 </div>
                 <div class="program-status">
-                    <span class="status enrolled">Enrolled</span>
+                    <span class="status enrolled">Joined</span>
                 </div>
             </div>
         </div>
@@ -580,6 +604,7 @@ function loadAvailablePrograms(user, programs) {
         const joinedCount = Array.isArray(program.joined) ? program.joined.length : 0;
         const maxVolunteers = Number(program.maxVolunteers || 0);
         const isFull = maxVolunteers > 0 && joinedCount >= maxVolunteers;
+        const userApproved = normalizeRole(user.role) !== 'admin' ? (String(user.status || '').toLowerCase().trim() === 'approved') : true;
         return `
         <div class="program-card">
             <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
@@ -593,8 +618,8 @@ function loadAvailablePrograms(user, programs) {
                     <span>👥 ${joinedCount}${maxVolunteers > 0 ? `/${maxVolunteers}` : ''}</span>
                 </div>
                 <div class="program-actions">
-                    <button class="btn-primary" onclick="joinProgram('${program.id}')" ${isFull ? 'disabled' : ''}>
-                        ${isFull ? 'Unavailable (Full)' : 'Join'}
+                    <button class="btn-primary" onclick="joinProgram('${program.id}')" ${isFull || !userApproved ? 'disabled' : ''}>
+                        ${!userApproved ? 'Account not approved' : (isFull ? 'Unavailable (Full)' : 'Request to Join')}
                     </button>
                 </div>
             </div>
@@ -610,9 +635,14 @@ async function joinProgram(programId) {
         return;
     }
 
+    if (String(currentUser.status || '').toLowerCase().trim() !== 'approved') {
+        alert('Your account must be approved by the admin before you can request to join programs.');
+        return;
+    }
+
     currentUser.enrolledPrograms = currentUser.enrolledPrograms || [];
     if (currentUser.enrolledPrograms.includes(programId)) {
-        alert('You have already joined this program.');
+        alert('You are already officially joined to this program.');
         return;
     }
 
@@ -624,74 +654,47 @@ async function joinProgram(programId) {
         return;
     }
 
-    currentUser.enrolledPrograms.push(programId);
     const programName = programs.find(p => p.id === programId)?.title || `Program ${programId}`;
     
     if (useFirestore) {
         try {
             const programRef = doc(db, 'programs_empty', programId);
-            await updateDoc(programRef, {
-                joined: arrayUnion(currentUser.id)
-            });
-
-            await setDoc(doc(db, 'volunteers', currentUser.id), {
-                enrolledPrograms: currentUser.enrolledPrograms
-            }, { merge: true });
+            await updateDoc(programRef, { pendingJoins: arrayUnion(currentUser.id) });
             
-            logUserActivity('volunteer_join', `User joined program: "${programName}"`, { programId, userName: currentUser.name });
+            logUserActivity('join_request', `User requested to join program: "${programName}"`, { programId, userName: currentUser.name });
             loadUserDashboard();
         } catch (err) {
             console.error('Could not update Firestore join state', err);
-            logUserActivity('error', `Failed to join program: "${programName}" - ${err.message}`, { error: true });
-            alert('Could not join this program in Firestore. Please try again.');
+            logUserActivity('error', `Failed to request join: "${programName}" - ${err.message}`, { error: true });
+            alert('Could not request to join this program. Please try again.');
             return;
         }
     } else {
-        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        const index = storedUsers.findIndex(u => u.id === currentUser.id);
-        if (index > -1) {
-            storedUsers[index] = currentUser;
-        } else {
-            storedUsers.push(currentUser);
+        // Localhost: add to program.pendingJoins (admin will approve to become official)
+        const programsLocal = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+        const programIndex = programsLocal.findIndex(p => p.id === programId);
+        if (programIndex === -1) {
+            alert('Program not found.');
+            return;
         }
-        localStorage.setItem('users', JSON.stringify(storedUsers));
-        localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
-        logUserActivity('volunteer_join', `User joined program: "${programName}"`, { programId, userName: currentUser.name });
+        const pending = Array.isArray(programsLocal[programIndex].pendingJoins) ? programsLocal[programIndex].pendingJoins : [];
+        if (!pending.includes(currentUser.id)) {
+            pending.push(currentUser.id);
+        }
+        programsLocal[programIndex].pendingJoins = pending;
+        localStorage.setItem('itanimPrograms', JSON.stringify(programsLocal));
+        logUserActivity('join_request', `User requested to join program: "${programName}"`, { programId, userName: currentUser.name });
     }
 
     loadUserDashboard();
-    alert('You have joined the program successfully!');
+    alert('Join request submitted. Wait for admin approval to be officially joined.');
 }
 
 
-function loadAssignedPrograms(user, programs) {
-    const container = document.getElementById('assignedProgramsList');
-    const userId = user.id || user.email;
-    const userEmail = user.email;
-    const userPrograms = programs.filter(p => {
-        if (p.assignedTo) return p.assignedTo === userEmail;
-        if (Array.isArray(p.assigned)) return p.assigned.includes(userId);
-        return false;
-    });
-
-    if (userPrograms.length === 0) {
-        container.innerHTML = '<p>No programs assigned.</p>';
-        return;
-    }
-
-    container.innerHTML = userPrograms.map(program => `
-        <div class="program-item" onclick="showUserProgramDetail('${program.id}', 'joined')">
-            <h4>${program.title || program.name}</h4>
-            <p>${program.description || program.desc}</p>
-            <div class="program-meta">
-                <span>Status: ${program.status || 'active'}</span>
-                <span>Hours: ${program.hours ?? ''}</span>
-            </div>
-            <div class="program-actions">
-                <button onclick="updateProgramStatus('${program.id}', 'completed')" class="btn-primary">Mark Complete</button>
-            </div>
-        </div>
-    `).join('');
+function loadAssignedPrograms() {
+    // Deprecated: "Assigned programs" was replaced by "Joined programs" view.
+    // Intentionally left as a no-op to avoid runtime errors if referenced elsewhere.
+    return;
 }
 
 function loadUserBadges(user, badges) {
@@ -934,3 +937,27 @@ window.joinProgram = joinProgram;
 window.updateProgramStatus = updateProgramStatus;
 window.showUserProgramDetail = showUserProgramDetail;
 window.closeUserProgramModal = closeUserProgramModal;
+window.forceSyncData = () => {
+    try {
+        programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]').map(normalizeProgram);
+        users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+    } catch {
+        // keep previous in-memory data
+    }
+    loadUserDashboard();
+    alert('Manual sync complete.');
+};
+
+// Cross-tab/page live sync in localhost mode:
+// reflect admin/index changes to programs/users immediately.
+window.addEventListener('storage', (event) => {
+    if (event.key === 'itanimPrograms' || event.key === 'itanimUsers') {
+        try {
+            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]').map(normalizeProgram);
+            users = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+        } catch {
+            // ignore parse errors and keep existing in-memory data
+        }
+        loadUserDashboard();
+    }
+});

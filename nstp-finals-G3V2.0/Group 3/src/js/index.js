@@ -753,34 +753,36 @@ window.joinProgram = async (id, joined) => {
         return;
     }
 
+    // Require volunteer account approval before they can request to join
+    if (currentUser.role === 'user') {
+        const localUser = users.find(u => u.id === currentUser.id);
+        const status = String(localUser?.status || '').toLowerCase().trim();
+        if (status && status !== 'approved') {
+            alert("Your account must be approved by the admin before you can request to join programs.");
+            return;
+        }
+    }
+
     if ((joined || []).includes(currentUser.id)) {
-        alert("You already joined this program.");
+        alert("You are already officially joined to this program.");
         return;
     }
 
     if (!useFirestorePrograms) {
         const program = programDocs.find((item) => item.id === id);
         if (program) {
-            // Update joined list on the local program
-            program.joined = [...new Set([...(program.joined || []), currentUser.id])];
+            // Request to join (pending). Admin must approve to become "officially joined".
+            program.pendingJoins = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
+            if (!program.pendingJoins.includes(currentUser.id)) {
+                program.pendingJoins.push(currentUser.id);
+            }
             saveLocalPrograms();
             syncToAdminPrograms();
 
-            // Also update local volunteer record so admin volunteer management sees it
-            const localUser = users.find(u => u.id === currentUser.id);
-            if (localUser) {
-                localUser.enrolledPrograms = Array.isArray(localUser.enrolledPrograms)
-                    ? localUser.enrolledPrograms
-                    : [];
-                if (!localUser.enrolledPrograms.includes(id)) {
-                    localUser.enrolledPrograms.push(id);
-                }
-                saveUsers();
-            }
-
             renderPrograms(programDocs);
             const programName = program.title || 'Unknown Program';
-            logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id, localOnly: true });
+            logActivityEvent('join_request', `User requested to join program: "${programName}"`, { programId: id, localOnly: true });
+            alert('Join request submitted. Wait for admin approval.');
             return;
         }
         alert("Program not found.");
@@ -813,48 +815,30 @@ window.joinProgram = async (id, joined) => {
             throw new Error("Program not found");
         }
         
-        // Add user to joined array
-        const updatedJoined = [...new Set([...(programs[programIndex].joined || []), currentUser.id])];
-        programs[programIndex].joined = updatedJoined;
+        // Add user to pendingJoins (admin must approve)
+        programs[programIndex].pendingJoins = Array.isArray(programs[programIndex].pendingJoins) ? programs[programIndex].pendingJoins : [];
+        if (!programs[programIndex].pendingJoins.includes(currentUser.id)) {
+            programs[programIndex].pendingJoins.push(currentUser.id);
+        }
         
-        console.log("Updating joined array to:", updatedJoined);
+        console.log("Updating pendingJoins array to:", programs[programIndex].pendingJoins);
         
         await updateDoc(doc(db, "admin", "state"), { programs });
         console.log("Join successful");
         
-        // Persist enrollment to the volunteer record
-        if (currentUser.id && useFirestore) {
-            try {
-                await setDoc(doc(db, 'volunteers', currentUser.id), {
-                    enrolledPrograms: arrayUnion(id),
-                    role: 'user'
-                }, { merge: true });
-            } catch (profileErr) {
-                console.warn('Could not update volunteer enrollment in Firestore', profileErr);
-            }
-        }
-
-        const localUser = users.find(u => u.id === currentUser.id);
-        if (localUser) {
-            localUser.enrolledPrograms = Array.isArray(localUser.enrolledPrograms) ? localUser.enrolledPrograms : [];
-            if (!localUser.enrolledPrograms.includes(id)) {
-                localUser.enrolledPrograms.push(id);
-            }
-            saveUsers();
-        }
-
         // Update local programDocs
         if (program) {
-            program.joined = updatedJoined;
+            program.pendingJoins = programs[programIndex].pendingJoins;
         }
         renderPrograms(programDocs);
-        logActivityEvent('volunteer_join', `User joined program: "${programName}"`, { programId: id });
+        logActivityEvent('join_request', `User requested to join program: "${programName}"`, { programId: id });
+        alert('Join request submitted. Wait for admin approval.');
     } catch (err) {
         console.error("Join failed:", err);
         console.error("Error code:", err.code);
         console.error("Error message:", err.message);
-        logActivityEvent('error', `Failed to join program - ${err.message}`, { error: true });
-        alert("Could not join program. Please try again.");
+        logActivityEvent('error', `Failed to request join - ${err.message}`, { error: true });
+        alert("Could not request to join. Please try again.");
     }
 };
 
@@ -1112,14 +1096,37 @@ window.submitProgram = async () => {
     }
 };
 
+function mapAdminProgramsToHomepagePrograms(adminPrograms) {
+    if (!Array.isArray(adminPrograms)) return [];
+    return adminPrograms.map(p => ({
+        id: p.id,
+        title: p.name || p.title || '',
+        hours: String(p.hours ?? ''),
+        requirement: p.requirement || 'None',
+        desc: p.desc || p.description || '',
+        image: (p.attachments && p.attachments[0] && p.attachments[0].dataUrl) ? p.attachments[0].dataUrl : defaultImage,
+        joined: p.joined || [],
+        skills: p.skills || [],
+        _source: 'program'
+    }));
+}
+
 function listenPrograms() {
     if (!useFirestorePrograms) {
-        // Offline mode: try to sync from admin programs first, then load local
-        syncProgramsFromProgramsIfNeeded();
+        // Offline / localhost mode: always treat admin programs ("itanimPrograms") as canonical.
+        // This guarantees admin Program Management <-> Home Available Programs stay connected.
+        let adminPrograms = [];
+        try {
+            adminPrograms = JSON.parse(localStorage.getItem(localProgramsKey) || '[]');
+        } catch {
+            adminPrograms = [];
+        }
+
+        const next = adminPrograms.length > 0 ? mapAdminProgramsToHomepagePrograms(adminPrograms) : loadLocalPrograms();
         programDocs.length = 0;
-        const loaded = loadLocalPrograms();
-        console.log("listenPrograms (offline mode): loaded", loaded.length, "programs");
-        programDocs.push(...loaded);
+        programDocs.push(...next);
+        saveLocalPrograms();
+        console.log("listenPrograms (offline mode): loaded", programDocs.length, "programs");
         renderPrograms(programDocs);
         return;
     }
@@ -1166,6 +1173,32 @@ function listenPrograms() {
         }
     }
 }
+
+function refreshProgramsFromSharedStorage() {
+    if (useFirestorePrograms) return;
+    try {
+        const adminPrograms = JSON.parse(localStorage.getItem(localProgramsKey) || '[]');
+        const next = Array.isArray(adminPrograms) && adminPrograms.length > 0
+            ? mapAdminProgramsToHomepagePrograms(adminPrograms)
+            : loadLocalPrograms();
+        programDocs.length = 0;
+        programDocs.push(...next);
+        saveLocalPrograms();
+        renderPrograms(programDocs);
+    } catch {
+        // ignore parse/render failures
+    }
+}
+
+window.forceSyncData = () => {
+    try {
+        users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+    } catch {
+        users = [];
+    }
+    refreshProgramsFromSharedStorage();
+    alert('Manual sync complete.');
+};
 
 window.debugAuthState = () => {
     console.log("=== AUTH DEBUG ===");
@@ -1290,6 +1323,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 preview.src = '';
             }
         });
+    }
+});
+
+// Cross-tab/page live sync for localhost mode.
+window.addEventListener('storage', (event) => {
+    if (useFirestorePrograms) return;
+    if (event.key === localProgramsKey || event.key === localStorageKey) {
+        refreshProgramsFromSharedStorage();
+    }
+    if (event.key === 'itanimUsers') {
+        try {
+            users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        } catch {
+            users = [];
+        }
+        renderPrograms(programDocs);
     }
 });
 

@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion, addDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -10,6 +10,7 @@ const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("Y
 const adminStateDoc = doc(db, 'admin', 'state');
 let hasResolvedAuth = false;
 let realtimeInitialized = false;
+const ACTIVE_TAB_KEY = 'growsauyouAdminActiveTab';
 
 const ROLE_CACHE_KEY = 'growsauyouRoleCache';
 
@@ -65,7 +66,6 @@ function renderAdminShell() {
     loadRestrictionsUI();
     updateSkills();
     updateTasks();
-    updateValidation();
     updateBadges();
     updateCertifications();
     updateNotifications();
@@ -80,6 +80,17 @@ let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"m
 let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze":10,"silver":25,"gold":50,"platinum":100}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
 const programsKey = "itanimPrograms";
+
+function refreshLocalAdminCache() {
+    try {
+        const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        const localPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+        if (Array.isArray(localUsers)) users = localUsers;
+        if (Array.isArray(localPrograms)) programs = localPrograms;
+    } catch {
+        // ignore parse issues, keep current in-memory values
+    }
+}
 
 
 // Save functions
@@ -181,21 +192,33 @@ async function initFirestoreAdminState() {
             restrictions = data.restrictions || restrictions;
             badgeThresholds = data.badgeThresholds || badgeThresholds;
             notifications = Array.isArray(data.notifications) ? data.notifications : notifications;
-            programs = Array.isArray(data.programs) ? data.programs.map(program => ({
+
+            // Merge Firestore programs with local cache so newly added local programs
+            // are not lost when changing tabs or when snapshots arrive late.
+            let localPrograms = [];
+            try {
+                localPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+            } catch {
+                localPrograms = [];
+            }
+            const firestorePrograms = Array.isArray(data.programs) ? data.programs : [];
+            const mergedProgramsById = new Map();
+            firestorePrograms.forEach((p) => mergedProgramsById.set(p.id, p));
+            localPrograms.forEach((p) => mergedProgramsById.set(p.id, p));
+            programs = Array.from(mergedProgramsById.values()).map(program => ({
                 ...program,
                 name: program.name || program.title || 'Untitled Program',
                 assigned: Array.isArray(program.assigned) ? program.assigned : Array.isArray(program.joined) ? program.joined : [],
                 joined: Array.isArray(program.joined) ? program.joined : Array.isArray(program.assigned) ? program.assigned : [],
                 maxVolunteers: program.maxVolunteers ?? 0,
                 status: program.status || 'active'
-            })) : programs;
+            }));
             updateDashboard();
             updateAnalytics();
             updateVolunteers();
             loadRestrictionsUI();
             updateSkills();
             updatePrograms();
-            updateValidation();
             updateBadges();
             updateCertifications();
             updateNotifications();
@@ -328,7 +351,30 @@ function showTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
     document.getElementById(tabName).classList.add('active');
+    try {
+        localStorage.setItem(ACTIVE_TAB_KEY, tabName);
+    } catch {
+        // ignore storage errors
+    }
     updateTab(tabName);
+}
+
+function getCurrentActiveTab() {
+    const active = document.querySelector('.tab-content.active');
+    return active ? active.id : 'dashboard';
+}
+
+function restoreActiveTab() {
+    let tab = 'dashboard';
+    try {
+        tab = localStorage.getItem(ACTIVE_TAB_KEY) || 'dashboard';
+    } catch {
+        tab = 'dashboard';
+    }
+    if (!document.getElementById(tab)) {
+        tab = 'dashboard';
+    }
+    showTab(tab);
 }
 
 // Update tab content
@@ -340,7 +386,6 @@ function updateTab(tabName) {
         case 'restrictions': updateRestrictions(); break;
         case 'skills': updateSkills(); break;
         case 'programs': updatePrograms(); break;
-        case 'validation': updateValidation(); break;
         case 'badges': updateBadges(); break;
         case 'certifications': updateCertifications(); break;
         case 'notifications': updateNotifications(); break;
@@ -408,12 +453,19 @@ function updateAnalytics() {
 
 // Volunteers
 function updateVolunteers() {
+    // Keep volunteers/programs in sync with latest Program Management changes.
+    refreshLocalAdminCache();
+
     const list = document.getElementById('volunteerList');
+    const statusFilter = document.getElementById('volunteerStatusFilter')?.value || 'approved';
+    const filteredUsers = statusFilter === 'all'
+        ? users
+        : users.filter((u) => normalizeStatus(u.status) === statusFilter);
     list.innerHTML = `
         <div class="volunteer-section">
             <div class="volunteer-card">
-                <strong>All Volunteers</strong>
-                ${users.map(u => `
+                <strong>${statusFilter === 'pending' ? 'Pending Volunteers' : `Volunteers (${statusFilter})`}</strong>
+                ${filteredUsers.map(u => `
                     <div class="volunteer-item">
                         <div>
                             <strong>${u.name}</strong><br>
@@ -437,9 +489,13 @@ function updateVolunteers() {
 
     updateVolunteerProgramFilter();
     updateVolunteerProgramParticipants();
+    updateAttendanceProgramOptions();
 }
 
 function updateVolunteerProgramFilter() {
+    // Always pull latest program list from local cache source.
+    refreshLocalAdminCache();
+
     const filter = document.getElementById('volunteerProgramFilter');
     if (!filter) return;
     filter.innerHTML = programs.map(program => `
@@ -450,25 +506,86 @@ function updateVolunteerProgramFilter() {
     }
 }
 
-function getParticipantsForProgram(programId) {
-    return users.filter(user => Array.isArray(user.enrolledPrograms) && user.enrolledPrograms.includes(programId));
+function updateAttendanceProgramOptions() {
+    const select = document.getElementById('attendanceProgramSelect');
+    if (!select) return;
+    select.innerHTML = programs.map((program) => `
+        <option value="${program.id}">${program.name || program.title || 'Untitled Program'}</option>
+    `).join('');
+    if (!select.value && programs.length > 0) {
+        select.value = programs[0].id;
+    }
+    updateAttendanceVolunteerOptions();
+}
+
+function updateAttendanceVolunteerOptions() {
+    const programSelect = document.getElementById('attendanceProgramSelect');
+    const volunteerSelect = document.getElementById('attendanceVolunteerSelect');
+    if (!programSelect || !volunteerSelect) return;
+    const programId = programSelect.value;
+    const official = getOfficialParticipantsForProgram(programId);
+    volunteerSelect.innerHTML = official.map((u) => `
+        <option value="${u.id}">${u.name} (${u.email || 'no email'})</option>
+    `).join('');
+}
+
+function getOfficialParticipantsForProgram(programId) {
+    // Officially joined means: program.joined contains userId AND volunteer is approved
+    const program = programs.find(p => p.id === programId) || {};
+    const joined = Array.isArray(program.joined) ? program.joined : [];
+    return users.filter((u) =>
+        normalizeStatus(u.status) === 'approved' &&
+        joined.includes(u.id)
+    );
+}
+
+function getPendingParticipantsForProgram(programId) {
+    const program = programs.find(p => p.id === programId) || {};
+    const pending = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
+    return users.filter((u) =>
+        normalizeStatus(u.status) === 'approved' &&
+        pending.includes(u.id)
+    );
+}
+
+function isFinishedForProgram(user, programId) {
+    return Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId);
 }
 
 function updateVolunteerProgramParticipants() {
+    refreshLocalAdminCache();
+
     const filter = document.getElementById('volunteerProgramFilter');
+    const joinStatusFilter = 'all';
     const participantContainer = document.getElementById('programParticipantList');
     if (!filter || !participantContainer) return;
 
     const programId = filter.value;
     const program = programs.find(p => p.id === programId) || {};
-    const participants = getParticipantsForProgram(programId);
+    const official = getOfficialParticipantsForProgram(programId);
+    const pending = getPendingParticipantsForProgram(programId);
+
+    const finishedOfficial = official.filter((u) => isFinishedForProgram(u, programId));
+    const notFinishedOfficial = official.filter((u) => !isFinishedForProgram(u, programId));
+
+    let shown = official;
+    if (joinStatusFilter === 'pending') shown = pending;
+    if (joinStatusFilter === 'finished') shown = finishedOfficial;
+    if (joinStatusFilter === 'not_finished') shown = notFinishedOfficial;
+    if (joinStatusFilter === 'all') shown = [...official, ...pending];
 
     participantContainer.innerHTML = `
         <div style="padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.08); margin-bottom: 18px;">
             <strong>Participants for:</strong> ${program.name || program.title || 'Selected Program'}<br>
-            <small>${participants.length} participant(s) enrolled</small>
+            <small>
+                Official: ${official.length} • Pending: ${pending.length} • Finished: ${finishedOfficial.length}
+            </small>
         </div>
-        ${participants.length > 0 ? participants.map(user => `
+        ${shown.length > 0 ? shown.map(user => {
+            const inPending = Array.isArray(program.pendingJoins) && program.pendingJoins.includes(user.id);
+            const inOfficial = Array.isArray(program.joined) && program.joined.includes(user.id);
+            const finished = isFinishedForProgram(user, programId);
+            return `
             <div class="volunteer-item">
                 <div>
                     <strong>${user.name}</strong><br>
@@ -477,15 +594,124 @@ function updateVolunteerProgramParticipants() {
                     Completed Programs: ${Array.isArray(user.completedPrograms) ? user.completedPrograms.join(', ') : 'None'}
                 </div>
                 <div>
-                    ${Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId) ? `
+                    ${inPending ? `
+                        <button class="approve-btn" onclick="approveJoinRequest('${programId}','${user.id}')">Approve join</button>
+                        <button class="reject-btn" onclick="rejectJoinRequest('${programId}','${user.id}')">Reject</button>
+                    ` : finished ? `
                         <span style="display:inline-block;padding:8px 12px;border-radius:12px;background:#5cb85c;color:#fff;">Finished</span>
-                    ` : `
+                    ` : inOfficial ? `
                         <button class="approve-btn" onclick="markVolunteerCompleted('${programId}','${user.id}')">Mark finished</button>
+                    ` : `
+                        <span style="display:inline-block;padding:8px 12px;border-radius:12px;background:#6c757d;color:#fff;">Not official</span>
                     `}
                 </div>
             </div>
-        `).join('') : '<div>No participants have joined this program yet.</div>'}
+        `;
+        }).join('') : '<div>No participants in this view yet.</div>'}
     `;
+}
+
+function onVolunteerProgramFilterChange() {
+    updateVolunteerProgramParticipants();
+    updateAttendanceProgramOptions();
+}
+
+function onVolunteerStatusFilterChange() {
+    updateVolunteers();
+    updateVolunteerProgramParticipants();
+}
+
+window.forceSyncData = () => {
+    const activeTab = getCurrentActiveTab();
+    try {
+        users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+    } catch {
+        users = [];
+        programs = [];
+    }
+    updateDashboard();
+    updateAnalytics();
+    updatePrograms();
+    updateVolunteers();
+    updateVolunteerProgramFilter();
+    updateVolunteerProgramParticipants();
+    updateAttendanceProgramOptions();
+    showTab(activeTab);
+    alert('Manual sync complete.');
+};
+
+async function approveJoinRequest(programId, userId) {
+    const program = programs.find(p => p.id === programId);
+    const user = users.find(u => u.id === userId);
+    if (!program || !user) {
+        alert('Program or user not found.');
+        return;
+    }
+    if (normalizeStatus(user.status) !== 'approved') {
+        alert('User must be approved before joining programs.');
+        return;
+    }
+
+    program.pendingJoins = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
+    program.joined = Array.isArray(program.joined) ? program.joined : [];
+
+    program.pendingJoins = program.pendingJoins.filter((id) => id !== userId);
+    if (!program.joined.includes(userId)) {
+        program.joined.push(userId);
+    }
+
+    user.enrolledPrograms = Array.isArray(user.enrolledPrograms) ? user.enrolledPrograms : [];
+    if (!user.enrolledPrograms.includes(programId)) {
+        user.enrolledPrograms.push(programId);
+    }
+
+    savePrograms();
+    saveUsers();
+
+    if (useFirestore) {
+        try {
+            await setDoc(doc(db, 'programs_empty', programId), {
+                joined: program.joined,
+                pendingJoins: program.pendingJoins
+            }, { merge: true });
+            await setDoc(doc(db, 'volunteers', userId), {
+                enrolledPrograms: arrayUnion(programId)
+            }, { merge: true });
+        } catch (err) {
+            console.warn('Could not sync join approval to Firestore', err);
+        }
+    }
+
+    updateVolunteerProgramParticipants();
+    alert(`${user.name} is now officially joined to ${program.name || program.title}.`);
+}
+
+async function rejectJoinRequest(programId, userId) {
+    const program = programs.find(p => p.id === programId);
+    const user = users.find(u => u.id === userId);
+    if (!program || !user) {
+        alert('Program or user not found.');
+        return;
+    }
+
+    program.pendingJoins = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
+    program.pendingJoins = program.pendingJoins.filter((id) => id !== userId);
+
+    savePrograms();
+
+    if (useFirestore) {
+        try {
+            await setDoc(doc(db, 'programs_empty', programId), {
+                pendingJoins: program.pendingJoins
+            }, { merge: true });
+        } catch (err) {
+            console.warn('Could not sync join rejection to Firestore', err);
+        }
+    }
+
+    updateVolunteerProgramParticipants();
+    alert(`Join request removed for ${user.name}.`);
 }
 
 async function markVolunteerCompleted(programId, userId) {
@@ -493,6 +719,11 @@ async function markVolunteerCompleted(programId, userId) {
     const user = users.find(u => u.id === userId);
     if (!program || !user) {
         alert('Program or user not found.');
+        return;
+    }
+    program.joined = Array.isArray(program.joined) ? program.joined : [];
+    if (!program.joined.includes(userId)) {
+        alert('Only officially joined volunteers can be marked finished.');
         return;
     }
     user.enrolledPrograms = Array.isArray(user.enrolledPrograms) ? user.enrolledPrograms : [];
@@ -526,6 +757,85 @@ async function markVolunteerCompleted(programId, userId) {
 }
 
 window.markVolunteerCompleted = markVolunteerCompleted;
+window.approveJoinRequest = approveJoinRequest;
+window.rejectJoinRequest = rejectJoinRequest;
+window.updateAttendanceVolunteerOptions = updateAttendanceVolunteerOptions;
+window.onVolunteerProgramFilterChange = onVolunteerProgramFilterChange;
+window.onVolunteerStatusFilterChange = onVolunteerStatusFilterChange;
+
+async function markVolunteerAbsent(programId, userId) {
+    const program = programs.find(p => p.id === programId);
+    const user = users.find(u => u.id === userId);
+    if (!program || !user) {
+        alert('Program or user not found.');
+        return;
+    }
+
+    program.joined = Array.isArray(program.joined) ? program.joined : [];
+    if (!program.joined.includes(userId)) {
+        alert('Only officially joined volunteers can be marked absent.');
+        return;
+    }
+
+    program.joined = program.joined.filter((id) => id !== userId);
+    program.absent = Array.isArray(program.absent) ? program.absent : [];
+    if (!program.absent.includes(userId)) {
+        program.absent.push(userId);
+    }
+
+    user.enrolledPrograms = Array.isArray(user.enrolledPrograms) ? user.enrolledPrograms : [];
+    user.enrolledPrograms = user.enrolledPrograms.filter((id) => id !== programId);
+    user.absentPrograms = Array.isArray(user.absentPrograms) ? user.absentPrograms : [];
+    if (!user.absentPrograms.includes(programId)) {
+        user.absentPrograms.push(programId);
+    }
+
+    savePrograms();
+    saveUsers();
+
+    if (useFirestore) {
+        try {
+            await setDoc(doc(db, 'programs_empty', programId), {
+                joined: program.joined,
+                absent: program.absent
+            }, { merge: true });
+            await setDoc(doc(db, 'volunteers', userId), {
+                enrolledPrograms: arrayRemove(programId),
+                absentPrograms: arrayUnion(programId)
+            }, { merge: true });
+        } catch (err) {
+            console.warn('Could not sync absent update to Firestore', err);
+        }
+    }
+
+    updateVolunteerProgramParticipants();
+    updateAttendanceVolunteerOptions();
+    alert(`${user.name} was marked absent for ${program.name || program.title}.`);
+}
+
+async function markVolunteerFinishedFromSelection() {
+    const programId = document.getElementById('attendanceProgramSelect')?.value;
+    const userId = document.getElementById('attendanceVolunteerSelect')?.value;
+    if (!programId || !userId) {
+        alert('Please select a program and volunteer.');
+        return;
+    }
+    await markVolunteerCompleted(programId, userId);
+    updateAttendanceVolunteerOptions();
+}
+
+async function markVolunteerAbsentFromSelection() {
+    const programId = document.getElementById('attendanceProgramSelect')?.value;
+    const userId = document.getElementById('attendanceVolunteerSelect')?.value;
+    if (!programId || !userId) {
+        alert('Please select a program and volunteer.');
+        return;
+    }
+    await markVolunteerAbsent(programId, userId);
+}
+
+window.markVolunteerFinishedFromSelection = markVolunteerFinishedFromSelection;
+window.markVolunteerAbsentFromSelection = markVolunteerAbsentFromSelection;
 
 function hasCompletedProgram(user, programId) {
     return Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId);
@@ -617,15 +927,8 @@ function editSkill(skill) {
 
 // Programs
 function updatePrograms() {
-    // Always pull latest programs from localStorage when not using Firestore,
-    // so changes from the home page "Add Program" sync through immediately.
-    if (!useFirestore) {
-        try {
-            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
-        } catch {
-            programs = [];
-        }
-    }
+    // Always pull latest programs from local cache source.
+    refreshLocalAdminCache();
 
     const list = document.getElementById('programList');
     list.innerHTML = programs.map(p => {
@@ -698,12 +1001,16 @@ async function saveProgram() {
     const desc = document.getElementById('programDesc').value.trim();
     const hours = parseInt(document.getElementById('programHours').value);
     const requirement = document.getElementById('programRequirement').value || 'None';
-    const maxVol = parseInt(document.getElementById('programMaxVolunteers').value);
+    let maxVol = parseInt(document.getElementById('programMaxVolunteers').value);
+    if (Number.isNaN(maxVol) || maxVol <= 0) {
+        // Allow saving without explicitly filling max volunteers (common on localhost demos)
+        maxVol = 10;
+    }
 
     console.log("Form values:", { name, desc, hours, requirement, maxVol });
 
-    if (!name || !desc || !hours || !maxVol) {
-        alert('Please fill all required fields');
+    if (!name || !desc || Number.isNaN(hours) || hours <= 0) {
+        alert('Please fill all required fields (name, description, hours).');
         return;
     }
 
@@ -1103,12 +1410,14 @@ async function loadAdminSession() {
         if (isAdminEmail(user.email)) {
             cacheRole(user.uid, 'admin');
             renderAdminShell();
+            restoreActiveTab();
             revealApp();
         }
 
         const cachedRole = getCachedRole(user.uid);
         if (cachedRole === 'admin') {
             renderAdminShell();
+            restoreActiveTab();
             revealApp();
         }
 
@@ -1134,6 +1443,7 @@ async function loadAdminSession() {
         }
 
         renderAdminShell();
+        restoreActiveTab();
         revealApp();
 
         // Attachment preview behavior
@@ -1319,6 +1629,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     loadAdminSession();
+});
+
+// Keep Admin UI in sync when another page updates localStorage
+// (e.g., index add program, user join request) in localhost mode.
+window.addEventListener('storage', (event) => {
+    if (useFirestore) return;
+    if (event.key === 'itanimPrograms' || event.key === 'itanimUsers') {
+        try {
+            programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+            users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        } catch {
+            programs = [];
+            users = [];
+        }
+        updateDashboard();
+        updateAnalytics();
+        updatePrograms();
+        updateVolunteers();
+        updateVolunteerProgramFilter();
+        updateVolunteerProgramParticipants();
+        updateAttendanceProgramOptions();
+    }
 });
 
 window.saveRestrictionsFromUI = saveRestrictionsFromUI;
