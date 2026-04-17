@@ -7,8 +7,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
-const isLocalHostEnv = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const useFirestorePrograms = useFirestore && !isLocalHostEnv;
 const adminStateDoc = doc(db, 'admin', 'state');
 const programsCollection = collection(db, 'programs_empty');
 let currentUserId = null;
@@ -306,18 +304,6 @@ async function initFirestoreUserState() {
 }
 
 async function listenFirestorePrograms() {
-    if (!useFirestorePrograms) {
-        // Local mode: load from localStorage
-        try {
-            const localPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]').map(normalizeProgram);
-            programs = localPrograms;
-        } catch {
-            programs = [];
-        }
-        loadUserDashboard();
-        return;
-    }
-
     try {
         onSnapshot(programsCollection, (snapshot) => {
             programs = [];
@@ -354,7 +340,7 @@ function loadUserDashboard() {
     // appear quickly in user dashboard, even while Firestore listeners settle.
     try {
         const localPrograms = JSON.parse(localStorage.getItem('itanimPrograms') || '[]').map(normalizeProgram);
-        if (!useFirestorePrograms) {
+        if (!useFirestore) {
             programs = localPrograms;
         } else if (localPrograms.length > 0) {
             const byId = new Map();
@@ -673,29 +659,7 @@ async function joinProgram(programId) {
     if (useFirestore) {
         try {
             const programRef = doc(db, 'programs_empty', programId);
-            await setDoc(programRef, { pendingJoins: arrayUnion(currentUser.id) }, { merge: true });
-            
-            // Also update admin/state to sync pendingJoins
-            try {
-                const adminStateRef = doc(db, 'admin', 'state');
-                const adminSnap = await getDoc(adminStateRef);
-                if (adminSnap.exists()) {
-                    const adminData = adminSnap.data();
-                    const adminPrograms = Array.isArray(adminData.programs) ? adminData.programs : [];
-                    const programIndex = adminPrograms.findIndex(p => p.id === programId);
-                    if (programIndex !== -1) {
-                        const pending = Array.isArray(adminPrograms[programIndex].pendingJoins) ? adminPrograms[programIndex].pendingJoins : [];
-                        if (!pending.includes(currentUser.id)) {
-                            pending.push(currentUser.id);
-                            adminPrograms[programIndex].pendingJoins = pending;
-                            await updateDoc(adminStateRef, { programs: adminPrograms });
-                        }
-                    }
-                }
-            } catch (adminErr) {
-                console.warn('Could not sync join request to admin state', adminErr);
-                // Continue anyway
-            }
+            await updateDoc(programRef, { pendingJoins: arrayUnion(currentUser.id) });
             
             logUserActivity('join_request', `User requested to join program: "${programName}"`, { programId, userName: currentUser.name });
             loadUserDashboard();
