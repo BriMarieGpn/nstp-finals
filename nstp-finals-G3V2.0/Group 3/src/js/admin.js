@@ -7,6 +7,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+const isLocalHostEnv = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 const adminStateDoc = doc(db, 'admin', 'state');
 let hasResolvedAuth = false;
 let realtimeInitialized = false;
@@ -178,7 +179,7 @@ async function initFirestoreAdminState() {
     }
 
     try {
-        onSnapshot(adminStateDoc, (snapshot) => {
+        onSnapshot(adminStateDoc, async (snapshot) => {
             if (!snapshot.exists()) {
                 console.warn('Firestore admin state document not found. Local data will be used.');
                 return;
@@ -192,6 +193,66 @@ async function initFirestoreAdminState() {
             restrictions = data.restrictions || restrictions;
             badgeThresholds = data.badgeThresholds || badgeThresholds;
             notifications = Array.isArray(data.notifications) ? data.notifications : notifications;
+
+            // Also load users from volunteers collection or localStorage and merge
+            try {
+                let volunteerUsers = [];
+                if (isLocalHostEnv) {
+                    // Load from localStorage
+                    const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+                    volunteerUsers = localUsers.map(u => ({
+                        id: u.id,
+                        firstName: u.firstName || '',
+                        lastName: u.lastName || '',
+                        email: u.email || '',
+                        age: u.age || 0,
+                        address: u.address || '',
+                        skillCategory: u.skillCategory || '',
+                        otherSkills: u.otherSkills || '',
+                        status: u.status || 'pending',
+                        volunteerID: u.volunteerID || '',
+                        role: u.role || 'user',
+                        createdAt: u.createdAt || '',
+                        hours: u.hours || 0,
+                        enrolledPrograms: Array.isArray(u.enrolledPrograms) ? u.enrolledPrograms : [],
+                        completedPrograms: Array.isArray(u.completedPrograms) ? u.completedPrograms : [],
+                        badges: Array.isArray(u.badges) ? u.badges : [],
+                        certifications: Array.isArray(u.certifications) ? u.certifications : []
+                    }));
+                } else {
+                    // Load from Firestore
+                    const volunteersSnap = await getDocs(collection(db, 'volunteers'));
+                    volunteersSnap.forEach((doc) => {
+                        const vData = doc.data();
+                        volunteerUsers.push({
+                            id: doc.id,
+                            firstName: vData.firstName || '',
+                            lastName: vData.lastName || '',
+                            email: vData.email || '',
+                            age: vData.age || 0,
+                            address: vData.address || '',
+                            skillCategory: vData.skillCategory || '',
+                            otherSkills: vData.otherSkills || '',
+                            status: vData.status || 'pending',
+                            volunteerID: vData.volunteerID || '',
+                            role: vData.role || 'user',
+                            createdAt: vData.createdAt || '',
+                            hours: vData.hours || 0,
+                            enrolledPrograms: Array.isArray(vData.enrolledPrograms) ? vData.enrolledPrograms : [],
+                            completedPrograms: Array.isArray(vData.completedPrograms) ? vData.completedPrograms : [],
+                            badges: Array.isArray(vData.badges) ? vData.badges : [],
+                            certifications: Array.isArray(vData.certifications) ? vData.certifications : []
+                        });
+                    });
+                }
+                // Merge with admin/state users, preferring admin/state data if exists
+                const userMap = new Map();
+                volunteerUsers.forEach(u => userMap.set(u.id, u));
+                users.forEach(u => userMap.set(u.id, { ...userMap.get(u.id), ...u })); // admin/state overrides
+                users = Array.from(userMap.values());
+            } catch (volErr) {
+                console.warn('Could not load volunteers', volErr);
+            }
 
             // Merge Firestore programs with local cache so newly added local programs
             // are not lost when changing tabs or when snapshots arrive late.
@@ -1401,72 +1462,104 @@ async function logoutAdmin() {
 }
 
 async function loadAdminSession() {
+    console.log('loadAdminSession called');
     onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            redirectOnce('login.html');
-            return;
-        }
-
-        if (isAdminEmail(user.email)) {
-            cacheRole(user.uid, 'admin');
-            renderAdminShell();
-            restoreActiveTab();
-            revealApp();
-        }
-
-        const cachedRole = getCachedRole(user.uid);
-        if (cachedRole === 'admin') {
-            renderAdminShell();
-            restoreActiveTab();
-            revealApp();
-        }
-
+        console.log('onAuthStateChanged fired with user:', user?.email);
         try {
-            let userDoc = await getDoc(doc(db, 'volunteers', user.uid));
-            if (!userDoc.exists()) {
-                const fallbackQuery = query(collection(db, 'volunteers'), where('email', '==', user.email));
-                const fallbackSnap = await getDocs(fallbackQuery);
-                if (!fallbackSnap.empty) {
-                    userDoc = fallbackSnap.docs[0];
-                }
-            }
-            const role = userDoc.exists() ? normalizeRole(userDoc.data().role) : 'user';
-            if (role !== 'admin' && !isAdminEmail(user.email)) {
-                redirectOnce('user.html');
+            if (!user) {
+                console.log('No user, redirecting to login');
+                redirectOnce('login.html');
                 return;
             }
-            cacheRole(user.uid, role === 'admin' ? role : 'admin');
-        } catch (err) {
-            console.warn('Could not verify admin role', err);
-            redirectOnce('login.html');
-            return;
-        }
 
-        renderAdminShell();
-        restoreActiveTab();
-        revealApp();
-
-        // Attachment preview behavior
-        const attachmentInput = document.getElementById('taskAttachments');
-        if (attachmentInput) {
-            attachmentInput.addEventListener('change', async () => {
+            console.log('Checking if admin email:', isAdminEmail(user.email));
+            if (isAdminEmail(user.email)) {
+                console.log('Is admin email, caching role');
+                cacheRole(user.uid, 'admin');
                 try {
-                    const atts = await getAttachmentsFromInput();
-                    renderTaskAttachmentPreview(atts);
+                    console.log('Rendering admin shell');
+                    renderAdminShell();
+                    restoreActiveTab();
                 } catch (err) {
-                    console.warn(err);
-                    renderTaskAttachmentPreview([]);
+                    console.warn('Error rendering admin shell:', err);
                 }
-            });
-        }
+                console.log('Revealing app');
+                revealApp();
+                console.log('Admin loaded successfully');
+                return;
+            }
 
-        // Ensure programs mirror is present on load
-        if (!realtimeInitialized) {
-            realtimeInitialized = true;
-            syncProgramsFromTasks();
-            initFirestoreAdminState();
+            const cachedRole = getCachedRole(user.uid);
+            if (cachedRole === 'admin') {
+                try {
+                    renderAdminShell();
+                    restoreActiveTab();
+                } catch (err) {
+                    console.warn('Error rendering admin shell:', err);
+                }
+                revealApp();
+                return;
+            }
+
+            // Only verify role from Firestore if not already confirmed by email check
+            if (!isAdminEmail(user.email) || useFirestore) {
+                try {
+                    let userDoc = await getDoc(doc(db, 'volunteers', user.uid));
+                    if (!userDoc.exists()) {
+                        const fallbackQuery = query(collection(db, 'volunteers'), where('email', '==', user.email));
+                        const fallbackSnap = await getDocs(fallbackQuery);
+                        if (!fallbackSnap.empty) {
+                            userDoc = fallbackSnap.docs[0];
+                        }
+                    }
+                    const role = userDoc.exists() ? normalizeRole(userDoc.data().role) : 'user';
+                    if (role !== 'admin' && !isAdminEmail(user.email)) {
+                        redirectOnce('user.html');
+                        return;
+                    }
+                    cacheRole(user.uid, role === 'admin' ? role : 'admin');
+                } catch (err) {
+                    console.warn('Could not verify admin role', err);
+                    if (useFirestore) {
+                        redirectOnce('login.html');
+                        return;
+                    }
+                }
+            }
+
+            try {
+                renderAdminShell();
+                restoreActiveTab();
+            } catch (err) {
+                console.warn('Error rendering admin shell:', err);
+            }
+            revealApp();
+
+            // Attachment preview behavior
+            const attachmentInput = document.getElementById('taskAttachments');
+            if (attachmentInput) {
+                attachmentInput.addEventListener('change', async () => {
+                    try {
+                        const atts = await getAttachmentsFromInput();
+                        renderTaskAttachmentPreview(atts);
+                    } catch (err) {
+                        console.warn(err);
+                        renderTaskAttachmentPreview([]);
+                    }
+                });
+            }
+
+            // Ensure programs mirror is present on load
+            if (!realtimeInitialized) {
+                realtimeInitialized = true;
+                syncProgramsFromTasks();
+                initFirestoreAdminState();
+            }
+            hasResolvedAuth = true;
+        } catch (err) {
+            console.error('Auth callback error:', err);
+            revealApp();
         }
-        hasResolvedAuth = true;
     });
 }
 
@@ -1627,9 +1720,18 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+console.log('Admin.js module loaded, document.readyState:', document.readyState);
+if (document.readyState === 'loading') {
+    console.log('DOM still loading, waiting for DOMContentLoaded');
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('DOMContentLoaded fired, calling loadAdminSession');
+        loadAdminSession();
+    });
+} else {
+    // DOM is already loaded (module loaded after DOMContentLoaded)
+    console.log('DOM already loaded, calling loadAdminSession immediately');
     loadAdminSession();
-});
+}
 
 // Keep Admin UI in sync when another page updates localStorage
 // (e.g., index add program, user join request) in localhost mode.

@@ -207,19 +207,24 @@ async function loadCurrentUserFromAuth(user) {
         revealApp();
     }
 
-    try {
-        const userDoc = await getDoc(doc(db, "volunteers", user.uid));
-        if (userDoc.exists()) {
-            const data = userDoc.data();
-            currentUser = {
-                id: user.uid,
-                role: data.role || "user"
-            };
-        } else {
+    // Only query Firestore if configured
+    if (useFirestore) {
+        try {
+            const userDoc = await getDoc(doc(db, "volunteers", user.uid));
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                currentUser = {
+                    id: user.uid,
+                    role: data.role || "user"
+                };
+            } else {
+                currentUser = { id: user.uid, role: "user" };
+            }
+        } catch (err) {
+            console.warn("Could not read user profile from Firestore", err);
             currentUser = { id: user.uid, role: "user" };
         }
-    } catch (err) {
-        console.warn("Could not read user profile from Firestore", err);
+    } else {
         currentUser = { id: user.uid, role: "user" };
     }
 
@@ -427,7 +432,7 @@ detailModal.addEventListener("click", (e) => {
 });
 
 function loadLocalPrograms() {
-    const saved = localStorage.getItem(localStorageKey);
+    const saved = localStorage.getItem(localProgramsKey);
     console.debug("loadLocalPrograms: saved data =", saved ? `${saved.length} bytes` : 'null');
     if (saved) {
         try {
@@ -444,7 +449,7 @@ function loadLocalPrograms() {
 
 function saveLocalPrograms() {
     try {
-        localStorage.setItem(localStorageKey, JSON.stringify(programDocs));
+        localStorage.setItem(localProgramsKey, JSON.stringify(programDocs));
         console.debug("saveLocalPrograms: saved", programDocs.length, "programs");
     } catch (err) {
         console.warn("saveLocalPrograms failed (likely storage quota).", err);
@@ -825,6 +830,15 @@ window.joinProgram = async (id, joined) => {
         
         await updateDoc(doc(db, "admin", "state"), { programs });
         console.log("Join successful");
+        
+        // Also update programs_empty to sync pendingJoins
+        try {
+            const programRef = doc(db, 'programs_empty', id);
+            await setDoc(programRef, { pendingJoins: programs[programIndex].pendingJoins }, { merge: true });
+        } catch (syncErr) {
+            console.warn('Could not sync join request to programs_empty', syncErr);
+            // Continue anyway
+        }
         
         // Update local programDocs
         if (program) {
@@ -1339,7 +1353,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Cross-tab/page live sync for localhost mode.
 window.addEventListener('storage', (event) => {
     if (useFirestorePrograms) return;
-    if (event.key === localProgramsKey || event.key === localStorageKey) {
+    if (event.key === localProgramsKey) {
         refreshProgramsFromSharedStorage();
     }
     if (event.key === 'itanimUsers') {

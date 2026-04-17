@@ -189,6 +189,8 @@ const LOCAL_DEBUG_ACCOUNTS = {
     'user@test.local': 'test123'
 };
 
+const isLocalHostEnv = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
 function normalizeRole(role) {
     return String(role || 'user').toLowerCase().trim();
 }
@@ -224,6 +226,16 @@ async function signInLocalDebugAccount(email, password) {
 }
 
 async function getVolunteerProfileByUidOrEmail(uid, email) {
+    if (isLocalHostEnv) {
+        // For local testing, get from localStorage
+        const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        const user = localUsers.find(u => u.id === uid || u.email === email);
+        if (user) {
+            return { exists: () => true, data: () => user };
+        }
+        return null;
+    }
+    // Online mode: use Firestore
     if (uid) {
         const userDoc = await getDoc(doc(db, 'volunteers', uid));
         if (userDoc.exists()) {
@@ -246,6 +258,27 @@ async function getVolunteerProfileByUidOrEmail(uid, email) {
 }
 
 async function ensureVolunteerProfile(user) {
+    if (isLocalHostEnv) {
+        // For local testing, store in localStorage
+        const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        const existing = localUsers.find(u => u.email === user.email);
+        if (!existing) {
+            const newUser = {
+                id: user.uid,
+                email: user.email,
+                role: isAdminEmail(user.email) ? 'admin' : 'user',
+                status: 'approved',
+                createdAt: new Date().toISOString(),
+                hours: 0,
+                enrolledPrograms: [],
+                completedPrograms: []
+            };
+            localUsers.push(newUser);
+            localStorage.setItem('itanimUsers', JSON.stringify(localUsers));
+        }
+        return;
+    }
+    // Online mode: use Firestore
     const existing = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
     if (existing) {
         return;
