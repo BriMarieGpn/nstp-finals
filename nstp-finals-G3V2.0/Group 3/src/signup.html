@@ -1,242 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrowsauYOU | Register</title>
-<link rel="stylesheet" href="css/style.css">
-<header class="topbar">
-  <div class="brand">
-    <span class="brandName">GrowsauYOU</span>
-  </div>
-  <div class="topbar-right">
-    <span class="hotline">Volunteer Hotline: 0919 096 6996</span>
-  </div>
-</header>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrowsauYOU | Register</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="pageRegister">
-  <div class="app-shell">
-    
+<body class="page-register">
 
-    <main class="pageShell">
-      <div class="formPage">
-        <a class="backLink" href="index.html">
-          <span class="arrow">&#8592;</span>
-          <span class="miniBrand">GrowsauYOU</span>
-        </a>
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand-name">
+      <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+      <span class="brand-logo-text">GrowSauYOU</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span class="hotline">BRGY SAUYO HOTLINE: 0919 096 6996</span>
+      
+    </div>
+  </header>
 
-        <div class="pageTitle">
-          <h2>Volunteer Registration</h2>
-          <p>Create your account and start volunteering with our barangay programs.</p>
+  <!-- Page shell -->
+  <main class="form-shell">
+
+    <!-- Decorative leaf bg -->
+    <div class="leaf-bg" aria-hidden="true">
+      <svg class="lb-left" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+        <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+      </svg>
+      <svg class="lb-right" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+        <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- Back link: ← GrowSauYOU (shared — visible for both form and success views) -->
+    <a class="back-link" href="index.html">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="#546B41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="back-logo-icon" aria-hidden="true">
+      <span class="back-wordmark">GrowSauYOU</span>
+    </a>
+
+    <!-- Registration form -->
+    <div id="formView">
+      <h1 class="form-title">Volunteer Registration</h1>
+      <p class="form-subtitle">Sign up to help our community thrive.</p>
+
+      <div class="form-card">
+        <div class="field-row two-col">
+          <input type="text"  id="fullName"  placeholder="Full name" required>
+          <input type="number" id="age"      placeholder="Age" min="1" max="120" required>
         </div>
 
-        <form class="softPanel formPanel" onsubmit="return false;">
-          <div class="fieldRow split21">
-            <input type="text" id="fname" placeholder="First Name">
-            <input type="text" id="lname" placeholder="Last Name">
-          </div>
+        <div class="field-row">
+          <input type="text" id="address" placeholder="Address" required>
+        </div>
 
-          <div class="fieldRow">
-            <input type="text" id="age" placeholder="Age">
-          </div>
+        <div class="field-row two-col-equal">
+          <input type="email" id="email"  placeholder="Gmail" required>
+          <input type="tel"   id="phone"  placeholder="Cellphone Number" required>
+        </div>
 
-          <div class="fieldRow">
-            <input type="text" id="address" placeholder="Address">
-          </div>
+        <div class="field-row">
+          <select id="skillCategory" required>
+            <option value="" selected disabled>Select Skill Category</option>
+            <option value="Planting &amp; Seedling Skills">Planting &amp; Seedling Skills</option>
+            <option value="Composting &amp; Waste Management">Composting &amp; Waste Management</option>
+            <option value="Watering &amp; Irrigation Management">Watering &amp; Irrigation Management</option>
+            <option value="Community Outreach">Community Outreach</option>
+            <option value="Construction Support">Construction Support</option>
+          </select>
+        </div>
 
-          <div class="fieldRow split11">
-            <input type="email" id="email" placeholder="Email Address">
-            <input type="password" id="pass" placeholder="Password">
-          </div>
+        <div class="field-row">
+          <textarea id="otherSkills" rows="4" placeholder="Other Specific Skills"></textarea>
+        </div>
 
-          <div class="fieldRow selectWrap">
-            <select id="skillCategory">
-              <option selected disabled>Select Skill Category</option>
-              <option>Urban Gardening</option>
-              <option>Community Outreach</option>
-              <option>Waste Management</option>
-              <option>Construction Support</option>
-            </select>
-          </div>
+        <div class="field-row reg-submit-row">
+          <button type="button" class="submit-btn reg-submit-btn" id="reg-btn">REGISTER NOW</button>
+        </div>
 
-          <div class="fieldRow">
-            <textarea id="otherSkills" rows="4" placeholder="Other Specific Skills"></textarea>
-          </div>
-
-          <div class="fieldRow submitRow">
-            <button type="button" class="wideBtn" id="reg-btn">CREATE ACCOUNT</button>
-          </div>
-        </form>
+        <p id="formError" class="form-error" style="display:none;"></p>
       </div>
-    </main>
-  </div>
+    </div>
+
+    <!-- Success view (hidden until registration completes) -->
+    <div id="successView" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:700px;" class="success-shell">
+
+      <h1 class="form-title">Registration Successful</h1>
+      <p class="form-subtitle">Thank you for volunteering.</p>
+
+      <div class="success-card">
+        <p class="pending-msg">
+          Your application is currently <strong>pending</strong> and is under review.
+          You will be notified once approved.
+        </p>
+        <a href="login.html" class="submit-btn" style="display:block;text-align:center;text-decoration:none;margin-bottom:12px;">Check Dashboard</a>
+        <a href="index.html" class="submit-btn ghost-btn" style="display:block;text-align:center;text-decoration:none;">Return to Home</a>
+      </div>
+    </div>
+
+  </main>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    fetchSignInMethodsForEmail
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import firebaseConfig from "./js/firebaseConfig.js";
 
-import {
-    getFirestore,
-    doc,
-    setDoc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
 
-import firebaseConfig from "./js/firebaseConfig.js";
+    const btn         = document.getElementById('reg-btn');
+    const errEl       = document.getElementById('formError');
+    const formView    = document.getElementById('formView');
+    const successView = document.getElementById('successView');
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    function showError(msg) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+    function clearError() {
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+    }
 
-async function validateRegistrationRestrictions(age, address) {
-    try {
-        const adminState = await getDoc(doc(db, 'admin', 'state'));
-        if (!adminState.exists()) return { ok: true };
-        const restrictions = adminState.data()?.restrictions || {};
-        const minAge = Number(restrictions.minAge || 0);
-        const validBarangaysRaw = String(restrictions.validBarangays || 'All').trim();
-        const validBarangays = validBarangaysRaw.toLowerCase() === 'all'
-            ? []
-            : validBarangaysRaw.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
-        const ageNumber = Number(age);
-        if (minAge > 0 && ageNumber < minAge) {
-            return { ok: false, message: `Registration is restricted to age ${minAge} and above.` };
+    btn.addEventListener('click', async () => {
+      clearError();
+
+      const fullName      = document.getElementById('fullName').value.trim();
+      const age           = document.getElementById('age').value.trim();
+      const address       = document.getElementById('address').value.trim();
+      const email         = document.getElementById('email').value.trim();
+      const phone         = document.getElementById('phone').value.trim();
+      const skillCategory = document.getElementById('skillCategory').value;
+      const otherSkills   = document.getElementById('otherSkills').value.trim();
+
+      if (!fullName || !age || !address || !email || !phone || !skillCategory) {
+        showError('Please fill in all required fields.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('Please enter a valid email address.');
+        return;
+      }
+      if (Number(age) < 18) {
+        showError('You must be at least 18 years old to register.');
+        return;
+      }
+      if (Number(age) > 120) {
+        showError('Please enter a valid age.');
+        return;
+      }
+      // Philippine cellphone format: 11 digits, starts with 09
+      if (!/^09\d{9}$/.test(phone.replace(/\s/g, ''))) {
+        showError('Cellphone number must be 11 digits and start with 09 (e.g. 09171234567).');
+        return;
+      }
+      // Check restrictions from admin state (localStorage)
+      try {
+        const restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge":18,"validBarangays":"All"}');
+        const minAge = Number(restrictions.minAge) || 18;
+        if (Number(age) < minAge) {
+          showError(`Minimum age requirement is ${minAge} years old.`);
+          return;
         }
-        if (validBarangays.length > 0) {
-            const addressLower = String(address || '').toLowerCase();
-            const matchesAnyBarangay = validBarangays.some((barangay) => addressLower.includes(barangay));
-            if (!matchesAnyBarangay) {
-                return { ok: false, message: `Address is outside allowed barangays: ${validBarangays.join(', ')}` };
-            }
-        }
-        return { ok: true };
-    } catch (err) {
-        console.warn('Could not validate restrictions, allowing registration fallback', err);
-        return { ok: true };
-    }
-}
-
-document.getElementById("reg-btn").onclick = async () => {
-    const email = document.getElementById("email").value.trim();
-    const pass = document.getElementById("pass").value;
-    const fname = document.getElementById("fname").value.trim();
-    const lname = document.getElementById("lname").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const age = document.getElementById("age").value.trim();
-    const skillCategory = document.getElementById("skillCategory").value;
-    const otherSkills = document.getElementById("otherSkills").value.trim();
-
-    if (!fname || !lname || !email || !pass || !address || !age || !skillCategory) {
-        alert("Please complete all required fields before registering.");
-        return;
-    }
-
-    if (pass.length < 6) {
-        alert("Password must be at least 6 characters.");
-        return;
-    }
-
-    const restrictionCheck = await validateRegistrationRestrictions(age, address);
-    if (!restrictionCheck.ok) {
-        alert(restrictionCheck.message);
-        return;
-    }
-
-    try {
-        const existingMethods = await fetchSignInMethodsForEmail(auth, email);
-        if (existingMethods && existingMethods.length > 0) {
-            if (existingMethods.includes('password')) {
-                alert('An account already exists with this email. Please log in or reset your password.');
-            } else if (existingMethods.includes('google.com')) {
-                alert('This email is already registered with Google sign-in. Please use Google login.');
-            } else {
-                alert('An account already exists with this email. Please use the existing sign-in method.');
-            }
+        const validBarangays = String(restrictions.validBarangays || 'All').trim();
+        if (validBarangays !== 'All' && validBarangays !== '') {
+          const allowed = validBarangays.split(',').map(b => b.trim().toLowerCase());
+          const addrLower = address.toLowerCase();
+          const matchesBarangay = allowed.some(b => addrLower.includes(b));
+          if (!matchesBarangay) {
+            showError(`Registration is currently limited to: ${validBarangays}. Your address does not appear to match.`);
             return;
+          }
         }
+      } catch(e) { /* ignore restriction check errors */ }
+      // Duplicate phone check in localStorage
+      try {
+        const existingUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        if (existingUsers.some(u => u.phone && u.phone.replace(/\s/g,'') === phone.replace(/\s/g,''))) {
+          showError('A volunteer with this cellphone number already exists.');
+          return;
+        }
+      } catch(e) { /* ignore */ }
 
-        const res = await createUserWithEmailAndPassword(auth, email, pass);
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
 
-        await setDoc(doc(db, "volunteers", res.user.uid), {
-            firstName: fname,
-            lastName: lname,
-            email: email,
-            age: age,
-            address: address,
-            skillCategory: skillCategory,
-            otherSkills: otherSkills,
-            status: "pending",
-            role: "user",
-            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
-            createdAt: new Date().toISOString(),
-            hours: 0,
-            enrolledPrograms: [],
-            completedPrograms: []
+      // Generate a temporary password from phone + age so the user can log in
+      // after admin approval. They can reset it later.
+      const tempPassword = `Grow${phone.replace(/\D/g,'')}${age}!`;
+
+      try {
+        // 1. Create Firebase Auth account
+        const cred = await createUserWithEmailAndPassword(auth, email, tempPassword);
+        const uid  = cred.user.uid;
+
+        // 2. Save volunteer profile to Firestore under volunteers/{uid}
+        await setDoc(doc(db, 'volunteers', uid), {
+          fullName,
+          name: fullName,
+          age: Number(age),
+          address,
+          email: email.toLowerCase(),
+          phone,
+          skillCategory,
+          otherSkills,
+          status: 'pending',
+          role: 'user',
+          volunteerID: 'GRW-' + uid.substring(0, 5).toUpperCase(),
+          hours: 0,
+          enrolledPrograms: [],
+          completedPrograms: [],
+          badges: [],
+          certifications: [],
+          skills: [skillCategory],
+          createdAt: serverTimestamp()
         });
 
-        // Also save to localStorage for local fallback
-        const userData = {
-            id: res.user.uid,
-            firstName: fname,
-            lastName: lname,
-            email: email,
-            age: age,
-            address: address,
-            skillCategory: skillCategory,
-            otherSkills: otherSkills,
-            status: "pending",
-            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
-            role: "user",
-            createdAt: new Date().toISOString(),
+        // 3. Also cache locally for offline/localhost fallback
+        try {
+          const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+          localUsers.push({
+            id: uid,
+            fullName,
+            name: fullName,
+            age: Number(age),
+            address,
+            email: email.toLowerCase(),
+            phone,
+            skillCategory,
+            otherSkills,
+            status: 'pending',
+            role: 'user',
+            volunteerID: 'GRW-' + uid.substring(0, 5).toUpperCase(),
             hours: 0,
             enrolledPrograms: [],
-            completedPrograms: []
-        };
-        let users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-        users.push(userData);
-        localStorage.setItem('itanimUsers', JSON.stringify(users));
+            completedPrograms: [],
+            badges: [],
+            skills: [skillCategory],
+            createdAt: new Date().toISOString()
+          });
+          localStorage.setItem('itanimUsers', JSON.stringify(localUsers));
+        } catch (_) { /* ignore cache errors */ }
 
-        logSignupEvent('user_signup', email, fname + ' ' + lname);
-        window.location.href = "user.html";
+        formView.style.display = 'none';
+        successView.style.display = 'flex';
 
-    } catch (e) {
-        logSignupEvent('signup_failed', email, { error: e.message, code: e.code });
-        if (e.code === 'auth/email-already-in-use') {
-            alert('That email is already registered. Please use the login page or reset your password.');
-        } else if (e.code === 'auth/invalid-email') {
-            alert('The email address is invalid. Please enter a valid email.');
+      } catch (err) {
+        console.error(err);
+        if (err.code === 'auth/email-already-in-use') {
+          showError('An account with this email already exists. Please log in instead.');
+        } else if (err.code === 'auth/invalid-email') {
+          showError('Please enter a valid email address.');
         } else {
-            alert(`Signup failed: ${e.message}`);
+          showError('Registration failed. Please try again.');
         }
-    }
-};
-
-function logSignupEvent(actionType, email, nameOrError = {}) {
-    try {
-        const logEntry = {
-            id: `log-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            actionType,
-            actionDetail: actionType === 'signup_failed' ? `Signup failed: ${nameOrError.error || 'Unknown error'}` : `New volunteer registered: ${typeof nameOrError === 'string' ? nameOrError : ''} (${email})`,
-            userId: 'new_user',
-            userEmail: email,
-            metadata: typeof nameOrError === 'object' ? nameOrError : { name: nameOrError }
-        };
-
-        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
-        logs.unshift(logEntry);
-        if (logs.length > 10000) logs.pop();
-        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
-
-        console.log(`[SIGNUP] ${actionType}: ${email}`);
-    } catch (err) {
-        console.warn('Could not log signup event', err);
-    }
-}
-</script>
+        btn.disabled = false;
+        btn.textContent = 'REGISTER NOW';
+      }
+    });
+  </script>
 </body>
 </html>

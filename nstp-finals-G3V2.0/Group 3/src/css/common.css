@@ -1,170 +1,224 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap');
+
 :root {
-    /* Palette (no gradients) */
-    --p-900: #546B41; /* dark olive */
-    --p-600: #99AD7A; /* sage */
-    --p-300: #DCCCAC; /* sand */
-    --p-50: #FFF8EC;  /* cream */
+  --primary:   #546B41;
+  --secondary: #99AD7A;
+  --sand:      #DCCCAC;
+  --cream:     #FFF8EC;
+  --text:      #546B41;
+  --text-muted: color-mix(in srgb, #546B41 65%, #FFF8EC);
+  --border:    color-mix(in srgb, #546B41 22%, transparent);
+  --bg:        #FFF8EC;
+  --surface:   #DCCCAC;
 
-    /* Semantic tokens */
-    --bg: var(--p-50);
-    --surface: var(--p-300);
-    --surface-2: color-mix(in srgb, var(--p-50) 70%, var(--p-300));
-    --text: var(--p-900);
-    --text-muted: color-mix(in srgb, var(--p-900) 72%, var(--p-50));
-    --primary: var(--p-900);
-    --primary-soft: var(--p-600);
-    --border: color-mix(in srgb, var(--p-900) 22%, transparent);
-
-    /* Existing names used around the UI */
-    --olive: var(--p-900);
-    --olive-dark: var(--p-900);
-    --glass: color-mix(in srgb, var(--p-50) 18%, transparent);
+  /* legacy aliases kept for index.js / user.js / admin.js */
+  --p-900: #546B41;
+  --p-600: #99AD7A;
+  --p-300: #DCCCAC;
+  --p-50:  #FFF8EC;
+  --olive: #546B41;
+  --olive-dark: #546B41;
+  --glass: color-mix(in srgb, #FFF8EC 18%, transparent);
+  --surface-2: color-mix(in srgb, #FFF8EC 70%, #DCCCAC);
 }
+
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: "Poppins", sans-serif;
-    background: var(--bg);
-    overflow-x: hidden;
-    color: var(--text);
+  margin: 0;
+  padding: 0;
+  font-family: 'Montserrat', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
 }
 
+/* ── Brand logo image (system-wide) ── */
+.brand-logo-img {
+  height: 36px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.nav-logo__text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.brand-logo-text {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.05rem;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+/* Smaller variant for secondary navbars */
+.brand-logo-img--sm {
+  height: 28px;
+}
+
+/* Hero logo image (large, centered) */
+.hero-logo-img {
+  height: clamp(80px, 14vw, 140px);
+  width: auto;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+
+/* ── Topbar (used on signup / login) ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: var(--sand);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .brand-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.15rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.topbar .hotline {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.topbar .social-icons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.topbar .social-icons a {
+  color: var(--primary);
+  font-size: 1.2rem;
+  text-decoration: none;
+  line-height: 1;
+}
+
+/* ── Shared navbar (index.html) ── */
 .navbar {
-    position: sticky;
-    top: 0;
-    z-index: 9999;
-    background: color-mix(in srgb, var(--p-50) 92%, transparent);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
 }
 
 .nav-inner {
-    max-width: 1100px;
-    margin: auto;
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  max-width: 1100px;
+  margin: auto;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
-    color: var(--text);
-    font-size: 20px;
-    font-weight: 800;
+  font-family: 'Archivo Black', sans-serif;
+  color: var(--primary);
+  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .nav-links a {
-    color: var(--text);
-    margin-left: 18px;
-    text-decoration: none;
-    opacity: 0.85;
-    font-weight: 600;
+  color: var(--primary);
+  margin-left: 18px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
-/* Hard override to prevent page-specific styles from making links white on light nav */
-.navbar .nav-links a,
-.navbar .logo {
-    color: var(--text) !important;
-}
-
-.nav-links a:hover {
-    opacity: 1;
-}
+.nav-links a:hover { opacity: 0.75; }
 
 .container {
-    max-width: 1100px;
-    margin: auto;
-    padding: 0 20px 40px 20px;
+  max-width: 1100px;
+  margin: auto;
+  padding: 0 20px 40px;
 }
 
+/* ── Buttons ── */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface-2);
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 700;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 28px;
+  border-radius: 999px;
+  border: 2px solid var(--primary);
+  background: var(--primary);
+  color: var(--cream);
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
 }
 
-.btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 14px 30px color-mix(in srgb, var(--p-900) 14%, transparent);
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+.btn.ghost {
+  background: transparent;
+  color: var(--primary);
 }
 
-.debug-panel {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.debug-panel strong {
-    font-size: 13px;
-    opacity: 0.9;
-}
-
-.debug-panel button {
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: none;
-    cursor: pointer;
-    background: color-mix(in srgb, var(--p-900) 18%, transparent);
-    color: var(--p-50);
-}
-
+/* ── Stat cards (used in index.html) ── */
 .stat-card {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    backdrop-filter: blur(10px);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  backdrop-filter: blur(10px);
 }
 
-.stat-card h3 {
-    margin: 0 0 10px 0;
-    font-size: 16px;
-    opacity: 0.9;
-}
-
-.stat-value {
-    font-size: 32px;
-    font-weight: bold;
-    color: var(--primary);
-    margin: 10px 0;
-}
-
-.stat-card p {
-    margin: 0;
-    font-size: 14px;
-    opacity: 0.7;
-}
+.stat-card h3 { margin: 0 0 10px; font-size: 16px; opacity: 0.9; }
+.stat-value { font-size: 32px; font-weight: bold; color: var(--primary); margin: 10px 0; }
+.stat-card p { margin: 0; font-size: 14px; opacity: 0.7; }
 
 .task-item, .cert-item {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    padding: 15px;
-    margin: 10px 0;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.task-item div, .cert-item div {
-    flex: 1;
+/* ══════════════════════════════════════════
+   RESPONSIVE — common (all pages)
+   ══════════════════════════════════════════ */
+
+/* Topbar: stack on very small screens */
+@media (max-width: 540px) {
+  .topbar {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .topbar .hotline { font-size: 0.75rem; }
+  .brand-logo-img  { height: 28px; }
+  .brand-logo-text { font-size: 0.9rem; }
 }
 
-.task-item button, .cert-item button {
-    margin-left: 10px;
-    padding: 5px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+/* Shared navbar inner */
+@media (max-width: 540px) {
+  .nav-inner { padding: 12px 16px; }
+  .nav-links a { margin-left: 10px; font-size: 0.82rem; }
 }

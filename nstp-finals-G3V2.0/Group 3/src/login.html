@@ -1,458 +1,267 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrowsauYOU | Login</title>
-<link rel="stylesheet" href="css/style.css">
-<header class="topbar">
-  <div class="brand">
-    <span class="brandName">GrowsauYOU</span>
-  </div>
-  <div class="topbar-right">
-    <span class="hotline">Volunteer Hotline: 0919 096 6996</span>
-  </div>
-</header>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrowsauYOU | Log In</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="pageLogin auth-pending">
+<body class="page-login auth-pending">
+
   <style>
-    .app-shell {
-      opacity: 1;
-      transition: opacity 220ms ease;
-    }
-    body.auth-pending .app-shell {
-      opacity: 0;
-      pointer-events: none;
-    }
+    .app-shell { opacity: 1; transition: opacity 220ms ease; }
+    body.auth-pending .app-shell { opacity: 0; pointer-events: none; }
     #authLoadingGate {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fff8ec;
-      color: #546b41;
-      z-index: 9999;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      opacity: 1;
-      visibility: visible;
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff8ec; color: #546b41; z-index: 9999;
+      font-weight: 700; letter-spacing: 0.2px;
+      opacity: 1; visibility: visible;
       transition: opacity 220ms ease, visibility 220ms ease;
     }
-    body:not(.auth-pending) #authLoadingGate {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
+    body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
   </style>
-  <div id="authLoadingGate">Checking session...</div>
+
+  <div id="authLoadingGate">Checking session…</div>
+
   <div class="app-shell">
-    
+    <!-- Topbar -->
+    <header class="topbar">
+      <a href="index.html" class="brand-name">
+        <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+        <span class="brand-logo-text">GrowSauYOU</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span class="hotline">BRGY SAUYO HOTLINE: 0919 096 6996</span>
+        
+      </div>
+    </header>
 
-    <main class="pageShell">
-      <div class="formPage loginLayout">
-        <a class="backLink" href="index.html">
-          <span class="arrow">&#8592;</span>
-          <span class="miniBrand">GrowsauYOU</span>
-        </a>
+    <main class="form-shell">
+      <a href="index.html" class="back-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="#546B41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="back-logo-icon" aria-hidden="true">
+        <span class="back-wordmark">GrowSauYOU</span>
+      </a>
 
-        <div class="pageTitle compact">
-          <h2>Log In</h2>
-          <p>Sign in and continue your community service journey.</p>
+      <!-- Already signed-in banner -->
+      <div id="authStatusBanner" style="display:none;" class="form-card" role="status">
+        <p id="authStatusMessage" style="margin:0 0 16px;"></p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button id="continueDashboardBtn" class="submit-btn" style="flex:1;min-width:120px;">Go to Dashboard</button>
+          <button id="signOutBtn" class="submit-btn ghost-btn" style="flex:1;min-width:120px;">Sign Out</button>
         </div>
+      </div>
 
-        <div id="authStatusBanner" class="auth-status-banner" style="display:none; padding:16px; margin-bottom:16px; background: rgba(255, 248, 236, 0.12); border: 1px solid rgba(255,248,236,0.25); border-radius: 16px; color: #FFF8EC;">
-          <p id="authStatusMessage" style="margin: 0 0 12px 0;"></p>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button id="continueDashboardBtn" class="btn" style="flex:1; min-width:120px;">Go to Dashboard</button>
-            <button id="signOutBtn" class="btn ghostBtn" style="flex:1; min-width:120px;">Sign Out</button>
-          </div>
-        </div>
+      <!-- Login form -->
+      <div id="loginFormWrap">
+        <h1 class="form-title">Log In</h1>
+        <p class="form-subtitle">Get notified and stay updated.</p>
 
-        <form id="loginForm" class="softPanel formPanel loginPanel" onsubmit="return false;">
-          <div class="fieldRow">
-            <input type="email" id="email" placeholder="Email Address">
+        <div class="form-card" id="loginForm">
+          <div class="field-row">
+            <input type="email" id="email" placeholder="Email Address" required>
           </div>
-          <div class="fieldRow">
-            <input type="password" id="password" placeholder="Password">
-          </div>
-          <div class="fieldRow">
-            <label class="checkboxLabel"><input type="checkbox" id="remember"> Remember me</label>
+          <div class="field-row">
+            <input type="password" id="password" placeholder="Password" required>
           </div>
 
-          <div class="fieldRow submitRow">
-            <button type="button" class="wideBtn" id="login-btn">LOG IN</button>
+          <div class="field-row">
+            <button type="button" class="submit-btn" id="login-btn">LOG IN</button>
           </div>
 
           <div class="divider">OR</div>
 
-          <button type="button" class="btn-google" id="google-btn">
+          <button type="button" class="google-btn" id="google-btn">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="Google icon">
             Sign in with Google
           </button>
+        </div>
 
-          <div id="localTestPanel" class="softPanel" style="display:none; margin-top:18px; background:rgba(84,107,65,0.07); border:1px solid rgba(84,107,65,0.16); border-radius:16px; padding:14px;">
-            <h4 style="margin:0 0 8px; font-size:15px; color:#2f4f25;">Local Test Accounts</h4>
-            <p style="margin:0 0 12px; font-size:13px; color:#3f5134;">Use these for Live Server debugging on localhost.</p>
-            <div style="display:grid; gap:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-                <div><strong>Admin:</strong> admin@test.local</div>
-                <button id="fillAdminTest" type="button" class="btn ghostBtn">Use Admin</button>
-              </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-                <div><strong>User:</strong> user@test.local</div>
-                <button id="fillUserTest" type="button" class="btn ghostBtn">Use User</button>
-              </div>
-              <div style="font-size:12px; color:#5f6f44;">Password for both accounts: <strong>test123</strong></div>
-            </div>
-          </div>
-        </form>
+        <!-- Email-not-found error state -->
+        <div id="notFoundCard" class="form-card error-card" style="display:none;">
+          <h2 class="error-title">Email not found</h2>
+          <p class="error-msg">You have not registered yet. Click to Register.</p>
+          <a href="signup.html" class="submit-btn" style="display:block;text-align:center;text-decoration:none;">REGISTER</a>
+        </div>
+
       </div>
     </main>
   </div>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import {
-    getAuth,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    GoogleAuthProvider,
-    signInWithPopup,
-    onAuthStateChanged,
-    signOut,
-    setPersistence,
-    browserLocalPersistence,
-    browserSessionPersistence
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      signOut,
+      setPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc,
+      collection, query, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import firebaseConfig from "./js/firebaseConfig.js";
 
-import {
-    getFirestore,
-    doc,
-    getDoc,
-    setDoc,
-    collection,
-    query,
-    where,
-    getDocs
-} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    const app      = initializeApp(firebaseConfig);
+    const auth     = getAuth(app);
+    const db       = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-import firebaseConfig from "./js/firebaseConfig.js";
+    const authStatusBanner   = document.getElementById('authStatusBanner');
+    const authStatusMessage  = document.getElementById('authStatusMessage');
+    const continueDashboardBtn = document.getElementById('continueDashboardBtn');
+    const signOutBtn         = document.getElementById('signOutBtn');
+    const loginFormWrap      = document.getElementById('loginFormWrap');
+    const notFoundCard       = document.getElementById('notFoundCard');
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
-const authStatusBanner = document.getElementById('authStatusBanner');
-const authStatusMessage = document.getElementById('authStatusMessage');
-const continueDashboardBtn = document.getElementById('continueDashboardBtn');
-const signOutBtn = document.getElementById('signOutBtn');
-const loginForm = document.getElementById('loginForm');
-const localTestPanel = document.getElementById('localTestPanel');
-const fillAdminTest = document.getElementById('fillAdminTest');
-const fillUserTest = document.getElementById('fillUserTest');
-let hasResolvedAuth = false;
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const LOCAL_ACCOUNTS = { 'admin@test.local': 'test123', 'user@test.local': 'test123' };
 
-function showLoginForm() {
-    authStatusBanner.style.display = 'none';
-    loginForm.style.display = 'block';
-    document.body.classList.remove('auth-pending');
-}
+    function normalizeRole(r) { return String(r || 'user').toLowerCase().trim(); }
+    function isAdminEmail(e)  { return String(e || '').toLowerCase().includes('admin'); }
 
-function showLocalTestPanel() {
-    const isLocalOnly = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (!localTestPanel) return;
-    localTestPanel.style.display = isLocalOnly ? 'block' : 'none';
-    if (fillAdminTest) {
-        fillAdminTest.onclick = () => {
-            document.getElementById('email').value = 'admin@test.local';
-            document.getElementById('password').value = 'test123';
-        };
-    }
-    if (fillUserTest) {
-        fillUserTest.onclick = () => {
-            document.getElementById('email').value = 'user@test.local';
-            document.getElementById('password').value = 'test123';
-        };
-    }
-}
-
-showLocalTestPanel();
-
-function isAdminEmail(email) {
-    const val = String(email || '').toLowerCase();
-    return val.includes('admin');
-}
-
-const LOCAL_DEBUG_ACCOUNTS = {
-    'admin@test.local': 'test123',
-    'user@test.local': 'test123'
-};
-
-const isLocalHostEnv = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-
-function normalizeRole(role) {
-    return String(role || 'user').toLowerCase().trim();
-}
-
-function isLocalDebugAccount(email) {
-    if (!window || !(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        return false;
-    }
-    const normalized = String(email || '').trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(LOCAL_DEBUG_ACCOUNTS, normalized);
-}
-
-async function signInLocalDebugAccount(email, password) {
-    const normalized = String(email || '').trim().toLowerCase();
-    if (!isLocalDebugAccount(normalized)) {
-        throw new Error('Not a local test account');
-    }
-    const expectedPassword = LOCAL_DEBUG_ACCOUNTS[normalized];
-    if (password !== expectedPassword) {
-        const err = new Error('Incorrect local test password');
-        err.code = 'auth/wrong-password';
-        throw err;
-    }
-
-    try {
-        return await signInWithEmailAndPassword(auth, normalized, password);
-    } catch (e) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-            return await createUserWithEmailAndPassword(auth, normalized, password);
-        }
-        throw e;
-    }
-}
-
-async function getVolunteerProfileByUidOrEmail(uid, email) {
-    if (isLocalHostEnv) {
-        // For local testing, get from localStorage
-        const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-        const user = localUsers.find(u => u.id === uid || u.email === email);
-        if (user) {
-            return { exists: () => true, data: () => user };
-        }
+    async function getProfile(uid, email) {
+      if (isLocal) {
+        const users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        const u = users.find(x => x.id === uid || x.email === email);
+        if (u) return { exists: () => true, data: () => u };
         return null;
+      }
+      const d = await getDoc(doc(db, 'volunteers', uid));
+      if (d.exists()) return d;
+      if (!email) return null;
+      const q = query(collection(db, 'volunteers'), where('email', '==', email.toLowerCase()));
+      const snap = await getDocs(q);
+      return snap.empty ? null : snap.docs[0];
     }
-    // Online mode: use Firestore
-    if (uid) {
-        const userDoc = await getDoc(doc(db, 'volunteers', uid));
-        if (userDoc.exists()) {
-            return userDoc;
-        }
-    }
-    if (!email) {
-        return null;
-    }
-    const normalizedEmail = email.trim().toLowerCase();
-    let q = query(collection(db, 'volunteers'), where('email', '==', normalizedEmail));
-    let snap = await getDocs(q);
-    if (!snap.empty) {
-        return snap.docs[0];
-    }
-    // Fallback for records that might store mixed-case email values
-    q = query(collection(db, 'volunteers'), where('email', '==', email));
-    snap = await getDocs(q);
-    return snap.docs[0] || null;
-}
 
-async function ensureVolunteerProfile(user) {
-    if (isLocalHostEnv) {
-        // For local testing, store in localStorage
-        const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-        const existing = localUsers.find(u => u.email === user.email);
-        if (!existing) {
-            const newUser = {
-                id: user.uid,
-                email: user.email,
-                role: isAdminEmail(user.email) ? 'admin' : 'user',
-                status: 'approved',
-                createdAt: new Date().toISOString(),
-                hours: 0,
-                enrolledPrograms: [],
-                completedPrograms: []
-            };
-            localUsers.push(newUser);
-            localStorage.setItem('itanimUsers', JSON.stringify(localUsers));
-        }
-        return;
-    }
-    // Online mode: use Firestore
-    const existing = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
-    if (existing) {
-        return;
-    }
-    try {
-        await setDoc(doc(db, 'volunteers', user.uid), {
-            email: (user.email || '').trim().toLowerCase(),
+    async function ensureProfile(user) {
+      if (isLocal) {
+        const users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        if (!users.find(u => u.email === user.email)) {
+          users.push({
+            id: user.uid, email: user.email,
             role: isAdminEmail(user.email) ? 'admin' : 'user',
-            status: 'approved',
-            createdAt: new Date().toISOString(),
-            hours: 0,
-            enrolledPrograms: [],
-            completedPrograms: []
-        });
-    } catch (err) {
-        console.warn('Could not create volunteer profile for signed in user', err);
-    }
-}
-
-function getFriendlyAuthErrorMessage(code) {
-    switch (code) {
-        case 'auth/invalid-email':
-            return 'The email address is not valid. Please check and try again.';
-        case 'auth/user-not-found':
-            return 'No account was found with that email. Please sign up first or use the correct email.';
-        case 'auth/wrong-password':
-            return 'The password is incorrect. Please try again or reset your password.';
-        case 'auth/too-many-requests':
-            return 'Too many login attempts. Please wait a moment and try again.';
-        case 'permission-denied':
-            return 'Signed in, but your Firestore access was denied. Check Firestore rules/deployment for this project.';
-        default:
-            return 'Login failed: ' + (code || 'unknown error');
-    }
-}
-
-function showSignedInBanner(user, role) {
-    loginForm.style.display = 'none';
-    authStatusBanner.style.display = 'block';
-    authStatusMessage.textContent = `You are already signed in as ${user.email}. Redirected to your ${role === 'admin' ? 'admin' : 'user'} dashboard.`;
-    continueDashboardBtn.onclick = () => {
-        window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
-    };
-    signOutBtn.onclick = async () => {
-        try {
-            await signOut(auth);
-            window.location.href = 'login.html';
-        } catch (e) {
-            alert('Could not sign out. Please try again.');
+            status: 'approved', createdAt: new Date().toISOString(),
+            hours: 0, enrolledPrograms: [], completedPrograms: []
+          });
+          localStorage.setItem('itanimUsers', JSON.stringify(users));
         }
-    };
-    document.body.classList.remove('auth-pending');
-}
-
-async function redirectToDashboard(user) {
-    await ensureVolunteerProfile(user);
-    const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
-    const role = userDoc && userDoc.exists()
-        ? normalizeRole(userDoc.data().role || (isAdminEmail(user.email) ? 'admin' : 'user'))
-        : (isAdminEmail(user.email) ? 'admin' : 'user');
-    window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
-}
-
-onAuthStateChanged(auth, async (user) => {
-    if (hasResolvedAuth) return;
-    if (user) {
-        await ensureVolunteerProfile(user);
-        const userDoc = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
-        const role = userDoc && userDoc.exists()
-            ? normalizeRole(userDoc.data().role || (isAdminEmail(user.email) ? 'admin' : 'user'))
-            : (isAdminEmail(user.email) ? 'admin' : 'user');
-        showSignedInBanner(user, role);
-    } else {
-        showLoginForm();
-    }
-    hasResolvedAuth = true;
-});
-
-document.getElementById("login-btn").onclick = async () => {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-    const isRemembered = document.getElementById("remember")?.checked;
-
-    if (!email || !password) {
-        alert('Please enter both email and password.');
         return;
+      }
+      const existing = await getProfile(user.uid, user.email);
+      if (!existing) {
+        await setDoc(doc(db, 'volunteers', user.uid), {
+          email: (user.email || '').toLowerCase(),
+          role: isAdminEmail(user.email) ? 'admin' : 'user',
+          status: 'approved', createdAt: new Date().toISOString(),
+          hours: 0, enrolledPrograms: [], completedPrograms: []
+        });
+      }
     }
 
-    try {
-        await setPersistence(
-            auth,
-            isRemembered ? browserLocalPersistence : browserSessionPersistence
-        );
+    async function redirectToDashboard(user) {
+      await ensureProfile(user);
+      const profile = await getProfile(user.uid, user.email);
+      const role = profile && profile.exists()
+        ? normalizeRole(profile.data().role || (isAdminEmail(user.email) ? 'admin' : 'user'))
+        : (isAdminEmail(user.email) ? 'admin' : 'user');
+      window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
+    }
+
+    function showSignedInBanner(user, role) {
+      loginFormWrap.style.display = 'none';
+      authStatusBanner.style.display = 'block';
+      authStatusMessage.textContent = `You're already signed in as ${user.email}.`;
+      continueDashboardBtn.onclick = () => {
+        window.location.href = role === 'admin' ? 'admin.html' : 'user.html';
+      };
+      signOutBtn.onclick = async () => {
+        await signOut(auth);
+        window.location.reload();
+      };
+      document.body.classList.remove('auth-pending');
+    }
+
+    let resolved = false;
+    onAuthStateChanged(auth, async (user) => {
+      if (resolved) return;
+      resolved = true;
+      if (user) {
+        await ensureProfile(user);
+        const profile = await getProfile(user.uid, user.email);
+        const role = profile && profile.exists()
+          ? normalizeRole(profile.data().role || (isAdminEmail(user.email) ? 'admin' : 'user'))
+          : (isAdminEmail(user.email) ? 'admin' : 'user');
+        showSignedInBanner(user, role);
+      } else {
+        document.body.classList.remove('auth-pending');
+      }
+    });
+
+    function friendlyError(code) {
+      const map = {
+        'auth/invalid-email':      'The email address is not valid.',
+        'auth/user-not-found':     'No account found with that email.',
+        'auth/wrong-password':     'Incorrect password. Please try again.',
+        'auth/invalid-credential': 'Invalid credentials. Check your email and password.',
+        'auth/too-many-requests':  'Too many attempts. Please wait and try again.',
+      };
+      return map[code] || 'Login failed. Please try again.';
+    }
+
+    document.getElementById('login-btn').onclick = async () => {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      notFoundCard.style.display = 'none';
+
+      if (!email || !password) { alert('Please enter your email and password.'); return; }
+
+      try {
+        await setPersistence(auth, browserLocalPersistence);
 
         let result;
-        try {
-            if (isLocalDebugAccount(email)) {
-                result = await signInLocalDebugAccount(email, password);
-            } else {
-                result = await signInWithEmailAndPassword(
-                    auth,
-                    email,
-                    password
-                );
-            }
-        } catch (signInError) {
-            if (isLocalDebugAccount(email) && signInError.code === 'auth/invalid-credential') {
-                try {
-                    result = await createUserWithEmailAndPassword(auth, email, password);
-                } catch (createError) {
-                    throw createError;
-                }
-            } else {
-                throw signInError;
-            }
+        if (isLocal && LOCAL_ACCOUNTS[email.toLowerCase()]) {
+          try {
+            result = await signInWithEmailAndPassword(auth, email, password);
+          } catch (e) {
+            if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+              result = await createUserWithEmailAndPassword(auth, email, password);
+            } else throw e;
+          }
+        } else {
+          result = await signInWithEmailAndPassword(auth, email, password);
         }
 
-        try {
-            await redirectToDashboard(result.user);
-            logLoginEvent('email_login', email, { remembered: isRemembered });
-        } catch (dbError) {
-            logLoginEvent('login_failed', email, { error: dbError.message, code: dbError.code || 'unknown' });
-            alert(getFriendlyAuthErrorMessage(dbError.code));
+        await redirectToDashboard(result.user);
+      } catch (e) {
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+          document.getElementById('loginForm').style.display = 'none';
+          notFoundCard.style.display = 'block';
+        } else {
+          alert(friendlyError(e.code));
         }
-    } catch (e) {
-        if (e.code === 'auth/user-not-found') {
-            alert('No account was found for this email. Please sign up first.');
-            return;
-        }
+      }
+    };
 
-        logLoginEvent('login_failed', email, { error: e.message, code: e.code });
-        alert(getFriendlyAuthErrorMessage(e.code));
-    }
-};
-
-document.getElementById("google-btn").onclick = async () => {
-    try {
+    document.getElementById('google-btn').onclick = async () => {
+      try {
         const result = await signInWithPopup(auth, provider);
-        try {
-            await redirectToDashboard(result.user);
-            logLoginEvent('google_login', result.user.email, true);
-        } catch (dbError) {
-            logLoginEvent('login_failed', result.user.email || 'google', { error: dbError.message, code: dbError.code || 'unknown' });
-            alert(getFriendlyAuthErrorMessage(dbError.code));
-        }
-    } catch (e) {
-        logLoginEvent('login_failed', 'google', { error: e.message });
-        alert(getFriendlyAuthErrorMessage(e.code));
-    }
-};
-
-function logLoginEvent(actionType, email, metadata = {}) {
-    try {
-        const logEntry = {
-            id: `log-${Date.now()}`,
-            timestamp: new Date().toISOString(),
-            actionType,
-            actionDetail: actionType === 'login_failed' ? `Login attempt failed: ${metadata.error || 'Unknown error'}` : `User logged in via ${actionType === 'google_login' ? 'Google' : 'Email'} (${email})`,
-            userId: actionType === 'login_failed' ? 'anonymous' : email,
-            userEmail: email,
-            metadata: typeof metadata === 'object' ? metadata : { remembered: metadata }
-        };
-
-        let logs = JSON.parse(localStorage.getItem('itanimAdminLogs') || '[]');
-        logs.unshift(logEntry);
-        if (logs.length > 10000) logs.pop();
-        localStorage.setItem('itanimAdminLogs', JSON.stringify(logs));
-
-        console.log(`[LOGIN] ${actionType}: ${email}`);
-    } catch (err) {
-        console.warn('Could not log login event', err);
-    }
-}
-
-</script>
+        await redirectToDashboard(result.user);
+      } catch (e) {
+        alert(friendlyError(e.code));
+      }
+    };
+  </script>
 </body>
 </html>

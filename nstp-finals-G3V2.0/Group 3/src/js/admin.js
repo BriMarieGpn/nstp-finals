@@ -31,6 +31,11 @@ function isAdminEmail(email) {
 
 function revealApp() {
     document.body.classList.remove('auth-pending');
+    // Also directly hide the gate so CSS transitions can't block it
+    const gate = document.getElementById('authLoadingGate');
+    if (gate) { gate.style.opacity = '0'; gate.style.visibility = 'hidden'; gate.style.pointerEvents = 'none'; }
+    const content = document.getElementById('appContent');
+    if (content) { content.style.opacity = '1'; content.style.pointerEvents = ''; }
 }
 
 function redirectOnce(path) {
@@ -60,15 +65,15 @@ function getCachedRole(uid) {
 }
 
 function renderAdminShell() {
-    updateDashboard();
-    updateAnalytics();
-    updateVolunteers();
-    loadRestrictionsUI();
-    updateSkills();
-    updateTasks();
-    updateBadges();
-    updateCertifications();
-    updateNotifications();
+    const fns = [updateDashboard, updateAnalytics, updateVolunteers, loadRestrictionsUI,
+                 updateSkills, updateBadges, updateCertifications, updateNotifications];
+    fns.forEach(fn => { try { fn(); } catch(e) { console.warn('renderAdminShell:', fn.name, e); } });
+    // Init Firestore realtime listeners once
+    if (!realtimeInitialized) {
+        realtimeInitialized = true;
+        try { initFirestoreAdminState(); } catch(e) { console.warn('initFirestoreAdminState', e); }
+    }
+    try { initAdminAttachmentPreview(); } catch(e) {}
 }
 
 // Data structures
@@ -347,10 +352,24 @@ async function syncProgramsFromPrograms() {
 
 // Tab switching
 function showTab(tabName) {
+    // Support new sidebar layout (ad-tab-* IDs) as well as legacy tab-content
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.querySelector(`button[onclick="showTab('${tabName}')"]`).classList.add('active');
-    document.getElementById(tabName).classList.add('active');
+
+    // New sidebar layout
+    document.querySelectorAll('.ad-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ad-sidenav__item[data-tab]').forEach(a => {
+        a.classList.toggle('ad-sidenav__item--active', a.dataset.tab === tabName);
+    });
+    const newTab = document.getElementById('ad-tab-' + tabName);
+    if (newTab) newTab.classList.add('active');
+
+    // Legacy: safely add active to old tab-btn if it exists
+    const legacyBtn = document.querySelector(`button[onclick="showTab('${tabName}')"]`);
+    if (legacyBtn) legacyBtn.classList.add('active');
+    const legacyContent = document.getElementById(tabName);
+    if (legacyContent) legacyContent.classList.add('active');
+
     try {
         localStorage.setItem(ACTIVE_TAB_KEY, tabName);
     } catch {
@@ -360,8 +379,12 @@ function showTab(tabName) {
 }
 
 function getCurrentActiveTab() {
-    const active = document.querySelector('.tab-content.active');
-    return active ? active.id : 'dashboard';
+    const active = document.querySelector('.ad-tab.active') || document.querySelector('.tab-content.active');
+    if (active) {
+        // strip 'ad-tab-' prefix if present
+        return active.id.replace('ad-tab-', '');
+    }
+    return 'dashboard';
 }
 
 function restoreActiveTab() {
@@ -371,25 +394,27 @@ function restoreActiveTab() {
     } catch {
         tab = 'dashboard';
     }
-    if (!document.getElementById(tab)) {
-        tab = 'dashboard';
-    }
     showTab(tab);
 }
 
 // Update tab content
+// Update tab content
 function updateTab(tabName) {
-    switch(tabName) {
-        case 'dashboard': updateDashboard(); break;
-        case 'analytics': updateAnalytics(); break;
-        case 'volunteers': updateVolunteers(); break;
-        case 'restrictions': updateRestrictions(); break;
-        case 'skills': updateSkills(); break;
-        case 'programs': updatePrograms(); break;
-        case 'badges': updateBadges(); break;
-        case 'certifications': updateCertifications(); break;
-        case 'notifications': updateNotifications(); break;
-    }
+    try {
+        switch(tabName) {
+            case 'dashboard': updateDashboard(); break;
+            case 'analytics': updateAnalytics(); break;
+            case 'volunteers': updateVolunteers(); break;
+            case 'restrictions': updateRestrictions(); break;
+            case 'skills': updateSkills(); break;
+            case 'programs': updatePrograms(); break;
+            case 'badges': updateBadges(); break;
+            case 'certifications': updateCertifications(); break;
+            case 'notifications': updateNotifications(); break;
+            case 'taskvalidation': updateVolunteers(); break;
+            case 'settings': updateRestrictions(); updateSkills(); updateNotifications(); break;
+        }
+    } catch(e) { console.warn('updateTab error:', tabName, e); }
 }
 
 // Dashboard
@@ -407,6 +432,11 @@ function updateDashboard() {
     document.getElementById('rejectedUsers').textContent = rejectedUsers;
     document.getElementById('activePrograms').textContent = activePrograms;
     document.getElementById('completedPrograms').textContent = completedPrograms;
+
+    // Populate dashboard task overview tables
+    if (typeof window.refreshAdminDashboard === 'function') {
+        window.refreshAdminDashboard(programs);
+    }
 }
 
 // Analytics
@@ -449,6 +479,11 @@ function updateAnalytics() {
         return !Number.isNaN(createdDate.getTime()) && createdDate >= monthStart;
     }).length;
     document.getElementById('volunteerGrowth').textContent = `Growth over time: +${newThisMonth} this month`;
+
+    // Refresh analytics charts in new layout
+    if (typeof window.refreshAnalyticsCharts === 'function') {
+        window.refreshAnalyticsCharts(users, programs);
+    }
 }
 
 // Volunteers
@@ -461,7 +496,34 @@ function updateVolunteers() {
     const filteredUsers = statusFilter === 'all'
         ? users
         : users.filter((u) => normalizeStatus(u.status) === statusFilter);
-    list.innerHTML = `
+
+    // Pending validation section — volunteers who submitted tasks for admin review
+    const pendingValidationItems = [];
+    users.forEach(u => {
+        (u.pendingValidation || []).forEach(programId => {
+            const prog = programs.find(p => p.id === programId);
+            pendingValidationItems.push({ user: u, programId, programName: prog ? (prog.name || prog.title) : programId });
+        });
+    });
+
+    const pendingValidationHTML = pendingValidationItems.length > 0 ? `
+        <div style="margin-bottom:20px; padding:16px; border-radius:14px; background:rgba(255,248,236,0.12); border:1px solid rgba(255,248,236,0.2);">
+            <strong style="display:block;margin-bottom:12px;">⏳ Pending Task Validation (${pendingValidationItems.length})</strong>
+            ${pendingValidationItems.map(item => `
+                <div class="volunteer-item" style="margin-bottom:10px;">
+                    <div>
+                        <strong>${item.user.name}</strong> submitted <em>${item.programName}</em> for validation<br>
+                        <small>Hours: ${item.user.hours || 0} | Badge: ${item.user.badge || 'None'}</small>
+                    </div>
+                    <div>
+                        <button class="approve-btn" onclick="approveTaskValidation('${item.programId}','${item.user.id}')">Approve ✓</button>
+                        <button class="reject-btn" onclick="rejectTaskValidation('${item.programId}','${item.user.id}')">Reject ✗</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    ` : '';
+    list.innerHTML = pendingValidationHTML + `
         <div class="volunteer-section">
             <div class="volunteer-card">
                 <strong>${statusFilter === 'pending' ? 'Pending Volunteers' : `Volunteers (${statusFilter})`}</strong>
@@ -490,9 +552,12 @@ function updateVolunteers() {
     updateVolunteerProgramFilter();
     updateVolunteerProgramParticipants();
     updateAttendanceProgramOptions();
-}
 
-function updateVolunteerProgramFilter() {
+    // Refresh task validation tab
+    if (typeof window.refreshTaskValidation === 'function') {
+        window.refreshTaskValidation(users, programs);
+    }
+}
     // Always pull latest program list from local cache source.
     refreshLocalAdminCache();
 
@@ -733,7 +798,10 @@ async function markVolunteerCompleted(programId, userId) {
         return;
     }
     user.completedPrograms.push(programId);
+    // Remove from pendingValidation if present
+    user.pendingValidation = Array.isArray(user.pendingValidation) ? user.pendingValidation.filter(id => id !== programId) : [];
     user.hours = (user.hours || 0) + (program.hours || 0);
+    // Auto-update badge based on admin-defined thresholds
     updateBadge(user);
     saveUsers();
 
@@ -741,13 +809,22 @@ async function markVolunteerCompleted(programId, userId) {
         try {
             await setDoc(doc(db, 'volunteers', userId), {
                 hours: user.hours,
+                badge: user.badge || 'None',
                 enrolledPrograms: arrayUnion(programId),
-                completedPrograms: arrayUnion(programId)
+                completedPrograms: arrayUnion(programId),
+                pendingValidation: user.pendingValidation
             }, { merge: true });
         } catch (err) {
             console.warn('Could not update volunteer completion in Firestore', err);
         }
     }
+
+    // Send notification to volunteer
+    sendNotification(
+        `Your completion of "${program.name || program.title}" has been approved! ${program.hours || 0} hours added to your total.`,
+        'program',
+        user.email
+    );
 
     updateVolunteerProgramParticipants();
     updateVolunteers();
@@ -759,6 +836,44 @@ async function markVolunteerCompleted(programId, userId) {
 window.markVolunteerCompleted = markVolunteerCompleted;
 window.approveJoinRequest = approveJoinRequest;
 window.rejectJoinRequest = rejectJoinRequest;
+
+/* ── Task Validation: Admin approves/rejects user-submitted completions ── */
+async function approveTaskValidation(programId, userId) {
+    // Delegates to markVolunteerCompleted which adds hours, updates badge, clears pendingValidation
+    await markVolunteerCompleted(programId, userId);
+}
+
+async function rejectTaskValidation(programId, userId) {
+    const user = users.find(u => u.id === userId);
+    const program = programs.find(p => p.id === programId);
+    if (!user || !program) { alert('User or program not found.'); return; }
+
+    // Remove from pendingValidation → task returns to "In Progress"
+    user.pendingValidation = Array.isArray(user.pendingValidation)
+        ? user.pendingValidation.filter(id => id !== programId)
+        : [];
+    saveUsers();
+
+    if (useFirestore) {
+        try {
+            await setDoc(doc(db, 'volunteers', userId), {
+                pendingValidation: user.pendingValidation
+            }, { merge: true });
+        } catch(err) { console.warn('Could not update Firestore pendingValidation', err); }
+    }
+
+    sendNotification(
+        `Your completion submission for "${program.name || program.title}" was not approved. Please continue and resubmit when ready.`,
+        'program',
+        user.email
+    );
+    logAction('task_reject', `Rejected task validation for ${user.name}: ${program.name || program.title}`, { userId, programId });
+    updateVolunteers();
+    alert(`Rejected. "${program.name || program.title}" returned to In Progress for ${user.name}.`);
+}
+
+window.approveTaskValidation = approveTaskValidation;
+window.rejectTaskValidation = rejectTaskValidation;
 window.updateAttendanceVolunteerOptions = updateAttendanceVolunteerOptions;
 window.onVolunteerProgramFilterChange = onVolunteerProgramFilterChange;
 window.onVolunteerStatusFilterChange = onVolunteerStatusFilterChange;
@@ -890,7 +1005,9 @@ function saveRestrictionsFromUI() {
 
 // Skills
 function updateSkills() {
-    document.getElementById('skillList').innerHTML = skills.map(skill => `
+    const el = document.getElementById('skillList');
+    if (!el) return;
+    el.innerHTML = skills.map(skill => `
         <li>${skill} <button class="edit-btn" onclick="editSkill('${skill.replace(/'/g, "\\'")}')">Edit</button> <button class="delete-btn" onclick="deleteSkill('${skill.replace(/'/g, "\\'")}')">Delete</button></li>
     `).join('');
 }
@@ -931,6 +1048,7 @@ function updatePrograms() {
     refreshLocalAdminCache();
 
     const list = document.getElementById('programList');
+    if (!list) return;
     list.innerHTML = programs.map(p => {
         const assignedCount = Array.isArray(p.assigned) ? p.assigned.length : 0;
         const maxVolunteers = p.maxVolunteers ?? 0;
@@ -1344,7 +1462,9 @@ function editCert(id) {
 
 // Notifications
 function updateNotifications() {
-    document.getElementById('notificationHistory').innerHTML = notifications.slice(-10).reverse().map(n => `
+    const histEl = document.getElementById('notificationHistory');
+    if (!histEl) return;
+    histEl.innerHTML = notifications.slice(-10).reverse().map(n => `
         <div style="padding: 10px; margin: 5px 0; background: var(--glass); border-radius: 8px;">
             <strong>${n.type}</strong>: ${n.message}<br>
             <small>To: ${n.recipient}</small>
@@ -1388,65 +1508,19 @@ function sendNotification(message, type, recipient) {
 
 // Logout
 async function logoutAdmin() {
-    try {
-        const userEmail = auth.currentUser?.email || 'admin';
-        logAction('user_logout', `Admin logged out: ${userEmail}`, { userType: 'admin' });
-        await signOut(auth);
-        window.location.href = 'index.html';
-    } catch (error) {
-        console.error("Logout error:", error);
-        logAction('error', `Logout failed: ${error.message}`, { error: true });
-        alert("Logout failed. Please try again.");
-    }
+    sessionStorage.removeItem('adminAuth');
+    window.location.href = 'admin-login.html';
 }
 
 async function loadAdminSession() {
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            redirectOnce('login.html');
-            return;
-        }
+    // Auth is handled by the inline script in admin.html via sessionStorage.
+    // If we reach here, the user is already verified — just render the shell.
+    renderAdminShell();
+    restoreActiveTab();
+}
 
-        if (isAdminEmail(user.email)) {
-            cacheRole(user.uid, 'admin');
-            renderAdminShell();
-            restoreActiveTab();
-            revealApp();
-        }
-
-        const cachedRole = getCachedRole(user.uid);
-        if (cachedRole === 'admin') {
-            renderAdminShell();
-            restoreActiveTab();
-            revealApp();
-        }
-
-        try {
-            let userDoc = await getDoc(doc(db, 'volunteers', user.uid));
-            if (!userDoc.exists()) {
-                const fallbackQuery = query(collection(db, 'volunteers'), where('email', '==', user.email));
-                const fallbackSnap = await getDocs(fallbackQuery);
-                if (!fallbackSnap.empty) {
-                    userDoc = fallbackSnap.docs[0];
-                }
-            }
-            const role = userDoc.exists() ? normalizeRole(userDoc.data().role) : 'user';
-            if (role !== 'admin' && !isAdminEmail(user.email)) {
-                redirectOnce('user.html');
-                return;
-            }
-            cacheRole(user.uid, role === 'admin' ? role : 'admin');
-        } catch (err) {
-            console.warn('Could not verify admin role', err);
-            redirectOnce('login.html');
-            return;
-        }
-
-        renderAdminShell();
-        restoreActiveTab();
-        revealApp();
-
-        // Attachment preview behavior
+// Attachment preview behavior (called once after admin shell loads)
+function initAdminAttachmentPreview() {
         const attachmentInput = document.getElementById('taskAttachments');
         if (attachmentInput) {
             attachmentInput.addEventListener('change', async () => {
@@ -1459,15 +1533,6 @@ async function loadAdminSession() {
                 }
             });
         }
-
-        // Ensure programs mirror is present on load
-        if (!realtimeInitialized) {
-            realtimeInitialized = true;
-            syncProgramsFromTasks();
-            initFirestoreAdminState();
-        }
-        hasResolvedAuth = true;
-    });
 }
 
 // Export all admin functions to window for onclick handlers
@@ -1628,6 +1693,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    // Hard fallback: if auth gate is still showing after 2s, reveal anyway
+    setTimeout(() => {
+        if (document.body.classList.contains('auth-pending')) {
+            console.warn('[admin] Auth gate fallback triggered after 2s');
+            revealApp();
+        }
+    }, 2000);
     loadAdminSession();
 });
 

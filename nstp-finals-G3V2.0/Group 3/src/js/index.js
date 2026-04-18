@@ -17,6 +17,7 @@ import {
     onSnapshot,
     doc,
     getDoc,
+    getDocs,
     setDoc,
     updateDoc,
     deleteDoc,
@@ -161,6 +162,12 @@ function updateAuthLinks() {
 
     if (userDashboardLink) userDashboardLink.style.display = signedIn && role === "user" ? "inline" : "none";
     if (adminLink) adminLink.style.display = signedIn && role === "admin" ? "inline" : "none";
+
+    // Hide admin footer link for signed-in non-admins
+    const adminFooter = document.querySelector('.admin-footer-link');
+    if (adminFooter) {
+        adminFooter.style.display = (signedIn && role !== "admin") ? "none" : "";
+    }
 }
 
 if (navLogoutLink) {
@@ -1298,6 +1305,27 @@ window.debugCleanupEverything = () => {
 if (!useFirestorePrograms) {
     console.warn("Using local program storage for debugging.");
 }
+
+// Volunteer count — fetch total documents in volunteers collection
+async function loadVolunteerCount() {
+    const countEl = document.getElementById('volunteerCount');
+    if (!countEl) return;
+    try {
+        if (useFirestore) {
+            const snap = await getDocs(collection(db, 'volunteers'));
+            countEl.textContent = snap.size;
+        } else {
+            // Localhost fallback: count from localStorage
+            const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+            countEl.textContent = localUsers.length;
+        }
+    } catch (err) {
+        console.warn('Could not load volunteer count', err);
+        countEl.textContent = '—';
+    }
+}
+
+loadVolunteerCount();
 
 // Initialize programs once auth state is known
 

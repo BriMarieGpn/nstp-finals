@@ -385,6 +385,29 @@ function loadUserDashboard() {
 
     // Load user notifications
     loadUserNotifications(currentUser, notifications);
+
+    // Pending status banner — block task access if not approved
+    const pendingBanner = document.getElementById('pendingStatusBanner');
+    if (pendingBanner) {
+        const status = String(currentUser.status || '').toLowerCase().trim();
+        if (status === 'pending') {
+            pendingBanner.style.display = 'block';
+            pendingBanner.textContent = '⏳ Your application is pending admin approval. Task access will be enabled once approved.';
+        } else if (status === 'rejected') {
+            pendingBanner.style.display = 'block';
+            pendingBanner.textContent = '❌ Your application was rejected. Please contact the admin for more information.';
+        } else {
+            pendingBanner.style.display = 'none';
+        }
+    }
+
+    // Auto-update badge based on current hours and admin-defined thresholds
+    autoUpdateBadge(currentUser);
+
+    // Refresh dashboard widgets (profile name, ID, badge, progress, charts)
+    if (typeof window.refreshDashboardWidgets === 'function') {
+        window.refreshDashboardWidgets(currentUser, programs);
+    }
 }
 
 async function persistCertifications() {
@@ -563,6 +586,8 @@ function attachSkillControls(user) {
 function loadEnrolledPrograms(user, programs) {
     const container = document.getElementById('enrolledProgramsList');
     const enrolledIds = user.enrolledPrograms || [];
+    const completedIds = user.completedPrograms || [];
+    const pendingValidation = user.pendingValidation || [];
 
     if (enrolledIds.length === 0) {
         container.innerHTML = '<p>No programs joined yet.</p>';
@@ -571,7 +596,23 @@ function loadEnrolledPrograms(user, programs) {
 
     const enrolledPrograms = programs.filter(p => enrolledIds.includes(p.id)).map(normalizeProgram);
 
-    container.innerHTML = enrolledPrograms.map(program => `
+    container.innerHTML = enrolledPrograms.map(program => {
+        const isCompleted = completedIds.includes(program.id);
+        const isPendingValidation = pendingValidation.includes(program.id);
+        let statusLabel, actionBtn;
+
+        if (isCompleted) {
+            statusLabel = '<span class="status-badge status-badge--completed">Completed ✓</span>';
+            actionBtn = '';
+        } else if (isPendingValidation) {
+            statusLabel = '<span class="status-badge status-badge--pending">Pending Validation</span>';
+            actionBtn = '';
+        } else {
+            statusLabel = '<span class="status-badge status-badge--inprogress">In Progress</span>';
+            actionBtn = `<button class="btn-primary" onclick="submitTaskForValidation('${program.id}')" style="margin-top:8px;font-size:0.82rem;">Mark as Completed</button>`;
+        }
+
+        return `
         <div class="program-card" onclick="showUserProgramDetail('${program.id}', 'enrolled')">
             <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
             <div class="program-info">
@@ -582,12 +623,12 @@ function loadEnrolledPrograms(user, programs) {
                     <span>📍 ${program.location}</span>
                     <span>⏰ ${program.duration} hours</span>
                 </div>
-                <div class="program-status">
-                    <span class="status enrolled">Joined</span>
-                </div>
+                <div class="program-status">${statusLabel}</div>
+                ${actionBtn}
             </div>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function loadAvailablePrograms(user, programs) {
@@ -827,6 +868,80 @@ async function updateProgramStatus(programId, status) {
 }
 
 // Debug functions for testing
+
+/* ── Task Completion Submission (User marks task as done → admin validates) ── */
+async function submitTaskForValidation(programId) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+
+    if (String(currentUser.status || '').toLowerCase() !== 'approved') {
+        alert('Your account must be approved before submitting task completions.');
+        return;
+    }
+
+    const program = programs.find(p => p.id === programId);
+    const programName = program ? (program.title || program.name || programId) : programId;
+
+    if (!confirm(`Mark "${programName}" as completed and submit for admin validation?`)) return;
+
+    // Add to pendingValidation array on the user profile
+    currentUser.pendingValidation = currentUser.pendingValidation || [];
+    if (currentUser.pendingValidation.includes(programId)) {
+        alert('This task is already submitted for validation.');
+        return;
+    }
+    currentUser.pendingValidation.push(programId);
+
+    // Persist to Firestore
+    if (useFirestore) {
+        try {
+            await updateDoc(doc(db, 'volunteers', currentUser.id), {
+                pendingValidation: arrayUnion(programId)
+            });
+        } catch (err) {
+            console.warn('Could not update Firestore pendingValidation', err);
+        }
+    }
+
+    // Persist to localStorage
+    try {
+        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        const idx = storedUsers.findIndex(u => u.id === currentUser.id);
+        if (idx !== -1) {
+            storedUsers[idx].pendingValidation = currentUser.pendingValidation;
+            localStorage.setItem('itanimUsers', JSON.stringify(storedUsers));
+        }
+    } catch(e) { /* ignore */ }
+
+    logUserActivity('task_submit', `User submitted task for validation: "${programName}"`, { programId });
+    loadUserDashboard();
+    alert(`"${programName}" submitted for admin validation. You will be notified once approved.`);
+}
+window.submitTaskForValidation = submitTaskForValidation;
+
+/* ── Auto-update badge based on hours and admin-defined thresholds ── */
+function autoUpdateBadge(user) {
+    const hours = Number(user.hours || 0);
+    const thresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze":10,"silver":25,"gold":50,"platinum":100}');
+    let newBadge = 'None';
+    if (hours >= Number(thresholds.platinum || 100)) newBadge = 'Platinum';
+    else if (hours >= Number(thresholds.gold || 50))  newBadge = 'Gold';
+    else if (hours >= Number(thresholds.silver || 25)) newBadge = 'Silver';
+    else if (hours >= Number(thresholds.bronze || 10)) newBadge = 'Bronze';
+
+    if (newBadge !== 'None' && user.badge !== newBadge) {
+        user.badge = newBadge;
+        // Persist
+        if (useFirestore) {
+            updateDoc(doc(db, 'volunteers', user.id), { badge: newBadge }).catch(() => {});
+        }
+        try {
+            const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+            const idx = storedUsers.findIndex(u => u.id === user.id);
+            if (idx !== -1) { storedUsers[idx].badge = newBadge; localStorage.setItem('itanimUsers', JSON.stringify(storedUsers)); }
+        } catch(e) { /* ignore */ }
+    }
+}
 function debugAddSampleData() {
     // Add sample user data for testing
     const users = JSON.parse(localStorage.getItem('users') || '[]');
