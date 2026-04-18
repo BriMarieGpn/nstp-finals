@@ -245,11 +245,20 @@
 
       <h1 class="ad-page-title">Task Management</h1>
 
-      <div class="ad-card" style="margin-bottom:16px;">
-        <button class="ad-btn ad-btn--solid" onclick="showProgramModal()">+ Create New Program</button>
+      <!-- Search only — creation moved to Settings -->
+      <div class="ad-card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <input
+          type="text"
+          id="programSearchInput"
+          class="ad-input"
+          placeholder="Search programs…"
+          style="flex:1;min-width:180px;"
+          oninput="filterPrograms(this.value)"
+        >
+        <button class="ad-btn ad-btn--solid" onclick="showAdminTab('settings');return false;">+ Add Program (Settings)</button>
       </div>
 
-      <!-- Task table header -->
+      <!-- Task table -->
       <div class="ad-card ad-card--table">
         <div class="ad-prog-table-head">
           <span>Task name</span>
@@ -362,9 +371,64 @@
       </div>
     </div>
 
-    <!-- ══ SETTINGS (Restrictions + Skills + Notifications) ══ -->
+    <!-- ══ SETTINGS (Program Management + Restrictions + Skills + Notifications) ══ -->
     <div class="ad-tab" id="ad-tab-settings">
       <h1 class="ad-page-title">Settings</h1>
+
+      <!-- ── Program Management ── -->
+      <div class="ad-card" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 class="ad-section-title" style="margin:0;">Program Management</h2>
+          <button class="ad-btn ad-btn--solid" id="toggleAddProgramForm" onclick="
+            var f=document.getElementById('addProgramForm');
+            var open=f.style.display!=='none';
+            f.style.display=open?'none':'block';
+            this.textContent=open?'+ Add New Program':'✕ Cancel';
+          ">+ Add New Program</button>
+        </div>
+
+        <!-- Inline add form (hidden by default) -->
+        <div id="addProgramForm" style="display:none;background:color-mix(in srgb,var(--secondary) 12%,var(--cream));border-radius:14px;padding:18px 20px;margin-bottom:18px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Program Name *</label>
+              <input type="text" id="newProgName" class="ad-input" placeholder="e.g. Seed Planting in Sauyo">
+            </div>
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Required Hours *</label>
+              <input type="number" id="newProgHours" class="ad-input" placeholder="e.g. 5" min="1">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="ad-label" style="margin-bottom:4px;display:block;">Description *</label>
+            <textarea id="newProgDesc" class="ad-input" placeholder="Describe the program…" style="min-height:72px;resize:vertical;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Max Volunteers</label>
+              <input type="number" id="newProgMax" class="ad-input" placeholder="e.g. 20" min="1">
+            </div>
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Badge Requirement</label>
+              <select id="newProgReq" class="ad-select" style="width:100%;">
+                <option value="None">None</option>
+                <option value="Bronze">Bronze</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+              </select>
+            </div>
+          </div>
+          <div id="addProgramError" style="display:none;color:#c0392b;font-size:0.83rem;font-weight:600;margin-bottom:10px;"></div>
+          <button class="ad-btn ad-btn--solid" id="addProgramSubmitBtn" onclick="submitNewProgram()" style="min-width:180px;">Save Program</button>
+        </div>
+
+        <!-- Live program list inside settings -->
+        <div class="ad-prog-table-head" style="border-radius:10px 10px 0 0;">
+          <span>Name</span><span>Hours</span><span>Slots</span><span>Assigned</span><span>Status</span><span>Actions</span>
+        </div>
+        <div id="settingsProgramList" class="ad-prog-table-body" style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;"></div>
+      </div>
 
       <!-- User Restriction -->
       <div class="ad-card" style="margin-bottom:20px;">
@@ -495,7 +559,7 @@
     <div id="programAttachmentPreview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div style="display:flex;justify-content:space-between;gap:10px;">
       <button onclick="closeProgramModal()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Cancel</button>
-      <button onclick="saveProgram()" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--primary);color:#FFF8EC;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Save</button>
+      <button id="saveProgramBtn" onclick="saveProgram()" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--primary);color:#FFF8EC;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Save</button>
     </div>
   </div>
 </div>

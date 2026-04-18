@@ -760,7 +760,6 @@ window.joinProgram = async (id, joined) => {
         return;
     }
 
-    // Require volunteer account approval before they can request to join
     if (currentUser.role === 'user') {
         const localUser = users.find(u => u.id === currentUser.id);
         const status = String(localUser?.status || '').toLowerCase().trim();
@@ -775,75 +774,27 @@ window.joinProgram = async (id, joined) => {
         return;
     }
 
-    if (!useFirestorePrograms) {
-        const program = programDocs.find((item) => item.id === id);
+    const program = programDocs.find((item) => item.id === id);
+    const programName = program?.title || 'Unknown Program';
+
+    try {
+        // Add user to pendingJoins on the 'programs' document
+        await updateDoc(doc(db, 'programs', id), {
+            pendingJoins: arrayUnion(currentUser.id)
+        });
+
         if (program) {
-            // Request to join (pending). Admin must approve to become "officially joined".
             program.pendingJoins = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
             if (!program.pendingJoins.includes(currentUser.id)) {
                 program.pendingJoins.push(currentUser.id);
             }
-            saveLocalPrograms();
-            syncToAdminPrograms();
+        }
 
-            renderPrograms(programDocs);
-            const programName = program.title || 'Unknown Program';
-            logActivityEvent('join_request', `User requested to join program: "${programName}"`, { programId: id, localOnly: true });
-            alert('Join request submitted. Wait for admin approval.');
-            return;
-        }
-        alert("Program not found.");
-        return;
-    }
-
-    try {
-        const program = programDocs.find((item) => item.id === id);
-        const programName = program?.title || 'Unknown Program';
-        
-        console.log("Joining program ID:", id);
-        console.log("Auth state - currentUser:", auth.currentUser);
-        console.log("CurrentUser role:", currentUser.role);
-        
-        // Get current programs array
-        const stateDoc = await getDoc(doc(db, "admin", "state"));
-        console.log("State doc exists:", stateDoc.exists());
-        
-        if (!stateDoc.exists()) {
-            throw new Error("Admin state document not found");
-        }
-        
-        const programs = stateDoc.data().programs || [];
-        console.log("Programs array:", programs);
-        
-        const programIndex = programs.findIndex(p => p.id === id);
-        console.log("Program index:", programIndex);
-        
-        if (programIndex === -1) {
-            throw new Error("Program not found");
-        }
-        
-        // Add user to pendingJoins (admin must approve)
-        programs[programIndex].pendingJoins = Array.isArray(programs[programIndex].pendingJoins) ? programs[programIndex].pendingJoins : [];
-        if (!programs[programIndex].pendingJoins.includes(currentUser.id)) {
-            programs[programIndex].pendingJoins.push(currentUser.id);
-        }
-        
-        console.log("Updating pendingJoins array to:", programs[programIndex].pendingJoins);
-        
-        await updateDoc(doc(db, "admin", "state"), { programs });
-        console.log("Join successful");
-        
-        // Update local programDocs
-        if (program) {
-            program.pendingJoins = programs[programIndex].pendingJoins;
-        }
         renderPrograms(programDocs);
         logActivityEvent('join_request', `User requested to join program: "${programName}"`, { programId: id });
         alert('Join request submitted. Wait for admin approval.');
     } catch (err) {
         console.error("Join failed:", err);
-        console.error("Error code:", err.code);
-        console.error("Error message:", err.message);
         logActivityEvent('error', `Failed to request join - ${err.message}`, { error: true });
         alert("Could not request to join. Please try again.");
     }
@@ -1119,28 +1070,9 @@ function mapAdminProgramsToHomepagePrograms(adminPrograms) {
 }
 
 function listenPrograms() {
-    if (!useFirestorePrograms) {
-        // Offline / localhost mode: always treat admin programs ("itanimPrograms") as canonical.
-        // This guarantees admin Program Management <-> Home Available Programs stay connected.
-        let adminPrograms = [];
-        try {
-            adminPrograms = JSON.parse(localStorage.getItem(localProgramsKey) || '[]');
-        } catch {
-            adminPrograms = [];
-        }
-
-        const next = adminPrograms.length > 0 ? mapAdminProgramsToHomepagePrograms(adminPrograms) : loadLocalPrograms();
-        programDocs.length = 0;
-        programDocs.push(...next);
-        saveLocalPrograms();
-        console.log("listenPrograms (offline mode): loaded", programDocs.length, "programs");
-        renderPrograms(programDocs);
-        return;
-    }
-
-    try {
-        // Online mode (public): listen to programs_empty collection
-        onSnapshot(collection(db, "programs_empty"), (snap) => {
+    // Fetch live programs from the 'programs' collection (same collection admin writes to)
+    getDocs(collection(db, 'programs'))
+        .then((snap) => {
             const next = [];
             snap.forEach((d) => {
                 const p = d.data() || {};
@@ -1148,37 +1080,46 @@ function listenPrograms() {
                     id: d.id,
                     title: p.title || p.name || '',
                     hours: p.hours || 0,
-                    desc: p.desc || '',
-                    image: p.image || p.attachments?.[0]?.dataUrl || defaultImage,
+                    desc: p.desc || p.description || '',
+                    image: p.image || defaultImage,
                     requirement: p.requirement || 'None',
-                    joined: p.joined || []
+                    joined: p.joined || [],
+                    pendingJoins: p.pendingJoins || [],
+                    maxVolunteers: p.maxVolunteers || 0,
+                    skills: p.skills || []
                 });
             });
-
-            console.log("listenPrograms (online): loaded", next.length, "programs from programs_empty");
+            console.log('listenPrograms: loaded', next.length, 'programs from Firestore');
             programDocs.length = 0;
             programDocs.push(...next);
+            // Keep localStorage in sync for offline fallback
+            try { localStorage.setItem('itanimPrograms', JSON.stringify(next)); } catch(e) {}
             renderPrograms(programDocs);
-        }, (err) => {
-            console.warn("Could not listen to programs_empty", err);
-            if (programDocs.length > 0) {
-                console.warn("Keeping existing program list after Firestore listen error.");
-                return;
+        })
+        .catch((err) => {
+            console.warn('Could not fetch programs from Firestore, falling back to localStorage:', err);
+            // Fallback: read from localStorage
+            try {
+                const cached = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
+                const next = cached.map(p => ({
+                    id: p.id,
+                    title: p.title || p.name || '',
+                    hours: p.hours || 0,
+                    desc: p.desc || '',
+                    image: p.image || defaultImage,
+                    requirement: p.requirement || 'None',
+                    joined: p.joined || [],
+                    pendingJoins: p.pendingJoins || [],
+                    maxVolunteers: p.maxVolunteers || 0,
+                    skills: p.skills || []
+                }));
+                programDocs.length = 0;
+                programDocs.push(...next);
+                renderPrograms(programDocs);
+            } catch(e) {
+                renderPrograms([]);
             }
-            const loaded = loadLocalPrograms();
-            programDocs.length = 0;
-            programDocs.push(...loaded);
-            renderPrograms(programDocs);
         });
-    } catch (err) {
-        console.warn("Realtime program list unavailable, falling back to local", err);
-        if (programDocs.length === 0) {
-            const loaded = loadLocalPrograms();
-            programDocs.length = 0;
-            programDocs.push(...loaded);
-            renderPrograms(programDocs);
-        }
-    }
 }
 
 function refreshProgramsFromSharedStorage() {

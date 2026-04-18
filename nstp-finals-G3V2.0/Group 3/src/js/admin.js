@@ -68,6 +68,8 @@ function renderAdminShell() {
     const fns = [updateDashboard, updateAnalytics, updateVolunteers, loadRestrictionsUI,
                  updateSkills, updateBadges, updateCertifications, updateNotifications];
     fns.forEach(fn => { try { fn(); } catch(e) { console.warn('renderAdminShell:', fn.name, e); } });
+    // Fetch live programs from Firestore on load
+    fetchAndRenderPrograms().catch(() => {});
     // Init Firestore realtime listeners once
     if (!realtimeInitialized) {
         realtimeInitialized = true;
@@ -1043,32 +1045,50 @@ function editSkill(skill) {
 }
 
 // Programs
-function updatePrograms() {
-    // Always pull latest programs from local cache source.
-    refreshLocalAdminCache();
+function filterPrograms(term) {
+    updatePrograms(term);
+}
 
-    const list = document.getElementById('programList');
+function renderProgramRows(list, filtered) {
     if (!list) return;
-    list.innerHTML = programs.map(p => {
-        const assignedCount = Array.isArray(p.assigned) ? p.assigned.length : 0;
-        const maxVolunteers = p.maxVolunteers ?? 0;
+    if (!filtered.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No programs yet.</div>';
+        return;
+    }
+    list.innerHTML = filtered.map(p => {
+        const joined      = Array.isArray(p.joined) ? p.joined.length : 0;
+        const maxVol      = p.maxVolunteers || 0;
+        const isFull      = maxVol > 0 && joined >= maxVol;
+        const statusLabel = isFull ? 'Full' : (p.status || 'active');
         return `
-        <div class="program-item">
-            <div>
-                <strong>${p.name || p.title || 'Untitled Program'}</strong><br>
-                ${p.desc || ''}<br>
-                Hours: ${p.hours ?? 0}, Requirement: ${p.requirement || 'None'}<br>
-                Max Volunteers: ${maxVolunteers}, Assigned: ${assignedCount}/${maxVolunteers}<br>
-                Status: ${assignedCount >= maxVolunteers && maxVolunteers > 0 ? 'unavailable (full)' : (p.status || 'active')}
-            </div>
-            <div>
-                <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
-                ${p.status === 'active' ? `<button class="archive-btn" onclick="archiveProgram('${p.id}')">Archive</button>` : ''}
-                <button class="delete-btn" onclick="deleteProgram('${p.id}')">Delete</button>
-            </div>
-        </div>
-    `;
+        <div class="ad-task-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;">
+          <span style="font-weight:600;">${p.name || p.title || 'Untitled'}</span>
+          <span>${p.hours ?? 0}</span>
+          <span>${maxVol || '—'}</span>
+          <span>${joined}</span>
+          <span>${statusLabel}</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
+            <button class="delete-btn" onclick="deleteProgram('${p.id}')">Delete</button>
+          </span>
+        </div>`;
     }).join('');
+}
+
+function updatePrograms(searchTerm) {
+    const term = (searchTerm !== undefined
+        ? searchTerm
+        : (document.getElementById('programSearchInput')?.value || '')
+    ).toLowerCase().trim();
+
+    const filtered = term
+        ? programs.filter(p => (p.name || p.title || '').toLowerCase().includes(term) || (p.desc || '').toLowerCase().includes(term))
+        : programs;
+
+    // Task Management tab list
+    renderProgramRows(document.getElementById('programList'), filtered);
+    // Settings tab list (always shows full unfiltered list)
+    renderProgramRows(document.getElementById('settingsProgramList'), programs);
 }
 
 function showProgramModal(programId = null) {
@@ -1111,68 +1131,94 @@ function closeProgramModal() {
 }
 
 async function saveProgram() {
-    console.log("Admin saveProgram called");
-    console.log("useFirestore:", useFirestore);
-    console.log("auth.currentUser:", auth.currentUser);
-
-    const name = document.getElementById('programName').value.trim();
-    const desc = document.getElementById('programDesc').value.trim();
-    const hours = parseInt(document.getElementById('programHours').value);
+    const name        = document.getElementById('programName').value.trim();
+    const desc        = document.getElementById('programDesc').value.trim();
+    const hours       = parseInt(document.getElementById('programHours').value);
     const requirement = document.getElementById('programRequirement').value || 'None';
-    let maxVol = parseInt(document.getElementById('programMaxVolunteers').value);
-    if (Number.isNaN(maxVol) || maxVol <= 0) {
-        // Allow saving without explicitly filling max volunteers (common on localhost demos)
-        maxVol = 10;
-    }
-
-    console.log("Form values:", { name, desc, hours, requirement, maxVol });
+    let   maxVol      = parseInt(document.getElementById('programMaxVolunteers').value);
+    if (Number.isNaN(maxVol) || maxVol <= 0) maxVol = 10;
 
     if (!name || !desc || Number.isNaN(hours) || hours <= 0) {
         alert('Please fill all required fields (name, description, hours).');
         return;
     }
 
-    const modal = document.getElementById('programModal');
-    const editId = modal.dataset.editId;
+    const modal   = document.getElementById('programModal');
+    const saveBtn = document.getElementById('saveProgramBtn');
+    const editId  = modal.dataset.editId;
+
+    // Pessimistic UI — disable button immediately
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Syncing with Cloud...'; }
+
     const newAttachments = await getAttachmentsFromInput();
+    const imageUrl = newAttachments.length > 0 ? newAttachments[0].dataUrl : '';
 
-    console.log("editId:", editId);
+    const programData = {
+        name, title: name, desc, hours, requirement,
+        maxVolunteers: maxVol, status: 'active',
+        joined: [], pendingJoins: [], assigned: [],
+        image: imageUrl,
+        updatedAt: new Date().toISOString()
+    };
 
-    if (editId) {
-        const program = programs.find(p => p.id === editId);
-        program.name = name;
-        program.desc = desc;
-        program.hours = hours;
-        program.requirement = requirement;
-        program.maxVolunteers = maxVol;
-        // Only replace attachments if user selected new ones; otherwise keep existing.
-        if (newAttachments.length > 0) {
-            program.attachments = newAttachments;
+    try {
+        if (editId) {
+            // Edit existing
+            await setDoc(doc(db, 'programs', editId), programData, { merge: true });
+            logAction('program_update', `Updated program: "${name}"`, { programId: editId });
         } else {
-            program.attachments = program.attachments || [];
+            // Add new — Firestore generates the ID
+            programData.createdAt = new Date().toISOString();
+            await addDoc(collection(db, 'programs'), programData);
+            logAction('program_add', `Created program: "${name}" (${hours} hours)`, { hours });
         }
-        logAction('program_update', `Updated program: "${name}"`, { programId: editId });
-    } else {
-        const newProgram = {
-            id: `program${Date.now()}`,
-            name,
-            desc,
-            hours,
-            requirement,
-            maxVolunteers: maxVol,
-            assigned: [],
-            status: 'active',
-            attachments: newAttachments
-        };
-        console.log("New program to add:", newProgram);
-        programs.push(newProgram);
-        logAction('program_add', `Created program: "${name}" (${hours} hours)`, { programId: newProgram.id, hours });
-    }
 
-    savePrograms();
-    syncProgramsFromPrograms();
-    updatePrograms();
-    closeProgramModal();
+        // Success — onSnapshot will auto-update the list; just close and reset the form
+        closeProgramModal();
+        document.getElementById('programName').value = '';
+        document.getElementById('programDesc').value = '';
+        document.getElementById('programHours').value = '';
+        document.getElementById('programMaxVolunteers').value = '';
+        clearAttachmentInput();
+        delete modal.dataset.editId;
+
+    } catch (err) {
+        console.error('saveProgram error:', err);
+        alert('Failed to save program: ' + (err.message || err));
+    } finally {
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+    }
+}
+
+// Real-time listener for the 'programs' collection — updates UI instantly on any change
+let programsUnsubscribe = null;
+
+async function fetchAndRenderPrograms() {
+    // Unsubscribe any existing listener first
+    if (programsUnsubscribe) { programsUnsubscribe(); programsUnsubscribe = null; }
+
+    try {
+        programsUnsubscribe = onSnapshot(
+            collection(db, 'programs'),
+            (snap) => {
+                programs = [];
+                snap.forEach(d => programs.push({ id: d.id, ...d.data() }));
+                // Sort by createdAt descending (newest first)
+                programs.sort((a, b) => (b.createdAt || '') > (a.createdAt || '') ? 1 : -1);
+                localStorage.setItem('itanimPrograms', JSON.stringify(programs));
+                updatePrograms();
+                updateDashboard();
+                if (typeof window.refreshAdminDashboard === 'function') window.refreshAdminDashboard(programs);
+            },
+            (err) => {
+                console.warn('programs onSnapshot error:', err);
+                updatePrograms(); // fall back to in-memory
+            }
+        );
+    } catch (err) {
+        console.warn('fetchAndRenderPrograms setup error:', err);
+        updatePrograms();
+    }
 }
 
 function editProgram(id) {
@@ -1193,16 +1239,16 @@ async function deleteProgram(id) {
     const programName = programs.find(p => p.id === id)?.name || 'Unknown';
     programs = programs.filter(p => p.id !== id);
     savePrograms();
-    await syncProgramsFromPrograms();
+    // Delete from the unified 'programs' collection
     if (useFirestore) {
         try {
-            await deleteDoc(doc(db, 'programs_empty', id));
+            await deleteDoc(doc(db, 'programs', id));
         } catch (err) {
-            console.warn('Could not delete program document from Firestore', err);
+            console.warn('Could not delete program from Firestore', err);
         }
     }
     logAction('program_delete', `Deleted program: "${programName}"`, { programId: id });
-    updatePrograms();
+    await fetchAndRenderPrograms();
 }
 
 // Validation
@@ -1538,6 +1584,53 @@ function initAdminAttachmentPreview() {
 // Export all admin functions to window for onclick handlers
 window.logoutAdmin = logoutAdmin;
 window.showTab = showTab;
+window.filterPrograms = filterPrograms;
+
+/* ── Inline program creation from Settings tab ── */
+window.submitNewProgram = async function() {
+    const name    = (document.getElementById('newProgName')?.value || '').trim();
+    const desc    = (document.getElementById('newProgDesc')?.value || '').trim();
+    const hours   = parseInt(document.getElementById('newProgHours')?.value || '');
+    const maxVol  = parseInt(document.getElementById('newProgMax')?.value || '0') || 10;
+    const req     = document.getElementById('newProgReq')?.value || 'None';
+    const errEl   = document.getElementById('addProgramError');
+    const btn     = document.getElementById('addProgramSubmitBtn');
+
+    if (errEl) errEl.style.display = 'none';
+
+    if (!name || !desc || isNaN(hours) || hours <= 0) {
+        if (errEl) { errEl.textContent = 'Please fill in Name, Description and Hours.'; errEl.style.display = 'block'; }
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Syncing with Cloud...'; }
+
+    try {
+        await addDoc(collection(db, 'programs'), {
+            name, title: name, desc, hours,
+            requirement: req, maxVolunteers: maxVol,
+            status: 'active', joined: [], pendingJoins: [], assigned: [],
+            image: '', createdAt: new Date().toISOString()
+        });
+        logAction('program_add', `Created program: "${name}" (${hours} hours)`, { hours });
+
+        // Reset form and hide it
+        document.getElementById('newProgName').value  = '';
+        document.getElementById('newProgDesc').value  = '';
+        document.getElementById('newProgHours').value = '';
+        document.getElementById('newProgMax').value   = '';
+        document.getElementById('newProgReq').value   = 'None';
+        document.getElementById('addProgramForm').style.display = 'none';
+        const toggleBtn = document.getElementById('toggleAddProgramForm');
+        if (toggleBtn) toggleBtn.textContent = '+ Add New Program';
+
+    } catch (err) {
+        console.error('submitNewProgram error:', err);
+        if (errEl) { errEl.textContent = 'Failed: ' + (err.message || err); errEl.style.display = 'block'; }
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save Program'; }
+    }
+};
 
 function showTaskModal() {
     console.warn('showTaskModal() is not implemented in this build.');
