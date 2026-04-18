@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Community</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=arrow_back" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="header.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="mini-card.css">
+</head>
+
+<body class="background-image">
+
+     <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name"  href="../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+                    <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                    <a href="../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                    <a href="../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+                </div>
+            </div>
+
+            <div class="green-community-container">
+                <span class="nav-link active-link">GREEN COMMUNITY</span>
+                <div class="green-community-dropdown">
+                    <a class="side-item"><i class="fas fa-apple-alt"></i> Fruits</a>
+                    <a class="side-item"><i class="fas fa-leaf"></i> Herbs</a>
+                    <a class="side-item"><i class="fas fa-carrot"></i> Vegetables</a>
+                </div>
+            </div>
+
+            <a href="/pages/i-tanim/user.html" class="nav-link">I-TANIM</a>
+        </div>
+
+        <div class="nav-right">
+            <a class="nav-auth-link" href="/pages/i-tanim/login.html">LOGIN</a>
+            <a class="nav-auth-link" href="/pages/i-tanim/signup.html">REGISTER</a>
+        </div>
+    </nav>
+    
+    <div id="category-menu">
+        <div class="category-button" onclick="filterPlants('Herbs')">
+            <img src="images/herbs.png" class="plants-img">
+            <p>Herbs</p>
+        </div>
+        <div class="category-button" onclick="filterPlants('Fruits')">
+            <img src="images/fruits.png" class="plants-img">
+            <p>Fruits</p>
+        </div>
+        <div class="category-button" onclick="filterPlants('Vegetables')">
+            <img src="images/vegetables.png" class="plants-img">
+            <p>Vegetables</p>
+        </div>
+    </div>
+
+    <div id="plant-grid" style="display:none;">
+        <button onclick="showMenu()">← Back to Categories</button>
+
+        <div class="controls">
+            <div class="search-wrapper">
+                <input type="text" id="live-search" placeholder="Live search by name or scientific name...">
+                <div id="suggestions-dropdown" class="suggestions-dropdown"></div>
+            </div>
+
+            <button id="filter-btn" class="filter-btn">Filter ▼</button>
+        </div>
+
+        <div id="grid-container"></div>
+    </div>
+
+    <div id="plant-detail" style="display:none;">
+        <button onclick="showGrid()">← Back to Grid</button>
+        <div id="detail-content"></div>
+    </div>
+
+    <div id="filter-popup" class="filter-popup">
+        <div class="popup-content">
+            <h3>Filter & Sort</h3>
+
+            <div class="filter-section">
+                <label>Lifespan:</label>
+                <select id="popup-lifespan">
+                    <option value="All">All Lifespans</option>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <label>Sort by:</label>
+                <select id="popup-sort">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                </select>
+            </div>
+
+            <div class="popup-buttons">
+                <button onclick="applyFilters()" class="apply-btn">Apply</button>
+                <button onclick="closePopup()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="plants.js"></script>
+</body>
+
+</html>

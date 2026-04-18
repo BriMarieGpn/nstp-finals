@@ -1,0 +1,39 @@
+/*COLOR PALETTES*/
+:root{
+    --color1: #546b41;
+    --color2: #99ad74;
+    --color3: #dcccac;
+    --color4: #fff8ec;
+}
+
+.mini-card {
+    width: 160px;
+    height: 95px;
+    max-height: 100px;
+    position: relative;
+    border-radius: 18px;
+    background: white;
+    padding: 2px;
+    overflow: hidden;
+
+    cursor: pointer;
+
+    /* animation base */
+    transform: scale(0);
+    filter: blur(10px);
+    transform-origin: 50% 100%;
+
+    will-change: transform, filter;
+    transition: transform 0.3s cubic-bezier(0.74, -0.03, 0.05, 1.24);
+}
+
+/* show animation when loaded */
+.mini-card {
+    animation: coolfadeIn 0.3s both;
+    animation-delay: 0.1s;
+}
+
+/* hover “pop” effect (from your card system) */
+.mini-card:hover {
+    transform: scale(1);
+}

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HERE-RAMIN</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="css/hereramin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="hereramin-page">
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+    <a href="../pages/overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+    <a href="index.html" class="side-item active"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+    <a href="../pages/receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="pages/overview.html">GREEN COMMUNITY</a></li>
+                <li><a href="../pages/i-tanim/user.html">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../pages/i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="../pages/i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+
+    <a class="subpage-back" href="../index.html">Back</a>
+
+    <main class="hereramin-shell">
+        <section class="hereramin-card">
+            <div class="hereramin-media">
+                <img id="toolImage" src="../assets/images/shovel.png" alt="Selected tool">
+            </div>
+
+            <div class="hereramin-fields">
+                <label class="field-label" for="toolSelect">Tool Name</label>
+                <select id="toolSelect" class="field-select"></select>
+                <div class="availability-row">
+                    <span class="availability-label">Availability</span>
+                    <span id="availabilityBadge" class="availability-badge available">Available</span>
+                </div>
+
+                <label class="field-label">Quantity</label>
+                <div class="qty">
+                    <button type="button" class="qty-btn" id="minusBtn">-</button>
+                    <span class="qty-value" id="quantity">1</span>
+                    <button type="button" class="qty-btn" id="plusBtn">+</button>
+                </div>
+
+                <label class="field-label" for="borrowDate">Borrow Date</label>
+                <input class="field-input" type="date" id="borrowDate">
+
+                <div class="range-sep">TO</div>
+
+                <input class="field-input" type="date" id="returnDate">
+            </div>
+        </section>
+
+        <section class="hereramin-form">
+            <h1 class="hereramin-title">User - Information</h1>
+
+            <div class="form-box">
+                <div class="form-grid">
+                    <label class="field-label">Name</label>
+                    <input class="field-input" type="text">
+
+                    <label class="field-label">Address</label>
+                    <input class="field-input" type="text">
+
+                    <label class="field-label">Age</label>
+                    <input class="field-input" type="text">
+
+                    <label class="field-label">Contact No.</label>
+                    <input class="field-input" type="text">
+
+                    <label class="field-label">Valid ID</label>
+                    <div class="id-row">
+                        <div class="id-preview">
+                            <img id="idImage" src="assets/images/validid.jpg" alt="ID Preview">
+                        </div>
+                        <div class="id-actions">
+                            <button type="button" class="id-btn" id="addIdBtn">Add Image</button>
+                            <div class="id-dropdown" id="idDropdown">
+                                <button type="button" class="id-choice" id="fromDevice">Upload from Device</button>
+                                <button type="button" class="id-choice" id="fromInternet">Upload from Internet</button>
+                                <input type="file" id="fileInput" hidden>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label class="field-label">Purpose</label>
+                    <textarea class="field-textarea"></textarea>
+
+                    <label class="field-label">E-signature</label>
+                    <div class="signature-box">
+                        <canvas id="signaturePad"></canvas>
+                        <div class="signature-actions">
+                            <button type="button" class="id-btn" id="clearSig">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="agreement">
+                I hereby certify to the best of my knowledge that all information in this form are true and correct.
+            </p>
+
+            <div class="actions">
+                <button type="button" class="action secondary">&lt; Back</button>
+                <button type="button" class="action primary">Proceed &gt;</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/hereramin.js"></script>
+    <script type="module" src="../js/navbar-auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+

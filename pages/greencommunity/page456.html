@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Planting Guide</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="guide.css">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="#">GrowsauYOU</a>
+
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+                    <a class="side-item" href="/pages/overview.html"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                    <a class="side-item" href="/pages/hereramin/index.html"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                    <a class="side-item" href="/pages/receipts/user.html"><i class="fas fa-receipt"></i> RECEIPTS</a>
+                </div>
+            </div>
+
+            <div class="green-community-container">
+                <span class="nav-link active-link">GREEN COMMUNITY</span>
+                <div class="green-community-dropdown">
+                    <a class="side-item"><i class="fas fa-apple-alt"></i> Fruits</a>
+                    <a class="side-item"><i class="fas fa-leaf"></i> Herbs</a>
+                    <a class="side-item"><i class="fas fa-carrot"></i> Vegetables</a>
+                </div>
+            </div>
+
+            <a href="/pages/i-tanim/user.html" class="nav-link">I-TANIM</a>
+        </div>
+
+        <div class="nav-right">
+            <a class="nav-auth-link" href="/pages/i-tanim/login.html">LOGIN</a>
+            <a class="nav-auth-link" href="/pages/i-tanim/signup.html">REGISTER</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="info-card">
+
+            <button class="animated-button btn-left">
+                ← Back to Gallery
+            </button>
+
+            <div class="text-section">
+                <h2>STEP BY STEP GUIDE: Planting the <span id="name-header">(Name)</span></h2>
+
+                <p><strong>Needs:</strong><br><span id="needs">Text</span></p>
+                <p><strong>Soil:</strong><br><span id="soil">Text</span></p>
+                <p><strong>Season:</strong><br><span id="season">Text</span></p>
+
+                <p><strong>What to do (Preparation):</strong><br><span id="preparation">Text</span></p>
+                <p><strong>How to (Step by Step):</strong><br><span id="selection">Text</span></p>
+            </div>
+
+            <div class="video-section">
+                <div class="media-placeholder" id="mediaPlaceholder">
+                    <img src="your-photo.jpg" alt="Plant Photo">
+                </div>
+
+                <div class="media-buttons">
+                    <button class="animated-button btn-photo" id="photoBtn">⛶ View Photo</button>
+                    <button class="animated-button btn-video" id="videoBtn">▶ Show Video</button>
+                </div>
+
+                <div class="fruit-name" id="name">Name</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

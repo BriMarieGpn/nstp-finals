@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hedge Trimmers | Pruning and Maintenance Tools</title>
+    <link rel="stylesheet" href="../../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="tool-info-page" data-initial-tool="Hedge Trimmers">
+                <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+    <a href="../../overview.html" class="side-item active"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+    <a href="../../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+    <a href="../../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../../overview.html">GREEN COMMUNITY</a></li>
+                <li><a href="../../i-tanim/user.html">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+    <a class="subpage-back" href="../../categories/pruning-and-maintenance-tools.html">Back</a>
+    <main class="detail-section">
+        <div class="tool-info-layout">
+            <section class="preview-panel">
+                <div class="preview-card">
+                    <img id="toolImage" class="preview-image" src="../../../assets/images/hedge-trimmers.png" alt="Hedge Trimmers">
+                </div>
+            </section>
+            <section class="info-panel">
+                <div class="info-card">
+                    <div class="info-header">
+                        <h2>PRUNING AND MAINTENANCE TOOLS</h2>
+                    </div>
+                    <button class="floating-action" type="button" aria-label="Tool options">
+                        <i class="fas fa-seedling"></i>
+                    </button>
+                    <div class="info-body">
+                        <div class="info-section">
+                            <label>Tool Name</label>
+                            <h1 id="toolTitle" class="tool-title-large">Hedge Trimmers</h1>
+                        </div>
+                        <div class="info-section">
+                            <label>Description</label>
+                            <p id="toolDescription" class="tool-description">A tool used for cutting and shaping hedges or bushes. It helps maintain plants by keeping them neat and evenly trimmed.</p>
+                        </div>
+                        <div class="tool-actions">
+                            <a class="tool-action-button" href="../../../hereramin/index.html">HERE-RAMIN</a>
+                            <button class="tool-action-button" type="button">WIKIHOW?</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <aside class="recommend-panel">
+                <div class="recommend-card">
+                    <div class="recommend-header">RECOMMENDED TOOLS</div>
+                    <div class="recommend-list" id="recommendList">
+                        <button class="recommend-item" data-tool="Garden Scissors" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/garden-scissors.png" alt="Garden Scissors">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pruning & Maintenance</span>
+                                <span class="recommend-name">Garden Scissors</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item active" data-tool="Hedge Trimmers" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/hedge-trimmers.png" alt="Hedge Trimmers">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pruning & Maintenance</span>
+                                <span class="recommend-name">Hedge Trimmers</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item" data-tool="Pruning Shears" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/pruning-shears.png" alt="Pruning Shears">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pruning & Maintenance</span>
+                                <span class="recommend-name">Pruning Shears</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <script src="../../../js/tool-detail-enhancements.js"></script>
+    <script>
+        (function() {
+            const toolData = {
+                'Garden Scissors': {
+                    title: 'Garden Scissors',
+                    description: 'A small cutting tool used for trimming flowers, herbs, and soft stems. It allows precise cuts for detailed gardening work.',
+                    image: '../../../assets/images/garden-scissors.png'
+                },
+                'Hedge Trimmers': {
+                    title: 'Hedge Trimmers',
+                    description: 'A tool used for cutting and shaping hedges or bushes. It helps maintain plants by keeping them neat and evenly trimmed.',
+                    image: '../../../assets/images/hedge-trimmers.png'
+                },
+                'Pruning Shears': {
+                    title: 'Pruning Shears',
+                    description: 'A handheld tool used for cutting small branches, dead stems, and overgrown parts of plants to support healthy growth.',
+                    image: '../../../assets/images/pruning-shears.png'
+                }
+            };
+
+            const toolTitle = document.getElementById('toolTitle');
+            const toolDescription = document.getElementById('toolDescription');
+            const toolImage = document.getElementById('toolImage');
+            const recommendButtons = document.querySelectorAll('.recommend-item');
+            const initialTool = document.body.dataset.initialTool || 'Hedge Trimmers';
+
+            function setTool(toolName) {
+                const tool = toolData[toolName];
+                if (!tool) {
+                    return;
+                }
+
+                toolTitle.textContent = tool.title;
+                toolDescription.textContent = tool.description;
+                toolImage.src = tool.image;
+                toolImage.alt = tool.title;
+
+                recommendButtons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.tool === toolName);
+                });
+            }
+
+            recommendButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    setTool(button.dataset.tool);
+                });
+            });
+
+            setTool(initialTool);
+        })();
+    </script>
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
