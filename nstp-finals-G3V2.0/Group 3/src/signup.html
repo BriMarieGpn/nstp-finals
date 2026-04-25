@@ -67,12 +67,7 @@
 
         <div class="field-row">
           <select id="skillCategory" required>
-            <option value="" selected disabled>Select Skill Category</option>
-            <option value="Planting &amp; Seedling Skills">Planting &amp; Seedling Skills</option>
-            <option value="Composting &amp; Waste Management">Composting &amp; Waste Management</option>
-            <option value="Watering &amp; Irrigation Management">Watering &amp; Irrigation Management</option>
-            <option value="Community Outreach">Community Outreach</option>
-            <option value="Construction Support">Construction Support</option>
+            <option value="" selected disabled>Loading skills…</option>
           </select>
         </div>
 
@@ -113,13 +108,45 @@
       createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
     import {
-      getFirestore, doc, setDoc, serverTimestamp
+      getFirestore, doc, setDoc, serverTimestamp, collection, getDocs
     } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
     import firebaseConfig from "./js/firebaseConfig.js";
 
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db   = getFirestore(app);
+
+    // ── Load skill categories from Firestore ──────────────────────────────
+    (async () => {
+      const sel = document.getElementById('skillCategory');
+      if (!sel) return;
+      try {
+        const snap = await getDocs(collection(db, 'skills'));
+        const skillNames = [];
+        snap.forEach(d => skillNames.push(d.data().name || d.id));
+        // Fallback defaults if collection is empty
+        const defaults = [
+          'Planting & Seedling Skills',
+          'Composting & Waste Management',
+          'Watering & Irrigation Management',
+          'Community Outreach',
+          'Construction Support'
+        ];
+        const list = skillNames.length ? skillNames : defaults;
+        sel.innerHTML = '<option value="" selected disabled>Select Skill Category</option>'
+          + list.map(n => `<option value="${n}">${n}</option>`).join('');
+      } catch (err) {
+        console.error('[signup] skills fetch error:', err);
+        // Fallback to hardcoded list so form still works
+        sel.innerHTML = `
+          <option value="" selected disabled>Select Skill Category</option>
+          <option value="Planting &amp; Seedling Skills">Planting &amp; Seedling Skills</option>
+          <option value="Composting &amp; Waste Management">Composting &amp; Waste Management</option>
+          <option value="Watering &amp; Irrigation Management">Watering &amp; Irrigation Management</option>
+          <option value="Community Outreach">Community Outreach</option>
+          <option value="Construction Support">Construction Support</option>`;
+      }
+    })();
 
     const btn         = document.getElementById('reg-btn');
     const errEl       = document.getElementById('formError');

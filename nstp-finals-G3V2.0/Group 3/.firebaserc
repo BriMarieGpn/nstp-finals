@@ -1,7 +1,8 @@
 {
   "projects": {
     "default": "growsauyou",
-    "Sproutify": "sproutify-98646"
+    "Sproutify": "sproutify-98646",
+    "testing": "growsauyou"
   },
   "targets": {},
   "etags": {}

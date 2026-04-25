@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const adminStateDoc = doc(db, 'admin', 'state');
-const programsCollection = collection(db, 'programs_empty');
+const programsCollection = collection(db, 'programs');
 let currentUserId = null;
 let currentUserProfile = null;
 let hasResolvedAuth = false;
@@ -374,6 +374,7 @@ function loadUserDashboard() {
     // Load user skills and controls
     loadUserSkills(currentUser);
     attachSkillControls(currentUser);
+    loadSkillsIntoSelect();
 
     // Load user badges
     loadUserBadges(currentUser, badges);
@@ -538,6 +539,58 @@ function loadUserSkills(user) {
     `).join('');
 }
 
+// Fetch available skills from Firestore and populate the #skillSelect dropdown
+// Uses onSnapshot so the list updates instantly when admin adds/removes a skill
+let skillsSelectUnsubscribe = null;
+function loadSkillsIntoSelect() {
+    const select = document.getElementById('skillSelect');
+    if (!select) return;
+
+    const defaults = [
+        'Planting & Seedling Skills',
+        'Composting & Waste Management',
+        'Watering & Irrigation Management',
+        'Community Outreach',
+        'Construction Support'
+    ];
+
+    const render = (names) => {
+        const list = names.length ? names : defaults;
+        const current = select.value;
+        select.innerHTML = '<option value="" disabled>Select a skill to add</option>'
+            + list.map(n => `<option value="${n}"${n === current ? ' selected' : ''}>${n}</option>`).join('');
+        // Restore previously selected value if still in list
+        if (current && list.includes(current)) select.value = current;
+    };
+
+    if (!useFirestore) {
+        render([]);
+        return;
+    }
+
+    // Unsubscribe any previous listener before starting a new one
+    if (skillsSelectUnsubscribe) { skillsSelectUnsubscribe(); skillsSelectUnsubscribe = null; }
+
+    try {
+        skillsSelectUnsubscribe = onSnapshot(
+            collection(db, 'skills'),
+            (snap) => {
+                const names = [];
+                snap.forEach(d => names.push(d.data().name || d.id));
+                names.sort();
+                render(names);
+            },
+            (err) => {
+                console.warn('[user] skills onSnapshot error, using defaults', err);
+                render([]);
+            }
+        );
+    } catch (err) {
+        console.warn('[user] Could not subscribe to skills, using defaults', err);
+        render([]);
+    }
+}
+
 function attachSkillControls(user) {
     const addButton = document.getElementById('addSkillButton');
     if (!addButton) return;
@@ -699,7 +752,7 @@ async function joinProgram(programId) {
     
     if (useFirestore) {
         try {
-            const programRef = doc(db, 'programs_empty', programId);
+            const programRef = doc(db, 'programs', programId);
             await updateDoc(programRef, { pendingJoins: arrayUnion(currentUser.id) });
             
             logUserActivity('join_request', `User requested to join program: "${programName}"`, { programId, userName: currentUser.name });

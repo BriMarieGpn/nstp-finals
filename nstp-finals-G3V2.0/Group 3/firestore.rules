@@ -1,16 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read on programs
+    // Programs: public read, auth required to write
+    match /programs/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Programs (legacy collection): public read, auth required to write
     match /programs_empty/{document=**} {
       allow read: if true;
       allow create, update, delete: if request.auth != null;
     }
 
+    // Skills: PUBLIC read so signup + user dashboard can fetch the list
+    // Only authenticated admins can write
+    match /skills/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
     // Volunteers collection
     match /volunteers/{userId} {
-      // Null-safe auth check to avoid permission errors when auth is missing.
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Admin state

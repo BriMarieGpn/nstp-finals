@@ -1,9 +1,3 @@
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
     getAuth,
@@ -13,22 +7,31 @@ import {
 import {
     getFirestore,
     collection,
-    addDoc,
     onSnapshot,
     doc,
     getDoc,
     getDocs,
     setDoc,
     updateDoc,
-    deleteDoc,
     arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+let storage = null;
+try {
+    storage = getStorage(app);
+} catch (err) {
+    console.warn('Firebase Storage unavailable — image uploads disabled.', err);
+}
 const defaultImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='280' viewBox='0 0 500 280'%3E%3Crect width='500' height='280' fill='%23546B41'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Segoe UI, sans-serif' font-size='24' fill='%23FFF8EC'%3EImage unavailable%3C/text%3E%3C/svg%3E";
 const programDocs = [];
 let programsListenerStarted = false;
@@ -812,6 +815,7 @@ async function uploadProgramImage(file) {
         }
     }
     try {
+        if (!storage) throw new Error('Storage not initialized');
         const imageRef = ref(storage, `programImages/${Date.now()}-${file.name}`);
         await uploadBytes(imageRef, file);
         return await getDownloadURL(imageRef);
@@ -1070,9 +1074,10 @@ function mapAdminProgramsToHomepagePrograms(adminPrograms) {
 }
 
 function listenPrograms() {
-    // Fetch live programs from the 'programs' collection (same collection admin writes to)
-    getDocs(collection(db, 'programs'))
-        .then((snap) => {
+    // Real-time listener on the 'programs' collection — same one admin writes to
+    onSnapshot(
+        collection(db, 'programs'),
+        (snap) => {
             const next = [];
             snap.forEach((d) => {
                 const p = d.data() || {};
@@ -1089,16 +1094,14 @@ function listenPrograms() {
                     skills: p.skills || []
                 });
             });
-            console.log('listenPrograms: loaded', next.length, 'programs from Firestore');
             programDocs.length = 0;
             programDocs.push(...next);
             // Keep localStorage in sync for offline fallback
             try { localStorage.setItem('itanimPrograms', JSON.stringify(next)); } catch(e) {}
             renderPrograms(programDocs);
-        })
-        .catch((err) => {
-            console.warn('Could not fetch programs from Firestore, falling back to localStorage:', err);
-            // Fallback: read from localStorage
+        },
+        (err) => {
+            console.warn('Could not listen to programs from Firestore, falling back to localStorage:', err);
             try {
                 const cached = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
                 const next = cached.map(p => ({
@@ -1119,7 +1122,8 @@ function listenPrograms() {
             } catch(e) {
                 renderPrograms([]);
             }
-        });
+        }
+    );
 }
 
 function refreshProgramsFromSharedStorage() {
@@ -1247,23 +1251,27 @@ if (!useFirestorePrograms) {
     console.warn("Using local program storage for debugging.");
 }
 
-// Volunteer count — fetch total documents in volunteers collection
-async function loadVolunteerCount() {
+// Volunteer count — real-time listener on volunteers collection
+function loadVolunteerCount() {
     const countEl = document.getElementById('volunteerCount');
     if (!countEl) return;
-    try {
-        if (useFirestore) {
-            const snap = await getDocs(collection(db, 'volunteers'));
-            countEl.textContent = snap.size;
-        } else {
-            // Localhost fallback: count from localStorage
+    if (!useFirestore) {
+        try {
             const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
             countEl.textContent = localUsers.length;
+        } catch {
+            countEl.textContent = '—';
         }
-    } catch (err) {
-        console.warn('Could not load volunteer count', err);
-        countEl.textContent = '—';
+        return;
     }
+    onSnapshot(
+        collection(db, 'volunteers'),
+        (snap) => { countEl.textContent = snap.size; },
+        (err) => {
+            console.warn('Could not load volunteer count', err);
+            countEl.textContent = '—';
+        }
+    );
 }
 
 loadVolunteerCount();

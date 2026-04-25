@@ -276,18 +276,7 @@
     <!-- ══ MORE TABS (hidden, kept for admin.js compatibility) ══ -->
     <div class="ad-tab" id="ad-tab-restrictions">
       <h1 class="ad-page-title">User Restrictions</h1>
-      <div class="ad-card">
-        <div class="ad-form-row">
-          <label class="ad-label">Minimum Age:</label>
-          <input type="number" id="minAge" value="18" class="ad-input">
-          <button class="ad-btn ad-btn--solid" onclick="updateRestrictions()" style="margin-left:8px;">Update</button>
-        </div>
-        <div class="ad-form-row" style="margin-top:14px;">
-          <label class="ad-label">Valid Barangays (comma-separated):</label>
-          <input type="text" id="validBarangays" value="All" class="ad-input">
-          <button class="ad-btn ad-btn--solid" onclick="saveRestrictionsFromUI()" style="margin-left:8px;">Update</button>
-        </div>
-      </div>
+      <!-- Restrictions are managed in the Settings tab to avoid duplicate IDs -->
     </div>
 
     <div class="ad-tab" id="ad-tab-skills">
@@ -453,20 +442,24 @@
       <div class="ad-card" style="margin-bottom:20px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <h2 class="ad-section-title" style="margin:0;">Skill Category Management</h2>
-          <button class="ad-btn ad-btn--solid" onclick="document.getElementById('newSkillRow').style.display='flex'">Add New Category</button>
+          <button class="ad-btn ad-btn--solid" onclick="document.getElementById('settingsNewSkillRow').style.display='flex'">Add New Category</button>
         </div>
-        <div id="newSkillRow" style="display:none;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <input type="text" id="newSkill" placeholder="New skill category" class="ad-input" style="flex:1;">
-          <button class="ad-btn ad-btn--solid" onclick="addSkill()">Save</button>
-          <button class="ad-btn" onclick="document.getElementById('newSkillRow').style.display='none'">Cancel</button>
+
+        <!-- Add form -->
+        <div id="settingsNewSkillRow" style="display:none;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+          <input type="text" id="settingsNewSkill" placeholder="e.g. Planting &amp; Seedling Skills" class="ad-input" style="flex:1;min-width:200px;">
+          <button class="ad-btn ad-btn--solid" id="settingsAddSkillBtn" onclick="addSkill()">Save</button>
+          <button class="ad-btn" onclick="document.getElementById('settingsNewSkillRow').style.display='none';document.getElementById('settingsNewSkill').value=''">Cancel</button>
         </div>
+
+        <!-- Live skill list -->
         <div class="ad-skill-table-head">
           <span>Skill Category</span>
-          <span>Description</span>
-          <span>Task using this category</span>
+          <span></span>
+          <span></span>
           <span>Actions</span>
         </div>
-        <ul id="skillList" class="ad-skill-table-body"></ul>
+        <ul id="settingsSkillList" class="ad-skill-table-body"></ul>
       </div>
 
       <!-- Notification System -->
@@ -809,18 +802,38 @@ window.showTab = function(name) {
 
 <script type="module" src="js/admin.js"></script>
 
-<script>
-  /* Auth guard — runs after DOM is fully parsed */
-  (function() {
-    var gate    = document.getElementById('authLoadingGate');
-    var content = document.getElementById('appContent');
-    if (sessionStorage.getItem('adminAuth') === 'true') {
-      gate.style.display    = 'none';
-      content.style.display = 'block';
+<script type="module">
+  import { initializeApp }     from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import firebaseConfig from "./js/firebaseConfig.js";
+
+  const ADMIN_EMAIL = 'admin@test.local';
+  const auth    = getAuth(initializeApp(firebaseConfig, 'admin-guard'));
+  const gate    = document.getElementById('authLoadingGate');
+  const content = document.getElementById('appContent');
+
+  function show() { gate.style.display = 'none'; content.style.display = 'block'; }
+  function deny() { window.location.href = 'admin-login.html'; }
+
+  // Instant reveal if sessionStorage flag already set (plain-JS login flow)
+  if (sessionStorage.getItem('adminAuth') === 'true') { show(); }
+
+  // Firebase Auth observer — covers live hosting where sessionStorage may be absent
+  onAuthStateChanged(auth, (user) => {
+    if (user && user.email === ADMIN_EMAIL) {
+      sessionStorage.setItem('adminAuth', 'true');
+      show();
+    } else if (user) {
+      // Logged in but not admin — redirect
+      deny();
+    } else if (sessionStorage.getItem('adminAuth') === 'true') {
+      // No Firebase user but session flag still valid — stay shown
+      show();
     } else {
-      window.location.href = 'admin-login.html';
+      // Guest with no session — redirect to login
+      deny();
     }
-  })();
+  });
 </script>
 </div>
 </body>

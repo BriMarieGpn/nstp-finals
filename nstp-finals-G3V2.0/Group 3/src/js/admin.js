@@ -124,21 +124,6 @@ function saveUsers() {
 }
 function savePrograms() {
     localStorage.setItem('itanimPrograms', JSON.stringify(programs));
-    if (useFirestore) {
-        (async () => {
-            try {
-                // Delete all existing docs in programs_empty
-                const snap = await getDocs(collection(db, 'programs_empty'));
-                const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
-                await Promise.all(deletePromises);
-                // Add new ones
-                const addPromises = programs.map(p => setDoc(doc(db, 'programs_empty', p.id), p));
-                await Promise.all(addPromises);
-            } catch (err) {
-                console.warn('Could not save programs to Firestore', err);
-            }
-        })();
-    }
     saveAdminStateToFirestore();
     // Always sync to homepage programs after saving
     syncProgramsFromPrograms();
@@ -233,6 +218,7 @@ async function initFirestoreAdminState() {
         });
 
         // Live-sync volunteers so hours are always reflected in dashboard analytics.
+        // Live-sync volunteers so hours are always reflected in dashboard analytics.
         onSnapshot(collection(db, 'volunteers'), (volunteersSnap) => {
             users = [];
             volunteersSnap.forEach((volunteerDoc) => {
@@ -249,7 +235,9 @@ async function initFirestoreAdminState() {
                     badge: data.badge || 'None',
                     enrolledPrograms: data.enrolledPrograms || [],
                     completedPrograms: data.completedPrograms || [],
-                    createdAt: data.createdAt || data.registeredAt || null
+                    createdAt: data.createdAt || data.registeredAt || null,
+                    pendingValidation: data.pendingValidation || [],
+                    absentPrograms: data.absentPrograms || []
                 });
             });
             updateVolunteers();
@@ -257,6 +245,7 @@ async function initFirestoreAdminState() {
             updateAnalytics();
             updateVolunteerProgramParticipants();
         });
+        console.log('Firestore admin state initialized');
     } catch (err) {
         console.warn('Firestore admin state listener failed', err);
     }
@@ -327,23 +316,22 @@ async function syncProgramsFromPrograms() {
     if (!useFirestore) return;
 
     try {
-        // First, delete all existing programs in Firestore
-        const snap = await getDocs(collection(db, 'programs_empty'));
-        const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
-        await Promise.all(deletePromises);
-
-        // Then add all current programs
+        // Upsert each program directly into the 'programs' collection by its ID
         const addPromises = programs.map(async (program) => {
             const firestoreData = {
-                title: program.name,  // Fix: use program.name instead of program.title
+                name: program.name,
+                title: program.name,
                 hours: program.hours,
                 requirement: program.requirement || 'None',
                 desc: program.desc || '',
                 image: (program.attachments && program.attachments[0] && program.attachments[0].dataUrl) ? program.attachments[0].dataUrl : defaultImage,
                 joined: program.joined || [],
-                skills: program.skills || []
+                pendingJoins: program.pendingJoins || [],
+                skills: program.skills || [],
+                status: program.status || 'active',
+                maxVolunteers: program.maxVolunteers || 0
             };
-            return setDoc(doc(db, 'programs_empty', program.id), firestoreData, { merge: true });
+            return setDoc(doc(db, 'programs', program.id), firestoreData, { merge: true });
         });
         await Promise.all(addPromises);
         console.log('Successfully synced', programs.length, 'programs to Firestore');
@@ -549,7 +537,8 @@ function updateVolunteers() {
                     </div>
                 `).join('')}
             </div>
-        `;
+        </div>
+    `;
 
     updateVolunteerProgramFilter();
     updateVolunteerProgramParticipants();
@@ -560,6 +549,8 @@ function updateVolunteers() {
         window.refreshTaskValidation(users, programs);
     }
 }
+
+function updateVolunteerProgramFilter() {
     // Always pull latest program list from local cache source.
     refreshLocalAdminCache();
 
@@ -738,7 +729,7 @@ async function approveJoinRequest(programId, userId) {
 
     if (useFirestore) {
         try {
-            await setDoc(doc(db, 'programs_empty', programId), {
+            await setDoc(doc(db, 'programs', programId), {
                 joined: program.joined,
                 pendingJoins: program.pendingJoins
             }, { merge: true });
@@ -769,7 +760,7 @@ async function rejectJoinRequest(programId, userId) {
 
     if (useFirestore) {
         try {
-            await setDoc(doc(db, 'programs_empty', programId), {
+            await setDoc(doc(db, 'programs', programId), {
                 pendingJoins: program.pendingJoins
             }, { merge: true });
         } catch (err) {
@@ -912,7 +903,7 @@ async function markVolunteerAbsent(programId, userId) {
 
     if (useFirestore) {
         try {
-            await setDoc(doc(db, 'programs_empty', programId), {
+            await setDoc(doc(db, 'programs', programId), {
                 joined: program.joined,
                 absent: program.absent
             }, { merge: true });
@@ -1005,43 +996,114 @@ function saveRestrictionsFromUI() {
     alert('Restrictions updated!');
 }
 
-// Skills
+// ── Skills — Firestore-backed ──────────────────────────────────────────────
+
+// ── Skills — Firestore real-time ──────────────────────────────────────────
+
+let skillsUnsubscribe = null;
+
+function fetchAndRenderSkills() {
+    if (skillsUnsubscribe) return; // already listening
+    skillsUnsubscribe = onSnapshot(
+        collection(db, 'skills'),
+        (snap) => {
+            skills = [];
+            snap.forEach(d => skills.push({ id: d.id, name: d.data().name || d.id }));
+            // Sort alphabetically
+            skills.sort((a, b) => a.name.localeCompare(b.name));
+            updateSkills();
+        },
+        (err) => {
+            console.error('[admin] skills onSnapshot error:', err.code, err.message);
+            updateSkills();
+        }
+    );
+}
+
 function updateSkills() {
-    const el = document.getElementById('skillList');
+    // Render into the Settings tab list (settingsSkillList)
+    const el = document.getElementById('settingsSkillList') || document.getElementById('skillList');
     if (!el) return;
-    el.innerHTML = skills.map(skill => `
-        <li>${skill} <button class="edit-btn" onclick="editSkill('${skill.replace(/'/g, "\\'")}')">Edit</button> <button class="delete-btn" onclick="deleteSkill('${skill.replace(/'/g, "\\'")}')">Delete</button></li>
-    `).join('');
-}
-
-function addSkill() {
-    const newSkill = document.getElementById('newSkill').value.trim();
-    if (newSkill && !skills.includes(newSkill)) {
-        skills.push(newSkill);
-        saveSkills();
-        updateSkills();
-        document.getElementById('newSkill').value = '';
-    }
-}
-
-function deleteSkill(skill) {
-    skills = skills.filter(s => s !== skill);
-    saveSkills();
-    updateSkills();
-}
-
-function editSkill(skill) {
-    const updated = prompt('Edit skill category:', skill);
-    if (!updated) return;
-    const normalized = updated.trim();
-    if (!normalized) return;
-    if (skills.includes(normalized) && normalized !== skill) {
-        alert('Skill already exists.');
+    if (!skills.length) {
+        el.innerHTML = '<li style="padding:12px 0;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;list-style:none;">No skill categories yet. Click "Add New Category" to create one.</li>';
         return;
     }
-    skills = skills.map((s) => s === skill ? normalized : s);
-    saveSkills();
-    updateSkills();
+    el.innerHTML = skills.map(s => {
+        const name = typeof s === 'string' ? s : s.name;
+        const id   = typeof s === 'string' ? name : s.id;
+        return `<li style="display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);list-style:none;">
+            <span style="font-family:'Montserrat',sans-serif;font-size:0.9rem;font-weight:600;color:var(--primary);">${name}</span>
+            <span style="display:flex;gap:6px;">
+                <button class="edit-btn"   onclick="editSkill('${id.replace(/'/g,"\\'")}')">Edit</button>
+                <button class="delete-btn" onclick="deleteSkill('${id.replace(/'/g,"\\'")}')">Delete</button>
+            </span>
+        </li>`;
+    }).join('');
+}
+
+async function addSkill() {
+    const input = document.getElementById('settingsNewSkill') || document.getElementById('newSkill');
+    const name  = (input?.value || '').trim();
+    if (!name) { input?.focus(); return; }
+
+    const btn = document.getElementById('settingsAddSkillBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+    try {
+        // Check for duplicate
+        const existing = skills.find(s => (typeof s === 'string' ? s : s.name).toLowerCase() === name.toLowerCase());
+        if (existing) { alert('This skill category already exists.'); return; }
+
+        await addDoc(collection(db, 'skills'), { name, createdAt: new Date().toISOString() });
+
+        // Reset form — onSnapshot will re-render the list automatically
+        if (input) input.value = '';
+        const row = document.getElementById('settingsNewSkillRow') || document.getElementById('newSkillRow');
+        if (row) row.style.display = 'none';
+    } catch (err) {
+        console.error('[admin] addSkill error:', err);
+        alert('Failed to add skill: ' + (err.message || err));
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+    }
+}
+
+async function deleteSkill(idOrName) {
+    if (!confirm('Delete this skill category?')) return;
+    try {
+        const snap = await getDocs(collection(db, 'skills'));
+        for (const d of snap.docs) {
+            if (d.id === idOrName || d.data().name === idOrName) {
+                await deleteDoc(d.ref);
+                break;
+            }
+        }
+        // onSnapshot fires automatically and re-renders the list
+    } catch (err) {
+        console.error('[admin] deleteSkill error:', err);
+        alert('Failed to delete skill: ' + (err.message || err));
+    }
+}
+
+async function editSkill(idOrName) {
+    const current = skills.find(s => (typeof s === 'string' ? s : s.id || s.name) === idOrName);
+    const currentName = current ? (typeof current === 'string' ? current : current.name) : idOrName;
+    const updated = prompt('Edit skill category:', currentName);
+    if (!updated || !updated.trim() || updated.trim() === currentName) return;
+
+    try {
+        const snap = await getDocs(collection(db, 'skills'));
+        for (const d of snap.docs) {
+            if (d.id === idOrName || d.data().name === currentName) {
+                await setDoc(d.ref, { name: updated.trim() }, { merge: true });
+                break;
+            }
+        }
+        // onSnapshot fires automatically and re-renders the list
+    } catch (err) {
+        console.error('[admin] editSkill error:', err);
+        alert('Failed to edit skill: ' + (err.message || err));
+    }
 }
 
 // Programs
@@ -1203,7 +1265,6 @@ async function fetchAndRenderPrograms() {
             (snap) => {
                 programs = [];
                 snap.forEach(d => programs.push({ id: d.id, ...d.data() }));
-                // Sort by createdAt descending (newest first)
                 programs.sort((a, b) => (b.createdAt || '') > (a.createdAt || '') ? 1 : -1);
                 localStorage.setItem('itanimPrograms', JSON.stringify(programs));
                 updatePrograms();
@@ -1211,12 +1272,12 @@ async function fetchAndRenderPrograms() {
                 if (typeof window.refreshAdminDashboard === 'function') window.refreshAdminDashboard(programs);
             },
             (err) => {
-                console.warn('programs onSnapshot error:', err);
-                updatePrograms(); // fall back to in-memory
+                console.error('[admin] programs onSnapshot error:', err.code, err.message);
+                updatePrograms(); // render empty state / cached data
             }
         );
     } catch (err) {
-        console.warn('fetchAndRenderPrograms setup error:', err);
+        console.error('[admin] fetchAndRenderPrograms setup error:', err);
         updatePrograms();
     }
 }
@@ -1559,10 +1620,12 @@ async function logoutAdmin() {
 }
 
 async function loadAdminSession() {
-    // Auth is handled by the inline script in admin.html via sessionStorage.
+    // Auth is handled by the inline script in admin.html via onAuthStateChanged.
     // If we reach here, the user is already verified — just render the shell.
     renderAdminShell();
     restoreActiveTab();
+    // Fetch live skills from Firestore
+    fetchAndRenderSkills().catch(e => console.error('[admin] skills fetch error:', e));
 }
 
 // Attachment preview behavior (called once after admin shell loads)
@@ -1585,6 +1648,9 @@ function initAdminAttachmentPreview() {
 window.logoutAdmin = logoutAdmin;
 window.showTab = showTab;
 window.filterPrograms = filterPrograms;
+window.addSkill = addSkill;
+window.editSkill = editSkill;
+window.deleteSkill = deleteSkill;
 
 /* ── Inline program creation from Settings tab ── */
 window.submitNewProgram = async function() {
@@ -1819,9 +1885,6 @@ window.addEventListener('storage', (event) => {
 });
 
 window.saveRestrictionsFromUI = saveRestrictionsFromUI;
-window.addSkill = addSkill;
-window.deleteSkill = deleteSkill;
-window.editSkill = editSkill;
 window.showTaskModal = showTaskModal;
 window.closeTaskModal = closeTaskModal;
 window.saveTask = saveTask;
