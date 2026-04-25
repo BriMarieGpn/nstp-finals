@@ -18,8 +18,17 @@ const mediaPlaceholder = document.getElementById('mediaPlaceholder');
 const photoBtn = document.getElementById('photoBtn');
 const videoBtn = document.getElementById('videoBtn');
 
-const photoSrc = "your-photo.jpg";   // Change to your actual photo
-const videoSrc = "your-video.mp4";   // Change to your actual video
+const photoSrc = "../assets/icons/herbs/plantimg_01.png";
+const videoSrc = "../assets/images/bg1.jpg";
+
+function defaultImageForCategory(category) {
+    if (!category) return photoSrc;
+    const normalized = category.toLowerCase();
+    if (normalized.includes('herb')) return "../assets/icons/herbs/plantimg_01.png";
+    if (normalized.includes('fruit')) return "../assets/icons/fruits/plantimg_26.PNG";
+    if (normalized.includes('vegetable')) return "../assets/icons/vegetable/plantimg_48.jfif";
+    return photoSrc;
+}
 
 // Start with photo by default
 mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo">`;
@@ -30,10 +39,7 @@ photoBtn.addEventListener('click', () => {
 
 videoBtn.addEventListener('click', () => {
     mediaPlaceholder.innerHTML = `
-        <video width="100%" height="100%" controls style="border-radius:17px;">
-            <source src="${videoSrc}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+        <img src="${videoSrc}" alt="Plant Video Placeholder" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">
     `;
 });
 

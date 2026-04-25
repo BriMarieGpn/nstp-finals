@@ -67,9 +67,14 @@ function renderGrid() {
     filtered.forEach(plant => {
         const card = document.createElement("div");
         card.className = "mini-card";
+        const defaultImage = plant.category && plant.category.toLowerCase().includes('fruit')
+            ? '../assets/icons/fruits/plantimg_26.PNG'
+            : plant.category && plant.category.toLowerCase().includes('vegetable')
+                ? '../assets/icons/vegetable/plantimg_48.jfif'
+                : '../assets/icons/herbs/plantimg_01.png';
         card.innerHTML = `
             <div class="mini-card-img">
-            <img src="${plant.image || 'images/wa.png'}" alt="${plant.name}" />
+            <img src="${plant.image || defaultImage}" alt="${plant.name}" />
             </div>
             <h3>${plant.name}</h3>
             <p>${plant.scientific_name}</p>
