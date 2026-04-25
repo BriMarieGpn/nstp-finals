@@ -18,23 +18,23 @@ const mediaPlaceholder = document.getElementById('mediaPlaceholder');
 const photoBtn = document.getElementById('photoBtn');
 const videoBtn = document.getElementById('videoBtn');
 
-const photoSrc = "../assets/icons/herbs/plantimg_01.png";
+let currentImage = "../assets/icons/herbs/plantimg_01.png";
 const videoSrc = "../assets/images/bg1.jpg";
 
 function defaultImageForCategory(category) {
-    if (!category) return photoSrc;
+    if (!category) return "../assets/icons/herbs/plantimg_01.png";
     const normalized = category.toLowerCase();
     if (normalized.includes('herb')) return "../assets/icons/herbs/plantimg_01.png";
     if (normalized.includes('fruit')) return "../assets/icons/fruits/plantimg_26.PNG";
     if (normalized.includes('vegetable')) return "../assets/icons/vegetable/plantimg_48.jfif";
-    return photoSrc;
+    return "../assets/icons/herbs/plantimg_01.png";
 }
 
 // Start with photo by default
-mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo">`;
+mediaPlaceholder.innerHTML = `<img src="${currentImage}" alt="Plant Photo">`;
 
 photoBtn.addEventListener('click', () => {
-    mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo">`;
+    mediaPlaceholder.innerHTML = `<img src="${currentImage}" alt="Plant Photo">`;
 });
 
 videoBtn.addEventListener('click', () => {
@@ -76,9 +76,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (!snapshot.empty) {
                 const plantData = snapshot.docs[0].data();
                 
-                const setText = (id, value) => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = value ?? 'N/A';
+                currentImage = plantData.image || defaultImageForCategory(plantData.category);
+                mediaPlaceholder.innerHTML = `<img src="${currentImage}" alt="${plantName}">`;
+                
                 };
 
                 const setHtml = (id, html) => {
@@ -155,8 +155,9 @@ window.addEventListener('DOMContentLoaded', async () => {
 
                 // Update media placeholder with plant image
                 const mediaPlaceholder = document.getElementById('mediaPlaceholder');
-                if (plantData.image && mediaPlaceholder) {
-                    mediaPlaceholder.innerHTML = `<img src="${plantData.image}" alt="${plantName}" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">`;
+                currentImage = plantData.image || defaultImageForCategory(plantData.category);
+                if (mediaPlaceholder) {
+                    mediaPlaceholder.innerHTML = `<img src="${currentImage}" alt="${plantName}" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">`;
                 }
             }
         } catch (error) {
