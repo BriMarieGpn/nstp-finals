@@ -1,0 +1,323 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    overflow: hidden;
+    background: url('background.png') center/cover no-repeat fixed var(--page-bg);
+    color: var(--green-900);
+    font-family: Arial, sans-serif;
+    position: relative;
+    background-image: url(/assets/images/bg.png);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+/* ================== MAIN CONTENT ================== */
+.content {
+    position: fixed;
+    inset: 100px 30px 20px 30px;
+    max-width: calc(100% - 60px);
+    margin: 0 auto;
+    padding: 0;
+    overflow: hidden;
+}
+
+.info-card {
+    background: var(--color-05);
+    backdrop-filter: blur(8px);
+    border: 2px solid var(--color-01);
+    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 45px;
+    padding: 40px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.text-section {
+    flex: 2;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 25px;
+    margin-top: 0;
+    max-height: calc(100% - 80px);
+}
+
+.text-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.text-section::-webkit-scrollbar-track {
+    background: rgb(186, 186, 186);
+    border-radius: 10px;
+}
+
+.text-section::-webkit-scrollbar-thumb {
+    background: var(--color-01);
+    border-radius: 10px;
+}
+
+.text-section::-webkit-scrollbar-thumb:hover {
+    background: var(--color);
+}
+
+.text-section h2 {
+    color: var(--color);
+    margin-bottom: 12px;
+    margin-top: 40px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.text-section p {
+    margin-bottom: 20px;
+    line-height: 1.7;
+    color: var(--color);
+    font-size: 15.5px;
+}
+
+.guide p,
+.guide div {
+    margin-bottom: 18px;
+    line-height: 1.8;
+}
+
+.text-section hr {
+    border: none;
+    border-top: 2px solid rgb(186, 186, 186);
+    margin: 20px 0;
+}
+
+.video-section {
+    flex: 1.15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding-top: 50px;
+}
+
+.media-placeholder {
+    width: 100%;
+    height: 380px;
+    background: #f8f8f8;
+    border-radius: 22px;
+    border: 3px dashed #aaa;
+    overflow: hidden;
+    position: relative;
+}
+
+.media-placeholder img,
+.media-placeholder video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 19px;
+}
+
+.media-placeholder::before {
+    content: "Plant Photo";
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    color: #555;
+    z-index: 2;
+}
+
+.fruit-name {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--color-01);
+    margin-top: 12px;
+}
+
+.animated-button {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    border: 2px solid var(--color-01);
+    background: white;
+    color: var(--color-01);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+    text-decoration: none;
+}
+
+.animated-button:hover {
+    background: var(--color-01);
+    color: white;
+}
+
+.btn-left {
+    position: absolute;
+    top: 28px;
+    left: 28px;
+}
+
+.media-buttons {
+    display: flex;
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.btn-photo,
+.btn-video {
+    background: var(--color-05);
+    color: var(--color-01);
+    border-color: var(--color-01);
+}
+
+.nav-item-with-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    height: 70px;
+    padding: 0 26px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    gap: 6px;
+}
+
+.nav-link.active-link {
+    background: var(--color-01);
+    color: var(--color-04);
+}
+
+.nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-02);
+    min-width: 180px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+    z-index: 200;
+    padding: 8px 0;
+    margin-top: 4px;
+}
+
+.nav-item-with-dropdown:hover .nav-dropdown {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 12px 20px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dropdown-item:hover {
+    background: var(--green-300);
+    color: #2b3d24;
+}
+
+.green-community-container {
+    position: relative;
+    display: inline-block;
+}
+
+.green-community-container .nav-link {
+    display: inline-flex;
+    align-items: center;
+    height: 70px;
+    padding: 0 26px;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.green-community-container .nav-link.active-link {
+    background: var(--green-300);
+    color: #2b3d24;
+    border-radius: 0;
+}
+
+.green-community-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 100%;
+    background: var(--green-600);
+    z-index: 100;
+    box-shadow: var(--shadow-soft);
+    border-radius: 0;
+    padding: 8px 0;
+    margin-top: 4px;
+}
+
+.green-community-container:hover .green-community-dropdown {
+    display: block;
+}
+
+.green-community-dropdown .side-item {
+    padding: 15px 20px;
+    color: #fff8ec;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.green-community-dropdown .side-item:hover {
+    background: var(--green-300);
+    color: #2b3d24;
+}
+
+.brand-highlight.active-link {
+    background: var(--green-300);
+    color: #2b3d24;
+    border-radius: 0;
+}
+
+.brand-highlight:hover,
+.nav-link:hover,
+.brand-highlight.active-link {
+    background: var(--green-300);
+    color: #2b3d24;
+    border-radius: 0;
+}
+
+.guide h2 {
+    color: var(--color);
+}
+.guide strong{
+    color: var(--color);
+}

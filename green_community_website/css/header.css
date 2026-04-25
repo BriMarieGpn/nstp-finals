@@ -1,0 +1,104 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  margin: 0;
+  background-color: var(--color-05);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: color-mix(in srgb, var(--color-05) 70%, transparent);
+  border-bottom: solid 1px var(--color-02);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body {
+  padding-top: 80px;
+}
+
+header h3 {
+  font-size: 24px;
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: bold;
+  background: linear-gradient(45deg, var(--color), var(--color-02));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+nav a {
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.web-pages {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+}
+.web-pages ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.web-pages a{
+  color: var(--color);
+  padding: 10px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  display: inline-block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+}
+.web-pages a:hover {
+  color: var(--color-02);
+  transform: translateY(-5px);
+}
+nav li {
+  float: left;
+  margin-right: 80px;
+}
+
+.register-buttons button {
+  background-color: var(--color-01);
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+#log-in {
+  background-color: transparent;
+  border: solid 2px var(--color-01);
+  color: var(--color-01);
+  margin-right: 10px;
+}
+#log-in:hover{
+  color: white;
+  background-color: var(--color-02);
+}
+
+#sign-up {
+  background-color: var(--color-01);
+  border: solid 2px var(--color-01);
+  color: var(--color-04);
+  margin-right: 40px;
+}
+#sign-up:hover{
+  color: var(--color-04);
+  background-color: var(--color-02);
+}
