@@ -14,6 +14,39 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const herbIcons = [
+    'plantimg_01.png','plantimg_02.png','plantimg_03.png','plantimg_04.png','plantimg_05.png','plantimg_06.png','plantimg_07.png','plantimg_08.png','plantimg_09.png','plantimg_10.png','plantimg_11.png','plantimg_12.png','plantimg_13.png','plantimg_14.png','plantimg_15.png','plantimg_16.png','plantimg_17.png','plantimg_18.png','plantimg_19.png','plantimg_20.png','plantimg_21.png','plantimg_22.png','plantimg_23.png','plantimg_24.png','plantimg_25.png'
+];
+const fruitIcons = [
+    'plantimg_26.PNG','plantimg_27.png','plantimg_28.PNG','plantimg_29.png','plantimg_30.jpg','plantimg_33.png','plantimg_34.png','plantimg_35.PNG','plantimg_36.PNG','plantimg_37.PNG','plantimg_38.png','plantimg_39.PNG','plantimg_40.png','plantimg_41.PNG','plantimg_42.png','plantimg_43.PNG','plantimg_44.png','plantimg_45.png','plantimg_46.png','plantimg_47.png','plantimg_49.png'
+];
+const vegetableIcons = [
+    'plantimg_48.jfif','plantimg_50.jfif','plantimg_51.jfif','plantimg_52.jfif','plantimg_53.jfif','plantimg_54.jpeg','plantimg_55.jfif','plantimg_56.jpeg','plantimg_57.jfif','plantimg_58.jfif','plantimg_59.jpeg','plantimg_60.jfif','plantimg_61.jfif','plantimg_62.jfif','plantimg_63.jfif','plantimg_64.jfif','plantimg_65.jfif','plantimg_66.jfif','plantimg_67.jfif','plantimg_68.jpeg','plantimg_69.jpeg','plantimg_70.jpeg','plantimg_71.jpeg','plantimg_72.jfif'
+];
+
+const iconSets = {
+    herbs: herbIcons,
+    fruits: fruitIcons,
+    vegetable: vegetableIcons
+};
+
+function normalizeCategory(category) {
+    const value = String(category || '').toLowerCase();
+    if (value.includes('fruit')) return 'fruits';
+    if (value.includes('veg')) return 'vegetable';
+    return 'herbs';
+}
+
+function getFallbackIconPath(name, category) {
+    const folder = normalizeCategory(category);
+    const list = iconSets[folder] || herbIcons;
+    const hash = String(name || '')
+        .split('')
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const fileName = list[hash % list.length];
+    return `../assets/icons/${folder}/${fileName}`;
+}
+
 let allPlants = [];
 let currentCategory = null;
 let currentFilters = { search: "", lifespan: "All", sort: "name-asc" };
@@ -65,11 +98,12 @@ function renderGrid() {
     }
 
     filtered.forEach(plant => {
+        const imagePath = plant.image || getFallbackIconPath(plant.name, plant.category);
         const card = document.createElement("div");
         card.className = "mini-card";
         card.innerHTML = `
             <div class="mini-card-img">
-            <img src="${plant.image || 'images/wa.png'}" alt="${plant.name}" />
+            <img src="${imagePath}" alt="${plant.name}" />
             </div>
             <h3>${plant.name}</h3>
             <p>${plant.scientific_name}</p>

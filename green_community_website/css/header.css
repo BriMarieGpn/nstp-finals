@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 html, body {
@@ -9,96 +10,110 @@ html, body {
   background-color: var(--color-05);
 }
 
-header {
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: color-mix(in srgb, var(--color-05) 94%, transparent);
+  border-bottom: 1px solid var(--color-02);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.nav-inner {
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  background-color: color-mix(in srgb, var(--color-05) 70%, transparent);
-  border-bottom: solid 1px var(--color-02);
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 20px;
 }
 
-body {
-  padding-top: 80px;
-}
-
-header h3 {
-  font-size: 24px;
+.nav-logo {
   font-family: 'Archivo Black', sans-serif;
-  font-weight: bold;
+  font-size: 1.15rem;
+  color: var(--color);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.nav-logo__text {
   background: linear-gradient(45deg, var(--color), var(--color-02));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-nav a {
-  font-size: 16px;
-  text-decoration: none;
-}
-
-.web-pages {
+.nav-right {
   display: flex;
   align-items: center;
-  gap: 80px;
+  gap: 24px;
 }
-.web-pages ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  overflow: hidden;
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
-.web-pages a{
+
+.nav-links a {
   color: var(--color);
-  padding: 10px;
-  text-align: center;
-  transition: transform 0.3s ease;
-  display: inline-block;
+  text-decoration: none;
   font-family: 'Montserrat', sans-serif;
-  font-size: 14px;
-}
-.web-pages a:hover {
-  color: var(--color-02);
-  transform: translateY(-5px);
-}
-nav li {
-  float: left;
-  margin-right: 80px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
 }
 
-.register-buttons button {
-  background-color: var(--color-01);
-  border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
+.nav-links a:hover {
+  opacity: 0.65;
+}
+
+.nav-auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-btn,
+.nav-btn:focus,
+.nav-btn:hover {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 9px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.15s;
+  white-space: nowrap;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-#log-in {
-  background-color: transparent;
-  border: solid 2px var(--color-01);
-  color: var(--color-01);
-  margin-right: 10px;
-}
-#log-in:hover{
-  color: white;
-  background-color: var(--color-02);
+.nav-btn--solid {
+  background: var(--color);
+  color: var(--color-05);
+  border-color: var(--color);
 }
 
+.nav-btn--ghost {
+  background: transparent;
+  color: var(--color);
+  border-color: var(--color);
+}
+
+.nav-btn:hover {
+  opacity: 0.82;
+  transform: translateY(-1px);
+}
+
+.register-buttons,
+.web-pages,
+header,
+nav li,
+#log-in,
 #sign-up {
-  background-color: var(--color-01);
-  border: solid 2px var(--color-01);
-  color: var(--color-04);
-  margin-right: 40px;
-}
-#sign-up:hover{
-  color: var(--color-04);
-  background-color: var(--color-02);
+  display: none;
 }

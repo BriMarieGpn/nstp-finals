@@ -1,3 +1,6 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
 // Intro overlay animation
 document.addEventListener('DOMContentLoaded', () => {
     const introOverlay = document.getElementById('intro-overlay');
@@ -18,17 +21,50 @@ const mediaPlaceholder = document.getElementById('mediaPlaceholder');
 const photoBtn = document.getElementById('photoBtn');
 const videoBtn = document.getElementById('videoBtn');
 
-const photoSrc = "your-photo.jpg";   // Change to your actual photo
-const videoSrc = "your-video.mp4";   // Change to your actual video
+const herbIcons = [
+    'plantimg_01.png','plantimg_02.png','plantimg_03.png','plantimg_04.png','plantimg_05.png','plantimg_06.png','plantimg_07.png','plantimg_08.png','plantimg_09.png','plantimg_10.png','plantimg_11.png','plantimg_12.png','plantimg_13.png','plantimg_14.png','plantimg_15.png','plantimg_16.png','plantimg_17.png','plantimg_18.png','plantimg_19.png','plantimg_20.png','plantimg_21.png','plantimg_22.png','plantimg_23.png','plantimg_24.png','plantimg_25.png'
+];
+const fruitIcons = [
+    'plantimg_26.PNG','plantimg_27.png','plantimg_28.PNG','plantimg_29.png','plantimg_30.jpg','plantimg_33.png','plantimg_34.png','plantimg_35.PNG','plantimg_36.PNG','plantimg_37.PNG','plantimg_38.png','plantimg_39.PNG','plantimg_40.png','plantimg_41.PNG','plantimg_42.png','plantimg_43.PNG','plantimg_44.png','plantimg_45.png','plantimg_46.png','plantimg_47.png','plantimg_49.png'
+];
+const vegetableIcons = [
+    'plantimg_48.jfif','plantimg_50.jfif','plantimg_51.jfif','plantimg_52.jfif','plantimg_53.jfif','plantimg_54.jpeg','plantimg_55.jfif','plantimg_56.jpeg','plantimg_57.jfif','plantimg_58.jfif','plantimg_59.jpeg','plantimg_60.jfif','plantimg_61.jfif','plantimg_62.jfif','plantimg_63.jfif','plantimg_64.jfif','plantimg_65.jfif','plantimg_66.jfif','plantimg_67.jfif','plantimg_68.jpeg','plantimg_69.jpeg','plantimg_70.jpeg','plantimg_71.jpeg','plantimg_72.jfif'
+];
+const iconSets = { herbs: herbIcons, fruits: fruitIcons, vegetable: vegetableIcons };
 
-// Start with photo by default
-mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo">`;
+function normalizeCategory(category) {
+    const value = String(category || '').toLowerCase();
+    if (value.includes('fruit')) return 'fruits';
+    if (value.includes('veg')) return 'vegetable';
+    return 'herbs';
+}
+
+function getFallbackIconPath(name, category) {
+    const folder = normalizeCategory(category);
+    const list = iconSets[folder] || herbIcons;
+    const hash = String(name || '')
+        .split('')
+        .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    const fileName = list[hash % list.length];
+    return `../assets/icons/${folder}/${fileName}`;
+}
+
+let photoSrc = "../assets/icons/herbs/plantimg_01.png";
+const videoSrc = "your-video.mp4";
+
+function setPhotoPreview() {
+    if (!mediaPlaceholder) return;
+    mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">`;
+}
+
+setPhotoPreview();
 
 photoBtn.addEventListener('click', () => {
-    mediaPlaceholder.innerHTML = `<img src="${photoSrc}" alt="Plant Photo">`;
+    setPhotoPreview();
 });
 
 videoBtn.addEventListener('click', () => {
+    if (!mediaPlaceholder) return;
     mediaPlaceholder.innerHTML = `
         <video width="100%" height="100%" controls style="border-radius:17px;">
             <source src="${videoSrc}" type="video/mp4">
@@ -36,10 +72,6 @@ videoBtn.addEventListener('click', () => {
         </video>
     `;
 });
-
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w",
@@ -148,10 +180,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 setText('when', plantData.when);
 
                 // Update media placeholder with plant image
-                const mediaPlaceholder = document.getElementById('mediaPlaceholder');
-                if (plantData.image && mediaPlaceholder) {
-                    mediaPlaceholder.innerHTML = `<img src="${plantData.image}" alt="${plantName}" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">`;
-                }
+                photoSrc = plantData.image || getFallbackIconPath(plantName, plantData.category);
+                setPhotoPreview();
             }
         } catch (error) {
             console.error("Error fetching plant details:", error);
