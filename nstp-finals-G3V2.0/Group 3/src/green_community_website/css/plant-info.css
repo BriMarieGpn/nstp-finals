@@ -10,11 +10,10 @@ body {
     margin: 0;
     min-height: 100vh;
     overflow: hidden;
-    background: url('background.png') center/cover no-repeat fixed var(--page-bg);
-    color: var(--green-900);
+    background: url('../assets/images/bg.png') center/cover no-repeat fixed #FFF8EC;
+    color: var(--color);
     font-family: Arial, sans-serif;
     position: relative;
-    background-image: url(/assets/images/bg.png);
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;

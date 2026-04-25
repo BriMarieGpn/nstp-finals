@@ -5,27 +5,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Green Community</title>
+  <title>Green Community | GrowSauYOU</title>
 
+  <link rel="stylesheet" href="../css/common.css">
   <link rel="stylesheet" href="../css/reusable.css">
-  <link rel="stylesheet" href="../css/header.css">
   <link rel="stylesheet" href="../css/index.css">
   <link rel="stylesheet" href="../css/plant.css">
 </head>
 
 <body>
   <header>
-    <nav class="web-pages">
-      <h3>Green Community</h3>
-      <ul>
-        <li><a href="/" >I-Tanim</a></li>
-        <li><a href="/">Here-Ramin</a></li>
-      </ul>
-    </nav>
-
-    <nav class="register-buttons">
-      <button id="log-in">Login</a></button>
-      <button id="sign-up">Sign-Up</a></button>
+    <nav class="navbar">
+      <div class="nav-inner">
+        <a href="../../index.html" class="nav-logo">
+          <span class="nav-logo__text">GrowSauYOU</span>
+        </a>
+        <div class="nav-right">
+          <div class="nav-links">
+            <a href="../../index.html">Home</a>
+            <a href="index.html">I-Tanim</a>
+            <a href="plant-info.html">Here-Ramin</a>
+          </div>
+          <div class="nav-auth">
+            <a class="nav-btn nav-btn--ghost" href="../../login.html">Login</a>
+            <a class="nav-btn nav-btn--solid" href="../../signup.html">Sign-Up</a>
+          </div>
+        </div>
+      </div>
     </nav>
   </header>
   
@@ -44,13 +50,13 @@
 
       <section id="category-menu">
         <div class="category-button" onclick="filterPlants('Herbs')">
-          <img src="..../assets/images/herbs.png" alt="this is an image of herbs">
+          <img src="../assets/images/herbs.png" alt="Herbs category">
         </div>
         <div class="category-button" onclick="filterPlants('Fruits')">
-            <img src="..../assets/images/fruits.png" alt="this is an image of fruits">
+            <img src="../assets/images/fruits.png" alt="Fruits category">
         </div>
         <div class="category-button" onclick="filterPlants('Vegetables')">
-            <img src="..../assets/images/vegetables.png" alt="this is an image of vegetables">
+            <img src="../assets/images/vegetables.png" alt="Vegetables category">
         </div>
       </section>
     </div>
@@ -103,7 +109,7 @@
         </div>
     </div>
 
-    <script type="module" src="..../javascript/plant.js"></script>
+    <script type="module" src="../javascript/plant.js"></script>
     <script>
         const params = new URLSearchParams(window.location.search);
         if (params.get("category")) {
