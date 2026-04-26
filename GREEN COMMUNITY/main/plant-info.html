@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Planting Guide</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/css/common.css">
+    <link rel="stylesheet" href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/css/home.css">
+    <link rel="stylesheet" href="../css/reusable.css">
+    <link rel="stylesheet" href="../css/plant-info.css">
+</head>
+
+<body class="background-image">
+
+  <!-- Decorative leaf background -->
+  <div class="leaf-bg" aria-hidden="true">
+    <svg class="lb-left" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+    <svg class="lb-right" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+  </div>
+
+  <header>
+    <nav class="navbar" id="mainNav">
+      <div class="nav-inner">
+        <!-- Logo -->
+        <a href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html" class="nav-logo">
+          <img src="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+          <span class="nav-logo__text">GrowSauYOU</span>
+        </a>
+
+        <!-- Nav links + auth buttons -->
+        <div class="nav-right">
+          <div class="nav-links">
+            <a href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html">Home</a>
+            <a href="index.html">Green Community</a>
+            <a href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/green_community_website/main/index.html">Here-Ramin</a>
+            <a id="userDashboardLink" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/user.html" style="display:none;">Dashboard</a>
+            <a id="adminLink" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/admin.html" style="display:none;">Admin Panel</a>
+          </div>
+          <div class="nav-auth">
+            <a id="navLoginLink" class="nav-btn nav-btn--ghost" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/login.html">Login</a>
+            <a id="navRegisterLink" class="nav-btn nav-btn--solid" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/signup.html">Register</a>
+            <a id="navLogoutLink" class="nav-btn nav-btn--ghost" href="#" style="display:none;">Logout</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+    <div class="content">
+        <div class="info-card">
+
+            <a class="animated-button btn-left" href="index.html">
+                ← Back to Plant List
+            </a>
+
+            <div class="text-section">
+                <h2><span id="name-header">(Name)</span> Information</h2>
+
+                <p><strong>Scientific Name:</strong><br><span id="scientific_name">Text</span></p>
+                <p><strong>Type:</strong><br><span id="type">Text</span></p>
+                <p><strong>Lifespan:</strong><br><span id="lifespan">Text</span></p>
+                <p><strong>Category:</strong><br><span id="category">Text</span></p>
+                <p><strong>Origin:</strong><br><span id="origin">Text</span></p>
+                <p><strong>Habitat:</strong><br><span id="habitat">Text</span></p>
+                <p><strong>Sunlight:</strong><br><span id="sunlight">Text</span></p>
+                <p><strong>Water:</strong><br><span id="water">Text</span></p>
+                <p><strong>Soil:</strong><br><span id="soil">Text</span></p>
+                <p><strong>Size:</strong><br><span id="size">Text</span></p>
+                <p><strong>Blossom:</strong><br><span id="blossom">Text</span></p>
+                <p><strong>Uses:</strong><br><span id="uses">Text</span></p>
+                <p><strong>Notes:</strong><br><span id="notes">Text</span></p>
+                <hr>
+
+                <div class="guide">
+                    <h2>STEP BY STEP GUIDE:</h2>
+                    <p><strong>Needs:</strong><br><span id="needs">Text</span></p>
+                    <p><strong>What to do (Preparation):</strong><br><div id="preparation">Text</div></p>
+                    <p><strong>How to (Step by Step):</strong><br><div id="step-by-step">Text</div></p>
+                    <p><strong>Where:</strong><br><span id="where">Text</span></p>
+                    <p><strong>When:</strong><br><span id="when">Text</span></p>
+                </div>
+            </div>
+
+            <div class="video-section">
+                <div class="media-placeholder" id="mediaPlaceholder">
+                    <img src="your-photo.jpg" alt="Plant Photo">
+                </div>
+
+                <div class="media-buttons">
+                    <button class="animated-button btn-photo" id="photoBtn">⛶ View Photo</button>
+                    <button class="animated-button btn-video" id="videoBtn">▶ Show Video</button>
+                </div>
+
+                <div class="fruit-name" id="name">Name</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/plant-info.js"></script>
+</body>
+
+</html>

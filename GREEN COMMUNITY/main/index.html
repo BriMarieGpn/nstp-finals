@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Green Community</title>
+
+  <link rel="stylesheet" href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/css/common.css">
+  <link rel="stylesheet" href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/css/home.css">
+  <link rel="stylesheet" href="../css/reusable.css">
+  <link rel="stylesheet" href="../css/index.css">
+  <link rel="stylesheet" href="../css/plant.css">
+</head>
+
+<body>
+  <!-- Decorative leaf background -->
+  <div class="leaf-bg" aria-hidden="true">
+    <svg class="lb-left" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+    <svg class="lb-right" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+  </div>
+
+  <header>
+    <nav class="navbar" id="mainNav">
+      <div class="nav-inner">
+        <!-- Logo -->
+        <a href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html" class="nav-logo">
+          <img src="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+          <span class="nav-logo__text">GrowSauYOU</span>
+        </a>
+
+        <!-- Nav links + auth buttons -->
+        <div class="nav-right">
+          <div class="nav-links">
+            <a href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html">Home</a>
+            <a href="index.html">Green Community</a>
+            <a href="../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/green_community_website/main/index.html">Here-Ramin</a>
+            <a id="userDashboardLink" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/user.html" style="display:none;">Dashboard</a>
+            <a id="adminLink" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/admin.html" style="display:none;">Admin Panel</a>
+          </div>
+          <div class="nav-auth">
+            <a id="navLoginLink" class="nav-btn nav-btn--ghost" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/login.html">Login</a>
+            <a id="navRegisterLink" class="nav-btn nav-btn--solid" href="../../../../I-TANIM/nstp-finals-G3V2.0/Group 3/src/signup.html">Register</a>
+            <a id="navLogoutLink" class="nav-btn nav-btn--ghost" href="#" style="display:none;">Logout</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+  
+  <main class="bg">
+    <section class="welcome-section">
+      <div class="welcome-text">
+        <h1>Green Community</h1>
+        <p><i>Your Guide to Local Planting</i></p>
+      </div>
+    </section>
+
+    <div class="gif">
+      <div class="text">
+        <h4>What plant are you looking for today?</h4>
+      </div>
+
+      <section id="category-menu">
+        <div class="category-button" onclick="filterPlants('Herbs')">
+          <img src="../assets/images/herbs.png" alt="this is an image of herbs">
+        </div>
+        <div class="category-button" onclick="filterPlants('Fruits')">
+            <img src="../assets/images/fruits.png" alt="this is an image of fruits">
+        </div>
+        <div class="category-button" onclick="filterPlants('Vegetables')">
+            <img src="../assets/images/vegetables.png" alt="this is an image of vegetables">
+        </div>
+      </section>
+    </div>
+
+
+    <div id="plant-grid" style="display:none;">
+      <div class="grid-header">
+          <button onclick="showMenu()" class="back-button">← Back to Categories</button>
+
+          <div class="search-wrapper">
+              <input type="text" id="live-search" placeholder="Live search by name or scientific name...">
+              <div id="suggestions-dropdown" class="suggestions-dropdown"></div>
+          </div>
+
+          <button id="filter-btn" class="filter-btn">Filter ▼</button>
+      </div>
+      <div id="grid-container"></div>
+    </div>
+
+
+    <!-- BACK BUTTON -->
+    <div id="plant-detail" style="display:none;">
+        <button onclick="showGrid()">← Back to Grid</button>
+        <div id="detail-content"></div>
+    </div>
+
+    <div id="filter-popup" class="filter-popup" style="display:none;">
+        <div class="popup-content">
+            <h3>Filter & Sort</h3>
+
+            <div class="filter-section">
+                <label>Lifespan:</label>
+                <select id="popup-lifespan">
+                    <option value="All">All Plants</option>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <label>Sort by:</label>
+                <select id="popup-sort">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                </select>
+            </div>
+
+            <div class="popup-buttons">
+                <button onclick="applyFilters()" class="apply-btn">Apply</button>
+                <button onclick="closePopup()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../javascript/plant.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("category")) {
+            document.getElementById("category-menu").style.display = "none";
+            document.getElementById("plant-grid").style.display = "block";
+        }
+    </script>
+  </main>
+</body>
+</html>
