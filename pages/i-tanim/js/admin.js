@@ -241,10 +241,10 @@ async function initFirestoreAdminState() {
         // Live-sync volunteers so hours are always reflected in dashboard analytics.
         // Live-sync volunteers so hours are always reflected in dashboard analytics.
         onSnapshot(collection(db, 'volunteers'), (volunteersSnap) => {
-            users = [];
+            const firestoreUsers = [];
             volunteersSnap.forEach((volunteerDoc) => {
                 const data = volunteerDoc.data();
-                users.push({
+                firestoreUsers.push({
                     id: volunteerDoc.id,
                     name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Volunteer',
                     email: data.email || '',
@@ -261,6 +261,22 @@ async function initFirestoreAdminState() {
                     absentPrograms: data.absentPrograms || []
                 });
             });
+
+            // Merge Firestore users with local users
+            const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+            const mergedUsers = new Map();
+
+            // Add all local users first
+            localUsers.forEach(user => mergedUsers.set(user.id, user));
+
+            // Override with Firestore users (they take priority)
+            firestoreUsers.forEach(user => mergedUsers.set(user.id, user));
+
+            users = Array.from(mergedUsers.values());
+
+            // Save merged data back to localStorage
+            localStorage.setItem('itanimUsers', JSON.stringify(users));
+
             updateVolunteers();
             updateDashboard();
             updateAnalytics();
@@ -268,7 +284,13 @@ async function initFirestoreAdminState() {
         });
         console.log('Firestore admin state initialized');
     } catch (err) {
-        console.warn('Firestore admin state listener failed', err);
+        console.warn('Firestore admin state listener failed, falling back to local data', err);
+        // Fallback to local users if Firestore fails
+        users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        updateVolunteers();
+        updateDashboard();
+        updateAnalytics();
+        updateVolunteerProgramParticipants();
     }
 }
 
