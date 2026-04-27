@@ -1,10 +1,21 @@
 {
   "hosting": {
-    "public": "src",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "README.md",
+      "node_modules/**",
+      ".git/**",
+      ".gitignore",
+      "firestore-copy/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   },
   "firestore": {

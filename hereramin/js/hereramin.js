@@ -1,5 +1,20 @@
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import firebaseConfig from "../../js/firebaseConfig.js";
+
 (function() {
-    const groupedTools = [
+    const RECEIPT_STATE_KEY = "growsauyou-receipt-state";
+    const BORROW_RECORD_KEY = "growsauyou-borrow-record";
+    const BORROW_HISTORY_KEY = "growsauyou-borrow-history";
+    const BORROW_DOC_PATH = ["hereramin", "latestBorrow"];
+    const TOOLS_COLLECTION = "tools";
+    const BORROW_REQUESTS_COLLECTION = "borrow_requests";
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+
+    const defaultGroupedTools = [
         {
             category: "Soil Preparation",
             tools: [
@@ -63,6 +78,7 @@
             ]
         }
     ];
+    let groupedTools = JSON.parse(JSON.stringify(defaultGroupedTools));
 
     const toolSelect = document.getElementById("toolSelect");
     const toolImage = document.getElementById("toolImage");
@@ -79,9 +95,58 @@
     const canvas = document.getElementById("signaturePad");
     const ctx = canvas.getContext("2d");
     const clearSig = document.getElementById("clearSig");
+    const borrowForm = document.getElementById("borrowForm");
+    const backBtn = document.getElementById("backBtn");
+    const borrowDateInput = document.getElementById("borrowDate");
+    const returnDateInput = document.getElementById("returnDate");
+    const borrowerName = document.getElementById("borrowerName");
+    const borrowerAddress = document.getElementById("borrowerAddress");
+    const borrowerAge = document.getElementById("borrowerAge");
+    const borrowerContact = document.getElementById("borrowerContact");
+    const borrowPurpose = document.getElementById("borrowPurpose");
+    const fallbackToolMap = buildFallbackToolMap();
+    let quantity = 1;
 
     function getAllTools() {
         return groupedTools.flatMap((group) => group.tools);
+    }
+
+    function normalizeText(value) {
+        return String(value || "").trim().toLowerCase();
+    }
+
+    function getToolFromUrlParam() {
+        const params = new URLSearchParams(window.location.search);
+        return (params.get("tool") || "").trim();
+    }
+
+    function slugify(value) {
+        return normalizeText(value).replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    }
+
+    function getCategoryForToolName(name) {
+        for (const group of defaultGroupedTools) {
+            for (const tool of group.tools) {
+                if (normalizeText(tool.name) === normalizeText(name)) {
+                    return group.category;
+                }
+            }
+        }
+        return "General Tools";
+    }
+
+    function getFallbackToolByName(name) {
+        return fallbackToolMap.get(normalizeText(name)) || null;
+    }
+
+    function buildFallbackToolMap() {
+        const map = new Map();
+        defaultGroupedTools.forEach((group) => {
+            group.tools.forEach((tool) => {
+                map.set(normalizeText(tool.name), { ...tool, category: group.category });
+            });
+        });
+        return map;
     }
 
     function populateTools() {
@@ -108,21 +173,149 @@
     function setTool(toolName) {
         const tool = getAllTools().find((entry) => entry.name === toolName);
         if (!tool) return;
-        toolImage.src = tool.image;
+        if (tool.image) {
+            toolImage.src = tool.image;
+        }
         setAvailability(tool.available);
+        if (quantity > (tool.maxQuantity || 10)) {
+            quantity = Math.max(1, tool.maxQuantity || 10);
+            quantityText.textContent = String(quantity);
+        }
+    }
+
+    function getSelectedTool() {
+        return getAllTools().find((entry) => entry.name === toolSelect.value) || null;
+    }
+
+    function applyToolFromQueryParam() {
+        const toolFromParam = getToolFromUrlParam();
+        if (!toolFromParam) {
+            return;
+        }
+        const matchedTool = getAllTools().find((tool) => normalizeText(tool.name) === normalizeText(toolFromParam));
+        if (!matchedTool) {
+            return;
+        }
+        toolSelect.value = matchedTool.name;
+        setTool(matchedTool.name);
+    }
+
+    function rebuildToolsFromFlatArray(flatTools) {
+        const grouped = new Map();
+        flatTools.forEach((tool) => {
+            const category = tool.category || getCategoryForToolName(tool.name);
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
+            grouped.get(category).push(tool);
+        });
+        groupedTools = Array.from(grouped.entries()).map(([category, tools]) => ({ category, tools }));
+    }
+
+    function normalizeToolFromFirestore(docId, data) {
+        const toolName = data.tool_name || data.name || docId || "Tool";
+        const fallback = getFallbackToolByName(toolName);
+        const quantityAvailable = Number(data.quantity_available ?? data.quantity ?? data.quantity_total ?? 0);
+        const quantityTotal = Number(data.quantity_total ?? quantityAvailable);
+        const explicitAvailable = typeof data.available === "boolean" ? data.available : null;
+        const statusValue = normalizeText(data.status_ || data.status);
+        const isAvailable = explicitAvailable !== null
+            ? explicitAvailable
+            : quantityAvailable > 0 && statusValue !== "borrowed" && statusValue !== "unavailable";
+
+        return {
+            id: docId,
+            name: toolName,
+            category: data.category || fallback?.category || getCategoryForToolName(toolName),
+            image: data.image_url || data.image || data.tool_image || fallback?.image || toolImage.src,
+            available: isAvailable,
+            maxQuantity: Math.max(1, quantityAvailable || quantityTotal || 1),
+            quantityAvailable: Math.max(0, quantityAvailable),
+            quantityTotal: Math.max(0, quantityTotal),
+            description: data.description || "",
+            wikihowUrl: data.wikihow_url || ""
+        };
+    }
+
+    async function seedMissingToolsInFirestore(existingDocs) {
+        const existingNames = new Set(
+            existingDocs.map((item) => normalizeText(item.data.tool_name || item.data.name || item.id))
+        );
+        const seedPromises = [];
+        defaultGroupedTools.forEach((group) => {
+            group.tools.forEach((tool) => {
+                const normalizedName = normalizeText(tool.name);
+                if (existingNames.has(normalizedName)) {
+                    return;
+                }
+                const newDocId = slugify(tool.name);
+                const payload = {
+                    tool_name: tool.name,
+                    category: group.category,
+                    description: `${tool.name} tool for ${group.category.toLowerCase()}.`,
+                    image_url: new URL(tool.image, window.location.href).href,
+                    quantity_available: tool.available ? 5 : 0,
+                    quantity_total: 5,
+                    status_: tool.available ? "Available" : "Unavailable",
+                    wikihow_url: "",
+                    created_at: new Date().toISOString()
+                };
+                seedPromises.push(setDoc(doc(db, TOOLS_COLLECTION, newDocId), payload, { merge: true }));
+            });
+        });
+
+        if (seedPromises.length > 0) {
+            await Promise.all(seedPromises);
+        }
+    }
+
+    async function hydrateToolsFromFirestore() {
+        if (!useFirestore) {
+            return;
+        }
+
+        try {
+            const toolsCollectionRef = collection(db, TOOLS_COLLECTION);
+            const snapshot = await getDocs(toolsCollectionRef);
+            const docs = snapshot.docs.map((entry) => ({ id: entry.id, data: entry.data() }));
+
+            await seedMissingToolsInFirestore(docs);
+
+            const refreshedSnapshot = await getDocs(toolsCollectionRef);
+            const firestoreTools = refreshedSnapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
+            if (firestoreTools.length === 0) {
+                return;
+            }
+
+            const selectedBefore = toolSelect.value;
+            rebuildToolsFromFlatArray(firestoreTools);
+            populateTools();
+
+            const nextSelected = getAllTools().some((item) => item.name === selectedBefore)
+                ? selectedBefore
+                : getAllTools()[0]?.name;
+            if (nextSelected) {
+                toolSelect.value = nextSelected;
+                setTool(nextSelected);
+            }
+            applyToolFromQueryParam();
+        } catch (error) {
+            console.warn("Could not pull tools from Firestore. Keeping local preview data.", error);
+        }
     }
 
     populateTools();
     setTool(toolSelect.value);
+    applyToolFromQueryParam();
+    hydrateToolsFromFirestore();
 
     toolSelect.addEventListener("change", () => {
         setTool(toolSelect.value);
     });
 
-    let quantity = 1;
-    const maxQuantity = 10;
-
     plusBtn.addEventListener("click", () => {
+        const selectedTool = getSelectedTool();
+        const maxQuantity = selectedTool?.maxQuantity || 10;
         if (quantity < maxQuantity) {
             quantity += 1;
             quantityText.textContent = String(quantity);
@@ -196,5 +389,98 @@
 
     clearSig.addEventListener("click", () => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    backBtn.addEventListener("click", () => {
+        window.history.back();
+    });
+
+    function validateDates() {
+        const borrowDate = borrowDateInput.value;
+        const returnDate = returnDateInput.value;
+        if (!borrowDate || !returnDate) {
+            window.alert("Please select both borrow and return dates.");
+            return false;
+        }
+        if (new Date(returnDate) < new Date(borrowDate)) {
+            window.alert("Return date cannot be earlier than borrow date.");
+            return false;
+        }
+        return true;
+    }
+
+    function signatureAsDataUrl() {
+        return canvas.toDataURL("image/png");
+    }
+
+    function appendBorrowHistory(record) {
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem(BORROW_HISTORY_KEY) || "[]");
+            if (!Array.isArray(history)) {
+                history = [];
+            }
+        } catch (error) {
+            history = [];
+        }
+        history.unshift(record);
+        localStorage.setItem(BORROW_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    borrowForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!validateDates()) {
+            return;
+        }
+
+        const selectedTool = getSelectedTool();
+        if (!selectedTool) {
+            window.alert("Please select a tool.");
+            return;
+        }
+
+        const record = {
+            id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            status: "in_use",
+            borrower: {
+                name: borrowerName.value.trim(),
+                address: borrowerAddress.value.trim(),
+                age: borrowerAge.value.trim(),
+                contact: borrowerContact.value.trim()
+            },
+            tool: {
+                name: selectedTool.name,
+                image: selectedTool.image ? new URL(selectedTool.image, window.location.href).href : toolImage.src,
+                available: selectedTool.available,
+                quantity,
+                quantityAvailable: selectedTool.quantityAvailable ?? null,
+                quantityTotal: selectedTool.quantityTotal ?? null
+            },
+            schedule: {
+                borrowDate: borrowDateInput.value,
+                returnDate: returnDateInput.value
+            },
+            purpose: borrowPurpose.value.trim(),
+            validIdImage: idImage.src,
+            signatureImage: signatureAsDataUrl(),
+            createdAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(record));
+        appendBorrowHistory(record);
+        localStorage.setItem(RECEIPT_STATE_KEY, "in_use");
+
+        if (useFirestore) {
+            try {
+                const borrowDocRef = doc(db, BORROW_DOC_PATH[0], BORROW_DOC_PATH[1]);
+                await setDoc(borrowDocRef, record, { merge: true });
+                await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
+            } catch (error) {
+                console.warn("Could not save HERE-RAMIN record to Firestore.", error);
+            }
+        }
+
+        window.location.href = "../pages/receipts/user.html";
     });
 })();

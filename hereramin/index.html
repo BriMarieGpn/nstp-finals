@@ -70,24 +70,24 @@
         <section class="hereramin-form">
             <h1 class="hereramin-title">User - Information</h1>
 
-            <div class="form-box">
+            <form class="form-box" id="borrowForm">
                 <div class="form-grid">
-                    <label class="field-label">Name</label>
-                    <input class="field-input" type="text">
+                    <label class="field-label" for="borrowerName">Name</label>
+                    <input class="field-input" type="text" id="borrowerName" required>
 
-                    <label class="field-label">Address</label>
-                    <input class="field-input" type="text">
+                    <label class="field-label" for="borrowerAddress">Address</label>
+                    <input class="field-input" type="text" id="borrowerAddress" required>
 
-                    <label class="field-label">Age</label>
-                    <input class="field-input" type="text">
+                    <label class="field-label" for="borrowerAge">Age</label>
+                    <input class="field-input" type="number" id="borrowerAge" min="1" required>
 
-                    <label class="field-label">Contact No.</label>
-                    <input class="field-input" type="text">
+                    <label class="field-label" for="borrowerContact">Contact No.</label>
+                    <input class="field-input" type="text" id="borrowerContact" required>
 
-                    <label class="field-label">Valid ID</label>
+                    <label class="field-label" for="idImage">Valid ID</label>
                     <div class="id-row">
                         <div class="id-preview">
-                            <img id="idImage" src="assets/images/validid.jpg" alt="ID Preview">
+                            <img id="idImage" src="../assets/images/validid.jpg" alt="ID Preview">
                         </div>
                         <div class="id-actions">
                             <button type="button" class="id-btn" id="addIdBtn">Add Image</button>
@@ -99,8 +99,8 @@
                         </div>
                     </div>
 
-                    <label class="field-label">Purpose</label>
-                    <textarea class="field-textarea"></textarea>
+                    <label class="field-label" for="borrowPurpose">Purpose</label>
+                    <textarea class="field-textarea" id="borrowPurpose" required></textarea>
 
                     <label class="field-label">E-signature</label>
                     <div class="signature-box">
@@ -110,20 +110,20 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </form>
 
             <p class="agreement">
                 I hereby certify to the best of my knowledge that all information in this form are true and correct.
             </p>
 
             <div class="actions">
-                <button type="button" class="action secondary">&lt; Back</button>
-                <button type="button" class="action primary">Proceed &gt;</button>
+                <button type="button" class="action secondary" id="backBtn">&lt; Back</button>
+                <button type="submit" class="action primary" form="borrowForm" id="proceedBtn">Proceed &gt;</button>
             </div>
         </section>
     </main>
 
-    <script src="js/hereramin.js"></script>
+    <script type="module" src="js/hereramin.js"></script>
     <script type="module" src="../js/navbar-auth.js"></script>
 </body>
 </html>

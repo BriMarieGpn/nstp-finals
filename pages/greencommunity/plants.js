@@ -26,14 +26,49 @@ function debounce(func, delay) {
     };
 }
 
+// Sample plant data for demo
+const SAMPLE_PLANTS = [
+    // Fruits
+    { id: "1", name: "Mango", scientific_name: "Mangifera indica", category: "Fruits", type: "Fruit", lifespan: "Perennial", image: "images/wa.png", description: "Sweet and delicious tropical fruit" },
+    { id: "2", name: "Banana", scientific_name: "Musa", category: "Fruits", type: "Fruit", lifespan: "Perennial", image: "images/wa.png", description: "Rich in potassium and nutrients" },
+    { id: "3", name: "Apple", scientific_name: "Malus domestica", category: "Fruits", type: "Fruit", lifespan: "Perennial", image: "images/wa.png", description: "Crispy and nutritious" },
+    { id: "4", name: "Grape", scientific_name: "Vitis", category: "Fruits", type: "Fruit", lifespan: "Perennial", image: "images/wa.png", description: "Great for wine and fresh eating" },
+    { id: "5", name: "Papaya", scientific_name: "Carica papaya", category: "Fruits", type: "Fruit", lifespan: "Perennial", image: "images/wa.png", description: "Tropical fruit rich in enzymes" },
+    
+    // Vegetables
+    { id: "6", name: "Tomato", scientific_name: "Solanum lycopersicum", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Essential ingredient in cooking" },
+    { id: "7", name: "Carrot", scientific_name: "Daucus carota", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Rich in beta-carotene" },
+    { id: "8", name: "Broccoli", scientific_name: "Brassica oleracea", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Nutrient-packed cruciferous vegetable" },
+    { id: "9", name: "Lettuce", scientific_name: "Lactuca sativa", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Fresh salad green" },
+    { id: "10", name: "Spinach", scientific_name: "Spinacia oleracea", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Iron-rich leafy green" },
+    { id: "11", name: "Pepper", scientific_name: "Capsicum", category: "Vegetables", type: "Vegetable", lifespan: "Annual", image: "images/wa.png", description: "Colorful and versatile" },
+    
+    // Herbs
+    { id: "12", name: "Basil", scientific_name: "Ocimum basilicum", category: "Herbs", type: "Herb", lifespan: "Annual", image: "images/wa.png", description: "Aromatic culinary herb" },
+    { id: "13", name: "Mint", scientific_name: "Mentha", category: "Herbs", type: "Herb", lifespan: "Perennial", image: "images/wa.png", description: "Refreshing and medicinal" },
+    { id: "14", name: "Rosemary", scientific_name: "Rosmarinus officinalis", category: "Herbs", type: "Herb", lifespan: "Perennial", image: "images/wa.png", description: "Woody herb for cooking" },
+    { id: "15", name: "Thyme", scientific_name: "Thymus vulgaris", category: "Herbs", type: "Herb", lifespan: "Perennial", image: "images/wa.png", description: "Mediterranean cooking herb" },
+    { id: "16", name: "Oregano", scientific_name: "Origanum", category: "Herbs", type: "Herb", lifespan: "Perennial", image: "images/wa.png", description: "Essential Italian herb" },
+    { id: "17", name: "Parsley", scientific_name: "Petroselinum crispum", category: "Herbs", type: "Herb", lifespan: "Annual", image: "images/wa.png", description: "Common fresh herb for garnish" }
+];
+
 async function loadAllPlants() {
     if (allPlants.length > 0) return;
     try {
         const snapshot = await getDocs(collection(db, "plants"));
         allPlants = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log(`Loaded ${allPlants.length} plants`);
+        console.log(`Loaded ${allPlants.length} plants from Firestore`);
+        
+        // If Firestore is empty, use sample data
+        if (allPlants.length === 0) {
+            allPlants = SAMPLE_PLANTS;
+            console.log(`Loaded ${allPlants.length} sample plants (Firestore was empty)`);
+        }
     } catch (e) {
         console.error("Firestore error:", e);
+        // Fallback to sample data if Firebase fails
+        allPlants = SAMPLE_PLANTS;
+        console.log(`Using sample plants due to Firebase error`);
     }
 }
 

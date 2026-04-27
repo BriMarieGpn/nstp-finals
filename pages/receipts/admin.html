@@ -44,33 +44,10 @@
             <span class="role-chip active">Admin View</span>
         </div>
 
-        <section class="admin-board">
-            <article class="admin-card">
-                <header class="admin-card-header">
-                    <h2>Return Request</h2>
-                    <span class="admin-status" id="adminStatus">IN USE</span>
-                </header>
-                <div class="admin-card-body">
-                    <div class="receipt-thumb admin-thumb">
-                        <img src="../../assets/images/shovel.png" alt="Shovel">
-                    </div>
-                    <div class="admin-meta">
-                        <h3>Shovel</h3>
-                        <p>Requested by: Juan Dela Cruz</p>
-                        <p>Qty: 1</p>
-                    </div>
-                </div>
-                <div class="admin-actions">
-                    <button type="button" class="status-action admin-btn neutral" id="markPendingBtn">Mark Pending</button>
-                    <button type="button" class="status-action admin-btn approve" id="approveBtn">Approve Return</button>
-                    <button type="button" class="status-action admin-btn reject" id="rejectBtn">Reject Return</button>
-                </div>
-                <p class="admin-note" id="adminNote">Current state: in use.</p>
-            </article>
-        </section>
+        <section class="admin-board" id="adminReceiptsList"></section>
     </main>
 
-    <script src="../../js/receipts-admin.js"></script>
+    <script type="module" src="../../js/receipts-admin.js"></script>
     <script type="module" src="../../js/navbar-auth.js"></script>
 </body>
 </html>
