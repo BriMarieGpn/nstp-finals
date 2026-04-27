@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, doc, onSnapshot, updateDoc, arrayUnion, setDoc, getDoc, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 const app = initializeApp(firebaseConfig);
@@ -123,6 +123,21 @@ async function fetchCurrentUserProfile(uid, email) {
                 profile.badges = Array.isArray(profile.badges) ? profile.badges : (profile.badge ? [profile.badge] : []);
                 profile.certifications = profile.certifications || [];
                 profile.skills = profile.skills || [];
+                
+                // Load user status from admin state
+                try {
+                    const adminStateDoc = await getDoc(doc(db, 'admin', 'state'));
+                    if (adminStateDoc.exists()) {
+                        const adminData = adminStateDoc.data();
+                        const adminUser = Array.isArray(adminData.users) ? adminData.users.find(u => u.id === uid || u.email === email) : null;
+                        if (adminUser) {
+                            profile.status = adminUser.status || profile.status || 'pending';
+                            profile.role = adminUser.role || profile.role || 'user';
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Could not load user status from admin state', err);
+                }
             }
         } catch (err) {
             console.warn('Could not load volunteer profile from Firestore', err);
@@ -131,19 +146,72 @@ async function fetchCurrentUserProfile(uid, email) {
 
     if (!profile) {
         const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        profile = storedUsers.find(u => u.id === uid) || storedUsers[0] || {
-            id: uid,
-            name: 'Volunteer',
-            email: '',
-            enrolledPrograms: [],
-            hours: 0,
-            badges: [],
-            certifications: [],
-            skills: []
-        };
+        const storedUser = storedUsers.find(u => u.id === uid) || storedUsers[0];
+        if (storedUser) {
+            profile = storedUser;
+        } else {
+            profile = {
+                id: uid,
+                name: 'Volunteer',
+                email: email || '',
+                enrolledPrograms: [],
+                hours: 0,
+                badges: [],
+                certifications: [],
+                skills: [],
+                status: 'pending',
+                role: 'user'
+            };
+        }
     }
 
     return profile;
+}
+
+async function listenForUserProfileChanges(uid) {
+    if (!useFirestore) return;
+    
+    try {
+        const userDocRef = doc(db, 'volunteers', uid);
+        onSnapshot(userDocRef, async (docSnapshot) => {
+            if (docSnapshot.exists()) {
+                const updatedProfile = docSnapshot.data();
+                updatedProfile.id = docSnapshot.id;
+                updatedProfile.name = updatedProfile.name || `${updatedProfile.firstName || ''} ${updatedProfile.lastName || ''}`.trim() || updatedProfile.email || 'Volunteer';
+                updatedProfile.enrolledPrograms = updatedProfile.enrolledPrograms || [];
+                updatedProfile.hours = updatedProfile.hours || 0;
+                updatedProfile.badges = Array.isArray(updatedProfile.badges) ? updatedProfile.badges : (updatedProfile.badge ? [updatedProfile.badge] : []);
+                updatedProfile.certifications = updatedProfile.certifications || [];
+                updatedProfile.skills = updatedProfile.skills || [];
+                
+                // Load user status from admin state
+                try {
+                    const adminStateDoc = await getDoc(doc(db, 'admin', 'state'));
+                    if (adminStateDoc.exists()) {
+                        const adminData = adminStateDoc.data();
+                        const adminUser = Array.isArray(adminData.users) ? adminData.users.find(u => u.id === docSnapshot.id || u.email === updatedProfile.email) : null;
+                        if (adminUser) {
+                            updatedProfile.status = adminUser.status || updatedProfile.status || 'pending';
+                            updatedProfile.role = adminUser.role || updatedProfile.role || 'user';
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Could not load user status from admin state in listener', err);
+                }
+                
+                // Update current user profile
+                currentUserProfile = updatedProfile;
+                cacheUserProfile(updatedProfile);
+                
+                // Refresh dashboard to reflect changes
+                loadUserDashboard();
+                
+                console.log('User profile updated from Firestore');
+            }
+        });
+    } catch (err) {
+        console.warn('Could not set up user profile listener', err);
+    }
 }
 
 function normalizeProgram(program) {
@@ -213,7 +281,9 @@ function getCurrentUser() {
         hours: 0,
         badges: [],
         certifications: [],
-        skills: []
+        skills: [],
+        status: 'pending',
+        role: 'user'
     };
 }
 
@@ -765,6 +835,28 @@ async function joinProgram(programId) {
             const programRef = doc(db, 'programs', programId);
             await updateDoc(programRef, { pendingJoins: arrayUnion(currentUser.id) });
             
+            // Update local programs array immediately
+            const programIndex = programs.findIndex(p => p.id === programId);
+            if (programIndex !== -1) {
+                programs[programIndex].pendingJoins = programs[programIndex].pendingJoins || [];
+                if (!programs[programIndex].pendingJoins.includes(currentUser.id)) {
+                    programs[programIndex].pendingJoins.push(currentUser.id);
+                }
+                // Update localStorage cache
+                const localPrograms = programs.map((p) => ({
+                    id: p.id,
+                    name: p.title || p.name || '',
+                    desc: p.description || p.desc || '',
+                    hours: Number(p.hours || p.duration || 0),
+                    requirement: p.requirement || 'None',
+                    maxVolunteers: Number(p.maxVolunteers || 0),
+                    joined: Array.isArray(p.joined) ? p.joined : [],
+                    pendingJoins: Array.isArray(p.pendingJoins) ? p.pendingJoins : [],
+                    attachments: p.image ? [{ dataUrl: p.image, name: 'image', type: 'image/jpeg' }] : []
+                }));
+                localStorage.setItem('itanimPrograms', JSON.stringify(localPrograms));
+            }
+            
             logUserActivity('join_request', `User requested to join program: "${programName}"`, { programId, userName: currentUser.name });
             loadUserDashboard();
         } catch (err) {
@@ -1111,6 +1203,7 @@ window.logout = async () => {
     }
 };
 window.loadUserDashboard = loadUserDashboard;
+window.joinProgram = joinProgram;
 window.requestCertificateForProgram = function(programId, event) {
     event.stopPropagation(); // Prevent opening program detail modal
     

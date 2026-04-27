@@ -287,8 +287,8 @@ async function loadCertificatesFromFirestore() {
         
         certifications = Array.from(mergedCertificates.values());
         localStorage.setItem('itanimCerts', JSON.stringify(certifications));
-        
         console.log('Loaded certificates from Firestore:', certifications.length);
+        updateCertifications();
     } catch (error) {
         console.warn('Could not load certificates from Firestore:', error);
     }
@@ -1500,6 +1500,7 @@ function getCertificationStatusBadge(status) {
 
 function updateCertifications() {
     const list = document.getElementById('certRequests');
+    if (!list) return;
     const eligibleUsers = users.filter((u) => {
         const eligibility = getUserCertificationEligibility(u);
         const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['requested', 'approved'].includes(c.status));
@@ -1512,7 +1513,7 @@ function updateCertifications() {
     const eligibleMarkup = eligibleUsers.length > 0
         ? eligibleUsers.map((u) => {
             const e = getUserCertificationEligibility(u);
-            return `<li>${u.name} (${u.email}) - ${e.hours} hrs, ${e.completedCount} completed programs</li>`;
+            return `<li>${u.name || 'Unknown'} (${u.email || 'N/A'}) - ${e.hours} hrs, ${e.completedCount} completed programs</li>`;
         }).join('')
         : '<li>No additional eligible users right now.</li>';
 
@@ -1521,32 +1522,26 @@ function updateCertifications() {
         const eligibility = getUserCertificationEligibility(user || {});
         const program = c.programId ? programs.find(p => p.id === c.programId) : null;
         const programLabel = c.programTitle || program?.name || program?.title || '';
+        const isActionable = ['requested', 'pending'].includes(String(c.status || '').toLowerCase().trim());
         return `
             <div class="cert-item">
                 <div>
                     <strong>${user?.name || 'Unknown'}</strong><br>
-                    Email: ${user?.email || 'N/A'}<br>
-                    Hours: ${eligibility.hours}, Badge: ${user?.badge || 'None'}<br>
-                    Completed Programs: ${eligibility.completedCount}<br>
-                    ${programLabel ? `Program: ${programLabel}<br>` : ''}
-                    Status: ${getCertificationStatusBadge(c.status)}<br>
-                    Requested: ${c.requestedAt ? new Date(c.requestedAt).toLocaleString() : 'N/A'}<br>
-                    Proof: ${c.proofDetails || 'Not provided'}<br>
-                    ${c.adminNote ? `Admin Note: ${c.adminNote}<br>` : ''}
+                    <small>${user?.email || 'N/A'}</small>
                 </div>
+                <div>${eligibility.hours}</div>
+                <div>${user?.badge || 'None'}</div>
+                <div>${eligibility.completedCount > 0 ? 'Yes' : 'No'}</div>
                 <div>
-                    ${c.status === 'pending' ? `
-                        <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
-                        <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
-                    ` : c.status === 'requested' ? `
-                        <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
-                        <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
-                        <button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>
-                        <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
-                    ` : `
-                        <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
-                        ${c.status !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}
-                    `}
+                    ${programLabel ? `<div style="margin-bottom:6px;">${programLabel}</div>` : ''}
+                    ${getCertificationStatusBadge(c.status)}
+                    ${c.requestedAt ? `<div style="margin-top:8px;font-size:0.82rem;color:var(--primary);">${new Date(c.requestedAt).toLocaleDateString()}</div>` : ''}
+                    ${isActionable ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">` : ''}
+                        ${isActionable ? `<button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>` : ''}
+                        ${isActionable ? `<button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>` : ''}
+                        ${isActionable ? `<button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>` : ''}
+                        ${isActionable && c.status !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}
+                    ${isActionable ? `</div>` : ''}
                 </div>
             </div>
         `;
@@ -1554,10 +1549,16 @@ function updateCertifications() {
 
     list.innerHTML = `
         <div class="cert-item">
-            <strong>Eligible Users (No active request yet)</strong>
-            <ul style="margin:8px 0 0 18px;">${eligibleMarkup}</ul>
+            <div style="grid-column: 1 / -1; padding: 0;">
+                <strong>Eligible Users (No active request yet)</strong>
+                <ul style="margin:8px 0 0 18px;">${eligibleMarkup}</ul>
+            </div>
         </div>
-        ${certMarkup || '<p>No certification records yet.</p>'}
+        ${certMarkup || `
+            <div class="cert-item">
+                <div style="grid-column: 1 / -1; padding: 0;">No certification records yet.</div>
+            </div>
+        `}
     `;
 }
 
