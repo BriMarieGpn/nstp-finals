@@ -120,16 +120,22 @@ async function validateRegistrationRestrictions(age, address) {
         const validBarangaysRaw = String(restrictions.validBarangays || 'All').trim();
         const validBarangays = validBarangaysRaw.toLowerCase() === 'all'
             ? []
-            : validBarangaysRaw.split(',').map((item) => item.trim().toLowerCase()).filter(Boolean);
+            : validBarangaysRaw
+                .replace(/\s*[,;]\s*/g, ',')
+                .split(',')
+                .map((item) => item.trim().toLowerCase())
+                .filter(Boolean)
+                .flatMap((item) => item.split(/\s+/).map((token) => token.trim()).filter(Boolean));
         const ageNumber = Number(age);
         if (minAge > 0 && ageNumber < minAge) {
             return { ok: false, message: `Registration is restricted to age ${minAge} and above.` };
         }
         if (validBarangays.length > 0) {
             const addressLower = String(address || '').toLowerCase();
+            const isSauyoAddress = addressLower.includes('sauyo');
             const matchesAnyBarangay = validBarangays.some((barangay) => addressLower.includes(barangay));
-            if (!matchesAnyBarangay) {
-                return { ok: false, message: `Address is outside allowed barangays: ${validBarangays.join(', ')}` };
+            if (!matchesAnyBarangay && !isSauyoAddress) {
+                return { ok: false, message: `Address is outside allowed barangays: ${Array.from(new Set(validBarangays)).join(', ')}` };
             }
         }
         return { ok: true };
