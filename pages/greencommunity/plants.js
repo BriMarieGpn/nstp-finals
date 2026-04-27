@@ -189,7 +189,6 @@ window.showGrid = function () {
 };
 
 window.showFullDetail = function (plant) {
- 
     window.location.href = `page456.html?name=${encodeURIComponent(plant.name)}`;
 };
 
