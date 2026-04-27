@@ -10,12 +10,6 @@
       ".git/**",
       ".gitignore",
       "firestore-copy/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
     ]
   },
   "firestore": {
