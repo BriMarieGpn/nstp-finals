@@ -218,6 +218,29 @@
         return toolTitle.textContent.trim();
     }
 
+    function updateHereRaminLinks() {
+        const currentTool = getCurrentToolName();
+        if (!currentTool) {
+            return;
+        }
+
+        const hereRaminLinks = Array.from(document.querySelectorAll("a")).filter((link) => {
+            const label = (link.textContent || "").trim().toUpperCase();
+            const href = (link.getAttribute("href") || "").toLowerCase();
+            return label.includes("HERE-RAMIN") || href.includes("hereramin/index.html");
+        });
+
+        hereRaminLinks.forEach((link) => {
+            const rawHref = link.getAttribute("href");
+            if (!rawHref) {
+                return;
+            }
+            const nextUrl = new URL(rawHref, window.location.href);
+            nextUrl.searchParams.set("tool", currentTool);
+            link.setAttribute("href", `${nextUrl.pathname}${nextUrl.search}`);
+        });
+    }
+
     function getInstructions(toolName) {
         return tutorialSteps[toolName] || [
             `Inspect the ${toolName.toLowerCase()} and make sure it is ready to use.`,
@@ -255,6 +278,7 @@
 
     wikiButton.addEventListener("click", openModal);
     closeButton.addEventListener("click", closeModal);
+    updateHereRaminLinks();
 
     modal.addEventListener("click", (event) => {
         if (event.target === modal) {

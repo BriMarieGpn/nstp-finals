@@ -49,6 +49,12 @@
     border: 1px solid rgba(43, 61, 36, 0.18);
 }
 
+#receiptsList {
+    display: grid;
+    gap: 16px;
+    padding: 16px;
+}
+
 .receipts-tabs {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -186,6 +192,11 @@
     border: 1px solid rgba(43, 61, 36, 0.18);
     box-shadow: var(--shadow-soft);
     padding: 22px;
+}
+
+#adminReceiptsList {
+    display: grid;
+    gap: 14px;
 }
 
 .admin-card {

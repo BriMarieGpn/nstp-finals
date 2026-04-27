@@ -51,40 +51,11 @@
                 <button type="button" class="tab-btn" data-tab="borrow-again">Borrow Again</button>
             </div>
 
-            <article class="receipt-item">
-                <div class="receipt-tool">
-                    <div class="receipt-thumb">
-                        <img src="../../assets/images/shovel.png" alt="Shovel">
-                    </div>
-                    <div class="receipt-meta">
-                        <h2>SHOVEL</h2>
-                        <p>Brown Metal Shovel</p>
-                        <p>Qty: 1</p>
-                    </div>
-                </div>
-
-                <div class="receipt-status">
-                    <div class="tab-panel active" data-panel="borrowing">
-                        <h3>IN USE</h3>
-                        <button type="button" class="status-action return-btn" id="returnBtn">RETURN <i class="fas fa-angle-right"></i></button>
-                    </div>
-
-                    <div class="tab-panel" data-panel="returned">
-                        <h3 id="returnedStatusTitle">RETURNED</h3>
-                        <div class="status-note" id="returnedStatusNote">Please wait for the admin update</div>
-                    </div>
-
-                    <div class="tab-panel" data-panel="borrow-again">
-                        <h3 id="borrowAgainTitle">FOR APPROVAL</h3>
-                        <div class="status-note" id="borrowAgainNote">Wait for admin's approval</div>
-                        <a id="borrowAgainBtn" class="status-action borrow-again-btn disabled" href="#" aria-disabled="true"><i class="fas fa-angle-left"></i> Borrow tool again</a>
-                    </div>
-                </div>
-            </article>
+            <div id="receiptsList"></div>
         </section>
     </main>
 
-    <script src="../../js/receipts-user.js"></script>
+    <script type="module" src="../../js/receipts-user.js"></script>
     <script type="module" src="../../js/navbar-auth.js"></script>
 </body>
 </html>
