@@ -1,7 +1,7 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import firebaseConfig from "./i-tanim/firebaseConfig.js";
+import firebaseConfig from "./firebaseConfig.js";
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -139,7 +139,10 @@ function renderNavRight(user, role) {
         return;
     }
 
+    // User is logged in - show Dashboard and Logout
+    const dashboardHref = navRight.querySelector("a[href*='user.html']")?.getAttribute("href") || "pages/i-tanim/user.html";
     navRight.innerHTML = `
+        <a class="nav-auth-link" href="${dashboardHref}">Dashboard</a>
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
     `;
 
