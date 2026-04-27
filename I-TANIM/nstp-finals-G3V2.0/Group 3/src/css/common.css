@@ -145,6 +145,128 @@ body {
 
 .nav-links a:hover { opacity: 0.75; }
 
+/* ── New Navbar Styles ── */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-logo-circle {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.nav-site-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.2rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.brand-container {
+  position: relative;
+}
+
+.brand-highlight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--secondary);
+  color: var(--cream);
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.brand-highlight i {
+  font-size: 1rem;
+}
+
+.brand-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 0;
+  min-width: 200px;
+  display: none;
+  z-index: 10000;
+}
+
+.brand-container:hover .brand-dropdown {
+  display: block;
+}
+
+.side-item {
+  display: block;
+  padding: 8px 16px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.side-item:hover {
+  background: var(--sand);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: 20px;
+}
+
+.nav-links li a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.nav-links li a:hover {
+  opacity: 0.75;
+}
+
+.nav-right {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-auth-link {
+  padding: 8px 16px;
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-auth-link:hover {
+  background: var(--primary);
+  color: var(--cream);
+}
+
 .container {
   max-width: 1100px;
   margin: auto;

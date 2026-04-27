@@ -37,38 +37,7 @@
             <a class="nav-auth-link" href="I-TANIM/nstp-finals-G3V2.0/Group 3/src/signup.html">Register</a>
         </div>
     </nav>
-<!-- TEMP USER SWITCHER (DEV ONLY) -->
-<div id="tempUserSwitcher" style="
-    position: fixed;
-    top: 70px;
-    right: 20px;
-    background: rgba(84,107,65,0.85);
-    padding: 10px;
-    border-radius: 10px;
-    z-index: 99999;
-    backdrop-filter: blur(10px);
-    display: none;
-">
-    <h4 style="margin:0 0 8px 0;">TEMP USER</h4>
 
-    <select id="roleSwitcher" style="padding:5px; border-radius:6px;">
-        <option value="visitor">Visitor</option>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-    </select>
-
-    <p id="userLabel" style="margin:8px 0 0 0; font-size:12px;"></p>
-    <div id="adminDebugPanel" style="margin-top:10px; display:none; flex-direction:column; gap:8px;">
-        <strong style="font-size:13px; opacity:0.9;">Admin Debug Tools</strong>
-        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Add Sample Program</button>
-        <button onclick="debugShowPrograms()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Test Show Program List</button>
-        <button onclick="debugAddSampleUser()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample User</button>
-        <button onclick="debugAddSampleProgram()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Add Sample Program</button>
-        <button onclick="debugSimulateJoin()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Simulate User Join</button>
-        <button onclick="debugShowUsers()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(255,248,236,0.12); color:#FFF8EC;">Show All Users</button>
-        <button onclick="debugCleanupEverything()" style="padding:8px 10px; border-radius:10px; border:1px solid rgba(255,248,236,0.22); cursor:pointer; background:rgba(220,204,172,0.35); color:#FFF8EC; font-weight:bold;">?? CLEANUP EVERYTHING</button>
-    </div>
-</div>
 <div class="container">
   <section class="page-intro">
     <div>
@@ -96,67 +65,14 @@
     </div>
   </section>
 
-<!-- CAROUSEL -->
-<div class="carousel-wrapper">
-    <button class="arrow left" onclick="prev()">�</button>
-
-    <div class="carousel" id="carousel">
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80')"></div>
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80')"></div>
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1200&q=80')"></div>
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=1200&q=80')"></div>
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=1200&q=80')"></div>
-        <div class="slide" style="background-image:url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1200&q=80')"></div>
-    </div>
-
-    <button class="arrow right" onclick="next()">�</button>
-</div>
-
-<div class="dots" id="dots"></div>
-
 <!-- CARDS RESTORED -->
 <div class="cards">
-    <!-- VOLUNTEER -->
-    <div class="home-card" style="height:520px; display:flex; flex-direction:column; gap:10px;">
-    
-    <!-- TOP 50%: PROGRAMS TO JOIN -->
-    <div style="flex:1; display:flex; flex-direction:column; min-height:0;">
-        <h3 style="margin:0;">Available Programs</h3>
-<div id="publicProgramList" style="
-    margin-top:10px;
-    overflow-y:auto;
-    flex:1;
-    padding-right:5px;
-    max-height:100%;
-"></div>
+    <!-- I-TANIM -->
+    <div class="home-card">
+        <h2>I-TANIM</h2>
+        <p>VOLUNTEER FOR AVAILABLE SAUYO PROGRAMS NOW! You can get certificates in helping sauyou in urban farming.</p>
+        <a class="btn" href="I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html">Explore</a>
     </div>
-
-    <!-- BOTTOM 50%: USER AREA -->
-    <div style="flex:1; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-        <h3>Volunteer</h3>
-        <p>Login or register to start.</p>
-
-        <a class="btn" href="I-TANIM/nstp-finals-G3V2.0/Group 3/src/login.html">Login</a>
-        <a class="btn" href="I-TANIM/nstp-finals-G3V2.0/Group 3/src/signup.html">Register</a>
-
-        <div style="margin-top:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h3 style="margin:0;">Available Programs</h3>
-
-    <button id="addProgramBtn" style="
-        display:none;
-        padding:6px 10px;
-        border-radius:10px;
-        border:none;
-        cursor:pointer;
-        background:rgba(255, 255, 255, 0.15);
-        color:white;
-        ">+ Add</button>
-</div>
-        </div>
-    </div>
-
-</div>
 
     <!-- PLACEHOLDER 2 RESTORED BUTTON -->
     <div class="home-card">
@@ -251,8 +167,8 @@
     </div>
 </div>
 </div>
+<script type="module" src="js/navbar-auth.js"></script>
 <script type="module" src="js/i-tanim/index.js"></script>
-    <script type="module" src="js/navbar-auth.js"></script>
 <script>
 function redirectToGreenCommunity() {
     if (firebase.auth().currentUser) {

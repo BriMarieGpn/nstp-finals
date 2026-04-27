@@ -1,7 +1,7 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-import firebaseConfig from "./i-tanim/firebaseConfig.js";
+import firebaseConfig from "./firebaseConfig.js";
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -46,16 +46,11 @@ function getCurrentPageName() {
 
 function isProtectedCurrentPage() {
     const path = window.location.pathname.replace(/\\/g, "/").toLowerCase();
-    return (
-        path.includes("/hereramin/") ||
-        path.includes("/pages/receipts/") ||
-        path.endsWith("/pages/i-tanim/user.html") ||
-        path.endsWith("/pages/i-tanim/admin.html")
-    );
+    return path.includes("user.html") || path.includes("admin.html");
 }
 
 function isProtectedHref(href) {
-    return /hereramin\/index\.html|pages\/receipts\/|pages\/i-tanim\/user\.html|pages\/i-tanim\/admin\.html|\/i-tanim\/user\.html|\/i-tanim\/admin\.html/i.test(href);
+    return /user\.html|admin\.html/i.test(href);
 }
 
 function resolveLoginUrl() {
@@ -63,7 +58,7 @@ function resolveLoginUrl() {
     if (fromNav) {
         return new URL(fromNav, window.location.href).toString();
     }
-    return new URL("/pages/i-tanim/login.html", window.location.origin).toString();
+    return "login.html";
 }
 
 function attachProtectedLinkGuards() {
@@ -129,8 +124,8 @@ function renderNavRight(user, role) {
 
     const pageName = getCurrentPageName();
     if (!user) {
-        const loginHref = pageName === "login.html" ? "login.html" : navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "pages/i-tanim/login.html";
-        const signupHref = pageName === "signup.html" ? "signup.html" : navRight.querySelector("a[href*='signup.html']")?.getAttribute("href") || "pages/i-tanim/signup.html";
+        const loginHref = pageName === "login.html" ? "login.html" : navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "login.html";
+        const signupHref = pageName === "signup.html" ? "signup.html" : navRight.querySelector("a[href*='signup.html']")?.getAttribute("href") || "signup.html";
 
         navRight.innerHTML = `
             <a class="nav-auth-link" href="${loginHref}">Login</a>
@@ -139,19 +134,15 @@ function renderNavRight(user, role) {
         return;
     }
 
-    // Determine correct dashboard URL based on current location
-    const isInITanim = window.location.pathname.includes("/I-TANIM/") || window.location.pathname.includes("/i-tanim/");
-    const dashboardHref = isInITanim ? "user.html" : "I-TANIM/nstp-finals-G3V2.0/Group 3/src/user.html";
-
     navRight.innerHTML = `
-        <a class="nav-auth-link" href="${dashboardHref}" title="View Dashboard">Dashboard</a>
+        <a class="nav-auth-link" href="user.html" title="View Dashboard">Dashboard</a>
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
     `;
 
     document.getElementById("globalLogoutBtn")?.addEventListener("click", async () => {
         try {
             await signOut(auth);
-            const loginHref = navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "pages/i-tanim/login.html";
+            const loginHref = navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "login.html";
             window.location.href = loginHref;
         } catch (error) {
             console.error("Logout failed", error);
