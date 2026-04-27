@@ -730,7 +730,7 @@ function loadEnrolledPrograms(user, programs) {
             const hasCertificate = certifications.some(cert => 
                 cert.userId === user.id && 
                 cert.programId === program.id && 
-                (cert.status === 'approved' || cert.status === 'requested')
+                ['pending', 'requested', 'approved'].includes(cert.status)
             );
             if (hasCertificate) {
                 actionBtn = '<span class="certificate-status">Certificate Requested</span>';
@@ -1275,22 +1275,22 @@ window.submitCertificateRequest = async function(programId, buttonElement) {
     }
     
     // Check if already has an active request
-    const latest = certifications.find((c) => c.userId === current.id && ['requested', 'eligible', 'approved'].includes(c.status));
+const latest = certifications.find((c) => c.userId === current.id && ['pending', 'requested', 'approved'].includes(c.status));
     if (latest) {
         alert(`You already have an active certification status: ${latest.status}.`);
         modal.remove();
         return;
     }
-    
+
     const program = programs.find(p => p.id === programId);
-    
+
     const certRequest = {
         id: `cert-${Date.now()}`,
         userId: current.id,
         userEmail: current.email || '',
         programId: programId,
         programTitle: program ? (program.title || program.name || '') : '',
-        status: 'requested',
+        status: 'pending',
         reason,
         proofDetails: proof,
         requestedAt: new Date().toISOString(),
