@@ -656,7 +656,17 @@ function loadEnrolledPrograms(user, programs) {
 
         if (isCompleted) {
             statusLabel = '<span class="status-badge status-badge--completed">Completed ✓</span>';
-            actionBtn = '';
+            // Check if user already has a certificate for this program
+            const hasCertificate = certifications.some(cert => 
+                cert.userId === user.id && 
+                cert.programId === program.id && 
+                (cert.status === 'approved' || cert.status === 'requested')
+            );
+            if (hasCertificate) {
+                actionBtn = '<span class="certificate-status">Certificate Requested</span>';
+            } else {
+                actionBtn = `<button class="btn-secondary" onclick="requestCertificateForProgram('${program.id}', event)" style="margin-top:8px;font-size:0.82rem;">Request Certificate</button>`;
+            }
         } else if (isPendingValidation) {
             statusLabel = '<span class="status-badge status-badge--pending">Pending Validation</span>';
             actionBtn = '';
@@ -1101,7 +1111,124 @@ window.logout = async () => {
     }
 };
 window.loadUserDashboard = loadUserDashboard;
-window.joinProgram = joinProgram;
+window.requestCertificateForProgram = function(programId, event) {
+    event.stopPropagation(); // Prevent opening program detail modal
+    
+    const program = programs.find(p => p.id === programId);
+    if (!program) {
+        alert('Program not found.');
+        return;
+    }
+    
+    // Create a modal for certificate request
+    const modal = document.createElement('div');
+    modal.className = 'cert-modal-overlay';
+    modal.innerHTML = `
+        <div class="cert-modal">
+            <div class="cert-modal-header">
+                <h3>Request Certificate</h3>
+                <button class="cert-modal-close" onclick="this.closest('.cert-modal-overlay').remove()">×</button>
+            </div>
+            <div class="cert-modal-body">
+                <p><strong>Program:</strong> ${program.title}</p>
+                <div class="cert-form-group">
+                    <label for="certReason">Reason for Request:</label>
+                    <textarea id="certReason" rows="3" placeholder="Explain why you're requesting this certificate...">I have successfully completed the "${program.title}" program and would like to request a certificate of completion.</textarea>
+                </div>
+                <div class="cert-form-group">
+                    <label for="certProof">Proof/Details:</label>
+                    <textarea id="certProof" rows="3" placeholder="Provide details about your completion...">Completed all required tasks and activities for the ${program.title} program.</textarea>
+                </div>
+            </div>
+            <div class="cert-modal-footer">
+                <button class="btn-secondary" onclick="this.closest('.cert-modal-overlay').remove()">Cancel</button>
+                <button class="btn-primary" onclick="submitCertificateRequest('${programId}', this)">Submit Request</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.body.appendChild(modal);
+    
+    // Focus on the reason textarea
+    setTimeout(() => {
+        const reasonTextarea = modal.querySelector('#certReason');
+        if (reasonTextarea) reasonTextarea.focus();
+    }, 100);
+};
+
+window.submitCertificateRequest = async function(programId, buttonElement) {
+    const modal = buttonElement.closest('.cert-modal-overlay');
+    const reason = modal.querySelector('#certReason').value.trim();
+    const proof = modal.querySelector('#certProof').value.trim();
+    
+    if (!reason) {
+        alert('Please provide a reason for your certificate request.');
+        return;
+    }
+    
+    if (!proof || proof.length < 10) {
+        alert('Please provide proof details (minimum 10 characters).');
+        return;
+    }
+    
+    const current = getCurrentUser();
+    const eligibility = getCertificationEligibility(current);
+    if (!eligibility.eligible) {
+        alert('You are not yet eligible for certification. Complete more programs and gain more hours first.');
+        modal.remove();
+        return;
+    }
+    
+    // Check if already has an active request
+    const latest = certifications.find((c) => c.userId === current.id && ['requested', 'eligible', 'approved'].includes(c.status));
+    if (latest) {
+        alert(`You already have an active certification status: ${latest.status}.`);
+        modal.remove();
+        return;
+    }
+    
+    const program = programs.find(p => p.id === programId);
+    
+    const certRequest = {
+        id: `cert-${Date.now()}`,
+        userId: current.id,
+        userEmail: current.email || '',
+        programId: programId,
+        programTitle: program ? (program.title || program.name || '') : '',
+        status: 'requested',
+        reason,
+        proofDetails: proof,
+        requestedAt: new Date().toISOString(),
+        hoursAtRequest: Number(current.hours || 0),
+        completedProgramsAtRequest: Array.isArray(current.completedPrograms) ? current.completedPrograms.length : 0,
+        badgeAtRequest: current.badge || 'None'
+    };
+    
+    certifications.unshift(certRequest);
+    
+    if (useFirestore) {
+        try {
+            await addDoc(collection(db, 'certificates'), certRequest);
+        } catch (error) {
+            console.error('Could not save certificate request to Firestore', error);
+            alert('Could not submit certificate request. Please try again.');
+            return;
+        }
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+    
+    logUserActivity('certificate_request', `User requested certificate for program: "${program?.title || programId}"`, { programId, certificateId: certRequest.id });
+    
+    alert('Certificate request submitted successfully! The admin will review your request.');
+    modal.remove();
+    
+    // Refresh the dashboard to show updated status
+    loadUserDashboard();
+};
 window.updateProgramStatus = updateProgramStatus;
 window.showUserProgramDetail = showUserProgramDetail;
 window.closeUserProgramModal = closeUserProgramModal;

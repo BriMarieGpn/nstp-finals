@@ -81,6 +81,7 @@ function renderAdminShell() {
     if (!realtimeInitialized) {
         realtimeInitialized = true;
         try { initFirestoreAdminState(); } catch(e) { console.warn('initFirestoreAdminState', e); }
+        try { loadCertificatesFromFirestore(); } catch(e) { console.warn('loadCertificatesFromFirestore', e); }
     }
     try { initAdminAttachmentPreview(); } catch(e) {}
 }
@@ -151,6 +152,19 @@ function syncProgramsFromTasks() {
 }
 function saveCerts() {
     localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+    
+    // Save certificates to Firestore
+    if (useFirestore) {
+        certifications.forEach(async (cert) => {
+            try {
+                const certRef = doc(db, 'certificates', cert.id);
+                await setDoc(certRef, cert, { merge: true });
+            } catch (error) {
+                console.warn('Could not save certificate to Firestore:', cert.id, error);
+            }
+        });
+    }
+    
     saveAdminStateToFirestore();
 }
 function saveSkills() {
@@ -255,6 +269,28 @@ async function initFirestoreAdminState() {
         console.log('Firestore admin state initialized');
     } catch (err) {
         console.warn('Firestore admin state listener failed', err);
+    }
+}
+
+// Load certificates from Firestore collection
+async function loadCertificatesFromFirestore() {
+    if (!useFirestore) return;
+    
+    try {
+        const certificatesSnapshot = await getDocs(collection(db, 'certificates'));
+        const firestoreCertificates = certificatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Merge with local certificates
+        const mergedCertificates = new Map();
+        certifications.forEach(cert => mergedCertificates.set(cert.id, cert));
+        firestoreCertificates.forEach(cert => mergedCertificates.set(cert.id, cert));
+        
+        certifications = Array.from(mergedCertificates.values());
+        localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+        
+        console.log('Loaded certificates from Firestore:', certifications.length);
+    } catch (error) {
+        console.warn('Could not load certificates from Firestore:', error);
     }
 }
 
