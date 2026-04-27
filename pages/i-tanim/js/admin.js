@@ -1541,11 +1541,11 @@ function updateCertifications() {
     if (!list) return;
     const eligibleUsers = users.filter((u) => {
         const eligibility = getUserCertificationEligibility(u);
-        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['requested', 'approved'].includes(c.status));
+        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status));
         return eligibility.eligible && !hasActiveOrApproved;
     });
 
-    const requested = certifications.filter((c) => c.status === 'requested');
+    const requested = certifications.filter((c) => ['pending', 'requested'].includes(c.status));
     const reviewed = certifications.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
 
     const eligibleMarkup = eligibleUsers.length > 0

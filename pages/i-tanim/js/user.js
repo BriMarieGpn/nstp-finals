@@ -564,7 +564,7 @@ function attachCertificationRequestControls(user) {
             return;
         }
 
-        const latest = certifications.find((c) => c.userId === current.id && ['requested', 'eligible', 'approved'].includes(c.status));
+        const latest = certifications.find((c) => c.userId === current.id && ['pending', 'requested', 'approved'].includes(c.status));
         if (latest) {
             alert(`You already have an active certification status: ${latest.status}.`);
             return;
@@ -578,7 +578,7 @@ function attachCertificationRequestControls(user) {
             userEmail: current.email || '',
             programId: selectedProgramId,
             programTitle: associatedProgram ? (associatedProgram.title || associatedProgram.name || '') : '',
-            status: 'requested',
+            status: 'pending',
             reason,
             proofDetails: proof,
             requestedAt: new Date().toISOString(),
