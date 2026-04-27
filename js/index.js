@@ -589,7 +589,7 @@ function renderPrograms(programs) {
             signupButton.style.cursor = "pointer";
             signupButton.addEventListener("click", (event) => {
                 event.stopPropagation();
-                window.location.href = "signup.html";
+                window.location.href = "/pages/i-tanim/signup.html";
             });
             actionArea.appendChild(signupButton);
         }
@@ -651,7 +651,7 @@ function showProgramDetail(program) {
             signInBtn.style.cursor = 'pointer';
             signInBtn.onclick = (event) => {
                 event.stopPropagation();
-                window.location.href = 'login.html';
+                window.location.href = '/pages/i-tanim/login.html';
             };
             detailAction.appendChild(signInBtn);
         }
