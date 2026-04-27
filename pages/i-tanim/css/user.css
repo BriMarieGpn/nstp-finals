@@ -1,0 +1,804 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap');
+
+/* ══════════════════════════════════════════
+   user.css — GrowsauYOU volunteer dashboard
+   ══════════════════════════════════════════ */
+
+body {
+  background: var(--cream);
+  margin: 0;
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 28px;
+  background: var(--sand);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.topbar .brand-name {
+  font-family: 'Archivo Black', sans-serif;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+}
+.topbar .hotline { font-size: 0.82rem; font-weight: 600; color: var(--primary); }
+.topbar .social-icons { display: flex; gap: 10px; align-items: center; }
+.topbar .social-icons a { color: var(--primary); font-size: 1.1rem; text-decoration: none; }
+
+/* ── App shell: sidebar + main ── */
+.ud-shell {
+  display: flex;
+  min-height: calc(100vh - 56px);
+  background: var(--cream);
+}
+
+/* ── Sidebar ── */
+.ud-sidebar {
+  width: 72px;
+  background: var(--secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.ud-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  align-items: center;
+}
+
+.ud-sidenav__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: var(--cream);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.ud-sidenav__item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ud-sidenav__item:hover,
+.ud-sidenav__item--active {
+  background: color-mix(in srgb, var(--primary) 60%, transparent);
+}
+
+/* ── Main content ── */
+.ud-main {
+  flex: 1;
+  padding: 28px 24px 48px;
+  overflow-x: hidden;
+  max-width: 900px;
+}
+
+/* ── Tabs ── */
+.ud-tab { display: none; }
+.ud-tab.active { display: block; }
+
+/* ── Page title ── */
+.ud-page-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  color: var(--primary);
+  margin: 0 0 20px;
+}
+
+.ud-section-title {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.1rem;
+  color: var(--primary);
+  margin: 24px 0 12px;
+}
+
+/* ── Row layouts ── */
+.ud-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ud-row--2col { grid-template-columns: 1fr 1fr; }
+.ud-row--3col { grid-template-columns: repeat(3, 1fr); }
+
+/* ── Cards ── */
+.ud-card {
+  background: var(--sand);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.ud-card__label {
+  display: block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  opacity: 0.75;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ud-card__name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.15rem;
+  color: var(--primary);
+  margin: 0 0 4px;
+}
+
+.ud-card__sub {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ud-card__status {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.5rem;
+  margin: 4px 0 6px;
+}
+
+.ud-card__status--approved { color: var(--primary); }
+.ud-card__status--pending  { color: #b8860b; }
+.ud-card__status--rejected { color: #c0392b; }
+
+/* Stat card */
+.ud-card--stat { text-align: center; }
+
+.ud-stat-big {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--primary);
+  margin: 4px 0 0;
+  line-height: 1;
+}
+
+.ud-stat-unit {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.75rem;
+  color: var(--primary);
+  opacity: 0.7;
+  letter-spacing: 0.1em;
+  margin: 4px 0 0;
+}
+
+/* Badge card */
+.ud-badge-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ud-badge-medal {
+  font-size: 2.8rem;
+  line-height: 1;
+}
+
+/* Progress card */
+.ud-card--progress { margin-bottom: 16px; }
+
+.ud-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 6px;
+}
+
+.ud-progress-bar-wrap {
+  flex: 1;
+  height: 28px;
+  background: color-mix(in srgb, var(--cream) 60%, var(--sand));
+  border-radius: 999px;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.ud-progress-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.ud-progress-pct {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1rem;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.ud-progress-medal { font-size: 1.8rem; }
+
+.ud-progress-hint {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Chart canvas */
+.ud-chart-canvas {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--cream) 70%, var(--sand));
+}
+
+/* Recent list */
+.ud-recent-list { margin-top: 8px; }
+
+.ud-recent-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.ud-recent-item:last-child { border-bottom: none; }
+
+.ud-recent-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+.ud-recent-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ud-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+/* ── Program list (task list view) ── */
+.ud-program-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+/* ── Table card ── */
+.ud-card--table { padding: 0; overflow: hidden; }
+
+.ud-table-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: color-mix(in srgb, var(--primary) 12%, var(--sand));
+  padding: 12px 20px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.82rem;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  border-radius: 18px 18px 0 0;
+}
+
+.ud-table-body { padding: 8px 0; }
+
+/* ── Cert list ── */
+.ud-cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Form inputs ── */
+.ud-input {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--secondary) 22%, var(--cream));
+  padding: 12px 16px;
+  color: var(--primary);
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s;
+}
+
+.ud-input:focus {
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+
+/* ── Buttons ── */
+.ud-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  border-radius: 999px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  border: 2px solid var(--primary);
+  transition: opacity 0.2s, transform 0.15s;
+  text-decoration: none;
+}
+
+.ud-btn--solid {
+  background: var(--primary);
+  color: var(--cream);
+}
+
+.ud-btn--ghost {
+  background: transparent;
+  color: var(--primary);
+}
+
+.ud-btn--join {
+  background: var(--primary);
+  color: var(--cream);
+  border-color: var(--primary);
+}
+
+.ud-btn--registered {
+  background: color-mix(in srgb, var(--primary) 30%, var(--sand));
+  color: var(--primary);
+  border-color: transparent;
+}
+
+.ud-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.ud-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Legacy class aliases (user.js renders these) ── */
+.btn-primary {
+  background: var(--primary);
+  color: var(--cream);
+  border: none;
+  padding: 9px 18px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover { opacity: 0.88; }
+
+.programs-list, .tasks-list, .badges-list,
+.certifications-list, .notifications-list {
+  display: grid;
+  gap: 12px;
+}
+
+.program-card, .task-item, .badge-item,
+.cert-item, .notification-item {
+  background: var(--sand);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  border-radius: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.program-card { flex-direction: column; }
+.program-card img { width: 100%; height: 140px; object-fit: cover; border-radius: 10px; }
+
+.program-info h3 { margin: 0 0 4px; font-size: 1rem; }
+.program-info p  { margin: 4px 0; opacity: 0.8; font-size: 0.85rem; }
+
+.program-meta, .task-meta, .cert-meta {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  font-size: 0.78rem; opacity: 0.7; margin: 8px 0;
+}
+
+.badge-item { align-items: center; }
+.badge-icon { font-size: 1.6rem; }
+.badge-info h4 { margin: 0 0 4px; }
+.badge-info p  { margin: 3px 0; opacity: 0.8; font-size: 0.85rem; }
+.badge-info small { opacity: 0.6; font-size: 0.75rem; }
+
+.skills-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.skill-pill {
+  display: inline-flex; align-items: center;
+  background: color-mix(in srgb, var(--secondary) 22%, transparent);
+  color: var(--text); border: 1px solid var(--border);
+  padding: 6px 14px; border-radius: 999px;
+  font-size: 0.82rem; font-weight: 700;
+}
+
+.skill-action-row {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  align-items: center; margin-bottom: 12px;
+}
+.skill-action-row select {
+  border-radius: 12px; border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--cream) 60%, transparent);
+  color: var(--text); padding: 10px 14px; min-width: 180px;
+}
+.skill-action-row button {
+  border-radius: 12px; border: none;
+  background: var(--primary); color: var(--cream);
+  cursor: pointer; padding: 10px 16px; font-weight: 700;
+}
+
+.notification-item h4 { margin: 0 0 4px; }
+.notification-item p  { margin: 3px 0; opacity: 0.8; }
+.notification-item small { opacity: 0.6; font-size: 0.75rem; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .ud-row--3col { grid-template-columns: repeat(2, 1fr); }
+  .ud-main { padding: 20px 16px 40px; }
+}
+
+@media (max-width: 540px) {
+  .ud-sidebar { width: 56px; }
+  .ud-sidenav__item { width: 40px; height: 40px; border-radius: 10px; }
+  .ud-sidenav__item svg { width: 18px; height: 18px; }
+
+  .ud-row--2col,
+  .ud-row--3col { grid-template-columns: 1fr; }
+
+  .ud-main { padding: 16px 12px 32px; }
+  .ud-page-title { font-size: 1.2rem; }
+
+  .topbar { padding: 10px 14px; }
+  .topbar .hotline { font-size: 0.72rem; }
+  .brand-logo-img { height: 26px; }
+}
+
+/* ══════════════════════════════════════════
+   Task list — card + JOIN/REGISTERED button
+   ══════════════════════════════════════════ */
+
+.ud-tasklist {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+/* user.js renders .program-card inside availableProgramsList —
+   override to match the wireframe side-by-side layout */
+#availableProgramsList .program-card,
+.ud-tasklist .program-card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  background: var(--sand);
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+#availableProgramsList .program-card img,
+.ud-tasklist .program-card img { display: none; } /* hide image in task list view */
+
+#availableProgramsList .program-info,
+.ud-tasklist .program-info { flex: 1; }
+
+#availableProgramsList .program-info h3,
+.ud-tasklist .program-info h3 {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1rem;
+  color: var(--primary);
+  margin: 0 0 6px;
+}
+
+/* JOIN button */
+.ud-tasklist .program-card button,
+#availableProgramsList .program-card button {
+  flex-shrink: 0;
+  padding: 10px 24px;
+  border-radius: 999px;
+  border: none;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+/* MY TASKS table rows */
+.ud-table-body .program-card,
+.ud-table-body .task-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 14px 20px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+  background: transparent;
+  box-shadow: none;
+  gap: 0;
+}
+
+.ud-table-body .program-card:last-child,
+.ud-table-body .task-item:last-child { border-bottom: none; }
+
+/* Status pill inside table */
+.ud-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.ud-status-pill--completed {
+  background: var(--primary);
+  color: var(--cream);
+}
+
+.ud-status-pill--inprogress {
+  background: color-mix(in srgb, var(--primary) 20%, var(--sand));
+  color: var(--primary);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Progress bar inside status pill */
+.ud-inline-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ud-inline-bar-wrap {
+  flex: 1;
+  height: 20px;
+  background: color-mix(in srgb, var(--primary) 15%, var(--sand));
+  border-radius: 999px;
+  overflow: hidden;
+  min-width: 80px;
+}
+
+.ud-inline-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+/* ══════════════════════════════════════════
+   Cert eligibility rows (analytics tab)
+   ══════════════════════════════════════════ */
+
+.ud-cert-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.ud-cert-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--sand);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.ud-cert-row__info { flex: 1; }
+
+.ud-cert-row__title {
+  display: block;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.ud-cert-row__sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ud-cert-row__ring { flex-shrink: 0; }
+
+.ud-cert-row__status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+.ud-cert-row__label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ud-cert-btn {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s;
+}
+
+.ud-cert-btn--eligible {
+  background: var(--primary);
+  color: var(--cream);
+}
+
+.ud-cert-btn--ineligible {
+  background: color-mix(in srgb, var(--primary) 35%, var(--sand));
+  color: var(--primary);
+}
+
+/* ══════════════════════════════════════════
+   For You + Leaderboard
+   ══════════════════════════════════════════ */
+
+.ud-row--foryou {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 20px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+.ud-foryou-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.ud-foryou-card {
+  background: var(--sand);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 8%, transparent);
+  display: flex;
+  flex-direction: column;
+}
+
+.ud-foryou-img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+}
+
+.ud-foryou-name {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.82rem;
+  color: var(--primary);
+  padding: 10px 12px 4px;
+  display: block;
+}
+
+.ud-foryou-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0 12px 10px;
+  display: block;
+}
+
+/* Leaderboard */
+.ud-leaderboard { padding: 16px; }
+
+.ud-leaderboard__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.ud-leaderboard__seeall {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.ud-leaderboard__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ud-lb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--sand));
+  border-radius: 12px;
+}
+
+.ud-lb-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 25%, var(--sand));
+  flex-shrink: 0;
+}
+
+.ud-lb-name {
+  flex: 1;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--primary);
+}
+
+.ud-lb-hours {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Stat card icon */
+.ud-card__icon {
+  display: block;
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+
+/* ── Responsive additions ── */
+@media (max-width: 640px) {
+  .ud-row--foryou { grid-template-columns: 1fr; }
+  .ud-foryou-grid { grid-template-columns: repeat(2, 1fr); }
+  .ud-cert-row { flex-wrap: wrap; }
+  .ud-cert-row__ring { order: -1; }
+}
+
+@media (max-width: 400px) {
+  .ud-foryou-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Task status badges ── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.status-badge--completed   { background: var(--primary); color: var(--cream); }
+.status-badge--inprogress  { background: color-mix(in srgb, var(--secondary) 40%, var(--sand)); color: var(--primary); }
+.status-badge--pending     { background: #f0ad4e; color: #7a5800; }

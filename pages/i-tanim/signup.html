@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrowsauYOU | Register</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="page-register">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <a href="index.html" class="brand-name">
+      <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+      <span class="brand-logo-text">GrowSauYOU</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span class="hotline">BRGY SAUYO HOTLINE: 0919 096 6996</span>
+      
+    </div>
+  </header>
+
+  <!-- Page shell -->
+  <main class="form-shell">
+
+    <!-- Decorative leaf bg -->
+    <div class="leaf-bg" aria-hidden="true">
+      <svg class="lb-left" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+        <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+      </svg>
+      <svg class="lb-right" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+        <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+      </svg>
+    </div>
+
+    <!-- Back link: ← GrowSauYOU (shared — visible for both form and success views) -->
+    <a class="back-link" href="index.html">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="#546B41" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="back-logo-icon" aria-hidden="true">
+      <span class="back-wordmark">GrowSauYOU</span>
+    </a>
+
+    <!-- Registration form -->
+    <div id="formView">
+      <h1 class="form-title">Volunteer Registration</h1>
+      <p class="form-subtitle">Sign up to help our community thrive.</p>
+
+      <div class="form-card">
+        <div class="field-row two-col">
+          <input type="text"  id="fullName"  placeholder="Full name" required>
+          <input type="number" id="age"      placeholder="Age" min="1" max="120" required>
+        </div>
+
+        <div class="field-row">
+          <input type="text" id="address" placeholder="Address" required>
+        </div>
+
+        <div class="field-row two-col-equal">
+          <input type="email" id="email"  placeholder="Gmail" required>
+          <input type="tel"   id="phone"  placeholder="Cellphone Number" required>
+        </div>
+
+        <div class="field-row">
+          <select id="skillCategory" required>
+            <option value="" selected disabled>Loading skills…</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <textarea id="otherSkills" rows="4" placeholder="Other Specific Skills"></textarea>
+        </div>
+
+        <div class="field-row reg-submit-row">
+          <button type="button" class="submit-btn reg-submit-btn" id="reg-btn">REGISTER NOW</button>
+        </div>
+
+        <p id="formError" class="form-error" style="display:none;"></p>
+      </div>
+    </div>
+
+    <!-- Success view (hidden until registration completes) -->
+    <div id="successView" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:700px;" class="success-shell">
+
+      <h1 class="form-title">Registration Successful</h1>
+      <p class="form-subtitle">Thank you for volunteering.</p>
+
+      <div class="success-card">
+        <p class="pending-msg">
+          Your application is currently <strong>pending</strong> and is under review.
+          You will be notified once approved.
+        </p>
+        <a href="login.html" class="submit-btn" style="display:block;text-align:center;text-decoration:none;margin-bottom:12px;">Check Dashboard</a>
+        <a href="index.html" class="submit-btn ghost-btn" style="display:block;text-align:center;text-decoration:none;">Return to Home</a>
+      </div>
+    </div>
+
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, serverTimestamp, collection, getDocs
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+    import firebaseConfig from "./js/firebaseConfig.js";
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // ── Load skill categories from Firestore ──────────────────────────────
+    (async () => {
+      const sel = document.getElementById('skillCategory');
+      if (!sel) return;
+      try {
+        const snap = await getDocs(collection(db, 'skills'));
+        const skillNames = [];
+        snap.forEach(d => skillNames.push(d.data().name || d.id));
+        // Fallback defaults if collection is empty
+        const defaults = [
+          'Planting & Seedling Skills',
+          'Composting & Waste Management',
+          'Watering & Irrigation Management',
+          'Community Outreach',
+          'Construction Support'
+        ];
+        const list = skillNames.length ? skillNames : defaults;
+        sel.innerHTML = '<option value="" selected disabled>Select Skill Category</option>'
+          + list.map(n => `<option value="${n}">${n}</option>`).join('');
+      } catch (err) {
+        console.error('[signup] skills fetch error:', err);
+        // Fallback to hardcoded list so form still works
+        sel.innerHTML = `
+          <option value="" selected disabled>Select Skill Category</option>
+          <option value="Planting &amp; Seedling Skills">Planting &amp; Seedling Skills</option>
+          <option value="Composting &amp; Waste Management">Composting &amp; Waste Management</option>
+          <option value="Watering &amp; Irrigation Management">Watering &amp; Irrigation Management</option>
+          <option value="Community Outreach">Community Outreach</option>
+          <option value="Construction Support">Construction Support</option>`;
+      }
+    })();
+
+    const btn         = document.getElementById('reg-btn');
+    const errEl       = document.getElementById('formError');
+    const formView    = document.getElementById('formView');
+    const successView = document.getElementById('successView');
+
+    function showError(msg) {
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+    function clearError() {
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+    }
+
+    btn.addEventListener('click', async () => {
+      clearError();
+
+      const fullName      = document.getElementById('fullName').value.trim();
+      const age           = document.getElementById('age').value.trim();
+      const address       = document.getElementById('address').value.trim();
+      const email         = document.getElementById('email').value.trim();
+      const phone         = document.getElementById('phone').value.trim();
+      const skillCategory = document.getElementById('skillCategory').value;
+      const otherSkills   = document.getElementById('otherSkills').value.trim();
+
+      if (!fullName || !age || !address || !email || !phone || !skillCategory) {
+        showError('Please fill in all required fields.');
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('Please enter a valid email address.');
+        return;
+      }
+      if (Number(age) < 18) {
+        showError('You must be at least 18 years old to register.');
+        return;
+      }
+      if (Number(age) > 120) {
+        showError('Please enter a valid age.');
+        return;
+      }
+      // Philippine cellphone format: 11 digits, starts with 09
+      if (!/^09\d{9}$/.test(phone.replace(/\s/g, ''))) {
+        showError('Cellphone number must be 11 digits and start with 09 (e.g. 09171234567).');
+        return;
+      }
+      // Check restrictions from admin state (localStorage)
+      try {
+        const restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"minAge":18,"validBarangays":"All"}');
+        const minAge = Number(restrictions.minAge) || 18;
+        if (Number(age) < minAge) {
+          showError(`Minimum age requirement is ${minAge} years old.`);
+          return;
+        }
+        const validBarangays = String(restrictions.validBarangays || 'All').trim();
+        if (validBarangays !== 'All' && validBarangays !== '') {
+          const allowed = validBarangays.split(',').map(b => b.trim().toLowerCase());
+          const addrLower = address.toLowerCase();
+          const matchesBarangay = allowed.some(b => addrLower.includes(b));
+          if (!matchesBarangay) {
+            showError(`Registration is currently limited to: ${validBarangays}. Your address does not appear to match.`);
+            return;
+          }
+        }
+      } catch(e) { /* ignore restriction check errors */ }
+      // Duplicate phone check in localStorage
+      try {
+        const existingUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+        if (existingUsers.some(u => u.phone && u.phone.replace(/\s/g,'') === phone.replace(/\s/g,''))) {
+          showError('A volunteer with this cellphone number already exists.');
+          return;
+        }
+      } catch(e) { /* ignore */ }
+
+      btn.disabled = true;
+      btn.textContent = 'Submitting…';
+
+      // Generate a temporary password from phone + age so the user can log in
+      // after admin approval. They can reset it later.
+      const tempPassword = `Grow${phone.replace(/\D/g,'')}${age}!`;
+
+      try {
+        // 1. Create Firebase Auth account
+        const cred = await createUserWithEmailAndPassword(auth, email, tempPassword);
+        const uid  = cred.user.uid;
+
+        // 2. Save volunteer profile to Firestore under volunteers/{uid}
+        await setDoc(doc(db, 'volunteers', uid), {
+          fullName,
+          name: fullName,
+          age: Number(age),
+          address,
+          email: email.toLowerCase(),
+          phone,
+          skillCategory,
+          otherSkills,
+          status: 'pending',
+          role: 'user',
+          volunteerID: 'GRW-' + uid.substring(0, 5).toUpperCase(),
+          hours: 0,
+          enrolledPrograms: [],
+          completedPrograms: [],
+          badges: [],
+          certifications: [],
+          skills: [skillCategory],
+          createdAt: serverTimestamp()
+        });
+
+        // 3. Also cache locally for offline/localhost fallback
+        try {
+          const localUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
+          localUsers.push({
+            id: uid,
+            fullName,
+            name: fullName,
+            age: Number(age),
+            address,
+            email: email.toLowerCase(),
+            phone,
+            skillCategory,
+            otherSkills,
+            status: 'pending',
+            role: 'user',
+            volunteerID: 'GRW-' + uid.substring(0, 5).toUpperCase(),
+            hours: 0,
+            enrolledPrograms: [],
+            completedPrograms: [],
+            badges: [],
+            skills: [skillCategory],
+            createdAt: new Date().toISOString()
+          });
+          localStorage.setItem('itanimUsers', JSON.stringify(localUsers));
+        } catch (_) { /* ignore cache errors */ }
+
+        formView.style.display = 'none';
+        successView.style.display = 'flex';
+
+      } catch (err) {
+        console.error(err);
+        if (err.code === 'auth/email-already-in-use') {
+          showError('An account with this email already exists. Please log in instead.');
+        } else if (err.code === 'auth/invalid-email') {
+          showError('Please enter a valid email address.');
+        } else {
+          showError('Registration failed. Please try again.');
+        }
+        btn.disabled = false;
+        btn.textContent = 'REGISTER NOW';
+      }
+    });
+  </script>
+</body>
+</html>
