@@ -298,6 +298,66 @@
     color: #2f5634;
 }
 
+/* Permission Denied Styles */
+.permission-denied {
+    text-align: center;
+    padding: 50px 20px;
+    background: #f8f9fa;
+    border-radius: 16px;
+    border: 2px solid #dc3545;
+    margin: 20px auto;
+    max-width: 500px;
+}
+
+.permission-denied h1 {
+    color: #dc3545;
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.permission-denied p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.permission-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.user-view-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #2f5634;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.user-view-link:hover {
+    background: #1e3a24;
+}
+
+.login-link {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+}
+
+.login-link:hover {
+    background: #0056b3;
+}
+
 @media (max-width: 980px) {
     .receipt-item {
         flex-direction: column;

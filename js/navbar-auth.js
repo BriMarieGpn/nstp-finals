@@ -227,3 +227,21 @@ function setupAuth() {
         }
     });
 }
+
+// Function to handle Explore Programs button click
+window.explorePrograms = async function() {
+    if (!authReady) {
+        // If auth is not ready yet, redirect to index as visitor
+        window.location.href = "pages/i-tanim/index.html";
+        return;
+    }
+
+    const user = auth.currentUser;
+    if (user) {
+        // User is signed in, redirect to i-tanim index as user
+        window.location.href = "pages/i-tanim/index.html";
+    } else {
+        // User is not signed in, redirect to i-tanim index as visitor
+        window.location.href = "pages/i-tanim/index.html";
+    }
+};

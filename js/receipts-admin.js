@@ -1,5 +1,6 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, getDoc, collection, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, getDocs, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 (function () {
@@ -10,8 +11,107 @@ import firebaseConfig from "./firebaseConfig.js";
     const adminReceiptsList = document.getElementById("adminReceiptsList");
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     let borrowRecords = [];
+
+    // Check authentication and admin role
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            showPermissionDenied("You must be logged in to access this page.");
+            return;
+        }
+
+        try {
+            let userDoc = await getDoc(doc(db, 'volunteers', user.uid));
+            if (!userDoc.exists()) {
+                const fallbackQuery = query(collection(db, 'volunteers'), where('email', '==', user.email));
+                const fallbackSnap = await getDocs(fallbackQuery);
+                if (!fallbackSnap.empty) {
+                    userDoc = fallbackSnap.docs[0];
+                }
+            }
+            const role = userDoc.exists() ? String(userDoc.data().role || '').toLowerCase().trim() : 'user';
+            if (role !== 'admin') {
+                showPermissionDenied("You do not have permission to access this admin page.");
+                return;
+            }
+
+            // User is admin, proceed with loading data
+            initializeAdminPanel();
+        } catch (error) {
+            console.error("Error checking admin role:", error);
+            showPermissionDenied("Error verifying permissions. Please try again.");
+        }
+    });
+
+    function showPermissionDenied(message) {
+        const main = document.querySelector('main.receipts-shell');
+        if (main) {
+            main.innerHTML = `
+                <div class="permission-denied">
+                    <h1>Access Denied</h1>
+                    <p>${message}</p>
+                    <div class="permission-actions">
+                        <a href="user.html" class="user-view-link">Go to User View</a>
+                        <a href="../i-tanim/login.html" class="login-link">Login</a>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    function initializeAdminPanel() {
+        // Load and initialize admin panel data
+        loadBorrowHistory();
+        loadBorrowRecords();
+        renderRecords();
+    }
+
+    async function loadBorrowRecords() {
+        let loadedRecords = loadBorrowHistory();
+
+        if (useFirestore) {
+            try {
+                const snapshot = await getDocs(collection(db, BORROW_REQUESTS_COLLECTION));
+                const firestoreRecords = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+                if (firestoreRecords.length > 0) {
+                    loadedRecords = firestoreRecords;
+                    saveBorrowHistory(loadedRecords);
+                    localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(sortByCreatedAtDesc(loadedRecords)[0]));
+                } else {
+                    const borrowDocRef = doc(db, BORROW_DOC_PATH[0], BORROW_DOC_PATH[1]);
+                    const latestSnap = await getDoc(borrowDocRef);
+                    if (latestSnap.exists()) {
+                        const latest = latestSnap.data();
+                        loadedRecords = [latest];
+                        saveBorrowHistory(loadedRecords);
+                        localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(latest));
+                    }
+                }
+            } catch (error) {
+                console.warn("Could not load HERE-RAMIN record from Firestore.", error);
+            }
+        }
+
+        if (!loadedRecords.length) {
+            const fallbackLatest = localStorage.getItem(BORROW_RECORD_KEY);
+            if (fallbackLatest) {
+                try {
+                    loadedRecords = [JSON.parse(fallbackLatest)];
+                } catch (error) {
+                    loadedRecords = [];
+                }
+            }
+        }
+
+        borrowRecords = loadedRecords.map((record, index) => ({
+            id: record.id || `borrow-local-${index}`,
+            status: record.status || "in_use",
+            ...record
+        }));
+        renderRecords();
+    }
 
     function loadBorrowHistory() {
         try {
@@ -103,51 +203,4 @@ import firebaseConfig from "./firebaseConfig.js";
             }
         }
     });
-
-    async function init() {
-        let loadedRecords = loadBorrowHistory();
-
-        if (useFirestore) {
-            try {
-                const snapshot = await getDocs(collection(db, BORROW_REQUESTS_COLLECTION));
-                const firestoreRecords = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
-                if (firestoreRecords.length > 0) {
-                    loadedRecords = firestoreRecords;
-                    saveBorrowHistory(loadedRecords);
-                    localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(sortByCreatedAtDesc(loadedRecords)[0]));
-                } else {
-                    const borrowDocRef = doc(db, BORROW_DOC_PATH[0], BORROW_DOC_PATH[1]);
-                    const latestSnap = await getDoc(borrowDocRef);
-                    if (latestSnap.exists()) {
-                        const latest = latestSnap.data();
-                        loadedRecords = [latest];
-                        saveBorrowHistory(loadedRecords);
-                        localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(latest));
-                    }
-                }
-            } catch (error) {
-                console.warn("Could not load HERE-RAMIN record from Firestore.", error);
-            }
-        }
-
-        if (!loadedRecords.length) {
-            const fallbackLatest = localStorage.getItem(BORROW_RECORD_KEY);
-            if (fallbackLatest) {
-                try {
-                    loadedRecords = [JSON.parse(fallbackLatest)];
-                } catch (error) {
-                    loadedRecords = [];
-                }
-            }
-        }
-
-        borrowRecords = loadedRecords.map((record, index) => ({
-            id: record.id || `borrow-local-${index}`,
-            status: record.status || "in_use",
-            ...record
-        }));
-        renderRecords();
-    }
-
-    init();
 })();
