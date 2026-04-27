@@ -140,6 +140,7 @@ function renderNavRight(user, role) {
     }
 
     navRight.innerHTML = `
+        <a class="nav-auth-link" href="I-TANIM/nstp-finals-G3V2.0/Group 3/src/index.html" title="View Dashboard">Dashboard</a>
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
     `;
 
