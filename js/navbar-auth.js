@@ -58,12 +58,20 @@ function isProtectedHref(href) {
     return /hereramin\/index\.html|pages\/receipts\/|pages\/i-tanim\/user\.html|pages\/i-tanim\/admin\.html|\/i-tanim\/user\.html|\/i-tanim\/admin\.html/i.test(href);
 }
 
+function buildAppUrl(path) {
+    return new URL(path, window.location.origin).toString();
+}
+
 function resolveLoginUrl() {
-    const fromNav = document.querySelector(".nav-auth-link[href*='login.html']")?.getAttribute("href");
-    if (fromNav) {
-        return new URL(fromNav, window.location.href).toString();
-    }
-    return new URL("/pages/i-tanim/login.html", window.location.origin).toString();
+    return buildAppUrl('/pages/i-tanim/login.html');
+}
+
+function resolveSignupUrl() {
+    return buildAppUrl('/pages/i-tanim/signup.html');
+}
+
+function resolveDashboardUrl(role) {
+    return buildAppUrl(role === 'admin' ? '/pages/i-tanim/admin.html' : '/pages/i-tanim/user.html');
 }
 
 function attachProtectedLinkGuards() {
@@ -78,19 +86,38 @@ function attachProtectedLinkGuards() {
         }
 
         link.dataset.authGuardBound = "true";
-        link.addEventListener("click", (event) => {
+        link.addEventListener("click", async (event) => {
+            // Check authentication status before navigation
             if (!authReady) {
                 event.preventDefault();
                 window.location.href = resolveLoginUrl();
                 return;
             }
 
-            if (isLoggedInState) {
+            // Re-check auth state to ensure session is still valid
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+                event.preventDefault();
+                window.location.href = resolveLoginUrl();
                 return;
             }
 
-            event.preventDefault();
-            window.location.href = resolveLoginUrl();
+            // Additional check: verify user still exists in database
+            try {
+                const profile = await getProfile(currentUser);
+                if (!profile) {
+                    event.preventDefault();
+                    await signOut(auth);
+                    window.location.href = resolveLoginUrl();
+                    return;
+                }
+            } catch (error) {
+                console.warn("Session validation failed", error);
+                event.preventDefault();
+                await signOut(auth);
+                window.location.href = resolveLoginUrl();
+                return;
+            }
         });
     });
 }
@@ -129,8 +156,8 @@ function renderNavRight(user, role) {
 
     const pageName = getCurrentPageName();
     if (!user) {
-        const loginHref = pageName === "login.html" ? "login.html" : navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "pages/i-tanim/login.html";
-        const signupHref = pageName === "signup.html" ? "signup.html" : navRight.querySelector("a[href*='signup.html']")?.getAttribute("href") || "pages/i-tanim/signup.html";
+        const loginHref = pageName === "login.html" ? buildAppUrl('/pages/i-tanim/login.html') : resolveLoginUrl();
+        const signupHref = pageName === "signup.html" ? buildAppUrl('/pages/i-tanim/signup.html') : resolveSignupUrl();
 
         navRight.innerHTML = `
             <a class="nav-auth-link" href="${loginHref}">Login</a>
@@ -140,7 +167,7 @@ function renderNavRight(user, role) {
     }
 
     // User is logged in - show Dashboard and Logout
-    const dashboardHref = navRight.querySelector("a[href*='user.html']")?.getAttribute("href") || "pages/i-tanim/user.html";
+    const dashboardHref = resolveDashboardUrl(role);
     navRight.innerHTML = `
         <a class="nav-auth-link" href="${dashboardHref}">Dashboard</a>
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
@@ -149,8 +176,7 @@ function renderNavRight(user, role) {
     document.getElementById("globalLogoutBtn")?.addEventListener("click", async () => {
         try {
             await signOut(auth);
-            const loginHref = navRight.querySelector("a[href*='login.html']")?.getAttribute("href") || "pages/i-tanim/login.html";
-            window.location.href = loginHref;
+            window.location.href = resolveLoginUrl();
         } catch (error) {
             console.error("Logout failed", error);
             alert("Logout failed. Please try again.");
@@ -161,16 +187,43 @@ function renderNavRight(user, role) {
 wireBackButtons();
 attachProtectedLinkGuards();
 
-onAuthStateChanged(auth, async (user) => {
-    authReady = true;
-    isLoggedInState = Boolean(user);
-    const profile = await getProfile(user);
-    const role = normalizeRole(profile?.role || "user");
-
-    renderNavRight(user, role);
-    attachProtectedLinkGuards();
-
-    if (!user && isProtectedCurrentPage()) {
-        window.location.href = resolveLoginUrl();
+// Periodic session validation (every 5 minutes)
+setInterval(async () => {
+    if (auth.currentUser && authReady) {
+        try {
+            const profile = await getProfile(auth.currentUser);
+            if (!profile) {
+                console.warn("Session expired - user profile not found");
+                await signOut(auth);
+                window.location.href = resolveLoginUrl();
+            }
+        } catch (error) {
+            console.warn("Session validation failed", error);
+            await signOut(auth);
+            window.location.href = resolveLoginUrl();
+        }
     }
-});
+}, 5 * 60 * 1000); // 5 minutes
+
+// Wait for DOM to be ready before setting up auth listener
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupAuth);
+} else {
+    setupAuth();
+}
+
+function setupAuth() {
+    onAuthStateChanged(auth, async (user) => {
+        authReady = true;
+        isLoggedInState = Boolean(user);
+        const profile = await getProfile(user);
+        const role = normalizeRole(profile?.role || "user");
+
+        renderNavRight(user, role);
+        attachProtectedLinkGuards();
+
+        if (!user && isProtectedCurrentPage()) {
+            window.location.href = resolveLoginUrl();
+        }
+    });
+}

@@ -1,14 +1,21 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, doc, deleteDoc, setDoc, updateDoc, onSnapshot, collection, getDocs, getDoc, query, where, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const adminStateDoc = doc(db, 'admin', 'state');
 let hasResolvedAuth = false;
+let authReadyPromise = new Promise((resolve) => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    console.log('[admin.js] Auth state changed:', user ? `${user.email} (uid: ${user.uid})` : 'logged out');
+    unsubscribe();
+    resolve(user);
+  });
+});
 let realtimeInitialized = false;
 const ACTIVE_TAB_KEY = 'growsauyouAdminActiveTab';
 
@@ -1224,12 +1231,27 @@ async function saveProgram() {
     };
 
     try {
+        // Ensure auth is ready before attempting Firestore write
+        await authReadyPromise;
+        
+        console.log('[saveProgram] Auth ready check:', {
+            currentUser: auth.currentUser ? `${auth.currentUser.email}` : 'null',
+            useFirestore
+        });
+        
+        if (!auth.currentUser) {
+            alert('Not authenticated. Please log in again.');
+            return;
+        }
+
         if (editId) {
             // Edit existing
+            console.log('[saveProgram] Updating program:', editId);
             await setDoc(doc(db, 'programs', editId), programData, { merge: true });
             logAction('program_update', `Updated program: "${name}"`, { programId: editId });
         } else {
             // Add new — Firestore generates the ID
+            console.log('[saveProgram] Creating new program');
             programData.createdAt = new Date().toISOString();
             await addDoc(collection(db, 'programs'), programData);
             logAction('program_add', `Created program: "${name}" (${hours} hours)`, { hours });
@@ -1246,7 +1268,11 @@ async function saveProgram() {
 
     } catch (err) {
         console.error('saveProgram error:', err);
-        alert('Failed to save program: ' + (err.message || err));
+        let errorMsg = err.message || err;
+        if (errorMsg.includes('Missing or insufficient permissions')) {
+            errorMsg = 'Permission denied. Check Firestore rules and ensure you are authenticated.';
+        }
+        alert('Failed to save program: ' + errorMsg);
     } finally {
         if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
     }
@@ -1689,6 +1715,9 @@ window.submitNewProgram = async function() {
         document.getElementById('addProgramForm').style.display = 'none';
         const toggleBtn = document.getElementById('toggleAddProgramForm');
         if (toggleBtn) toggleBtn.textContent = '+ Add New Program';
+
+        // Force immediate UI update
+        updatePrograms();
 
     } catch (err) {
         console.error('submitNewProgram error:', err);

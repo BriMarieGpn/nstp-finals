@@ -803,37 +803,59 @@ window.showTab = function(name) {
 <script type="module" src="js/admin.js"></script>
 
 <script type="module">
-  import { initializeApp }     from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
   import firebaseConfig from "./js/firebaseConfig.js";
 
   const ADMIN_EMAIL = 'admin@test.local';
-  const auth    = getAuth(initializeApp(firebaseConfig, 'admin-guard'));
-  const gate    = document.getElementById('authLoadingGate');
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const gate = document.getElementById('authLoadingGate');
   const content = document.getElementById('appContent');
 
-  function show() { gate.style.display = 'none'; content.style.display = 'block'; }
-  function deny() { window.location.href = 'admin-login.html'; }
+  function show() { 
+    console.log('[admin.html] Showing app content');
+    gate.style.display = 'none'; 
+    content.style.display = 'block'; 
+  }
+  function deny() { 
+    console.log('[admin.html] Denying access, redirecting to login');
+    window.location.href = 'admin-login.html'; 
+  }
 
   // Instant reveal if sessionStorage flag already set (plain-JS login flow)
-  if (sessionStorage.getItem('adminAuth') === 'true') { show(); }
+  if (sessionStorage.getItem('adminAuth') === 'true') { 
+    console.log('[admin.html] Session storage flag found, showing app');
+    show(); 
+  }
 
   // Firebase Auth observer — covers live hosting where sessionStorage may be absent
+  console.log('[admin.html] Setting up auth state listener');
   onAuthStateChanged(auth, (user) => {
+    console.log('[admin.html] Auth state changed:', user ? `${user.email}` : 'null');
     if (user && user.email === ADMIN_EMAIL) {
       sessionStorage.setItem('adminAuth', 'true');
       show();
     } else if (user) {
       // Logged in but not admin — redirect
+      console.log('[admin.html] User logged in but not admin:', user.email);
       deny();
     } else if (sessionStorage.getItem('adminAuth') === 'true') {
       // No Firebase user but session flag still valid — stay shown
       show();
     } else {
       // Guest with no session — redirect to login
+      console.log('[admin.html] No auth and no session flag');
       deny();
     }
   });
+
+  setTimeout(() => {
+    if (gate.style.display !== 'none') {
+      console.warn('[admin.html] auth state unresolved after 5s; redirecting to login');
+      deny();
+    }
+  }, 5000);
 </script>
 </div>
 </body>

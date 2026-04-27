@@ -218,28 +218,76 @@
     ← Back to homepage
   </a>
 
-  <script>
-    const ADMIN_EMAIL    = 'admin@test.local';
+  <script type="module">
+    import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+    import firebaseConfig from "./js/firebaseConfig.js";
+
+    const ADMIN_EMAIL = 'admin@test.local';
     const ADMIN_PASSWORD = 'test123';
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
     const emailEl = document.getElementById('alEmail');
     const passEl  = document.getElementById('alPassword');
     const btnEl   = document.getElementById('alLoginBtn');
     const errorEl = document.getElementById('alError');
 
-    function attempt() {
+    function showError(message) {
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+    }
+
+    function redirectToAdmin() {
+      window.location.href = 'admin.html';
+    }
+
+    async function attempt() {
       errorEl.style.display = 'none';
       const email = emailEl.value.trim().toLowerCase();
       const pass  = passEl.value;
 
-      if (email === ADMIN_EMAIL && pass === ADMIN_PASSWORD) {
+      if (email !== ADMIN_EMAIL || pass !== ADMIN_PASSWORD) {
+        showError('Invalid credentials. Admin access only.');
+        return;
+      }
+
+      try {
+        console.log('[admin-login] Attempting sign in with:', email);
+        await signInWithEmailAndPassword(auth, email, pass);
+        console.log('[admin-login] Sign in successful');
         sessionStorage.setItem('adminAuth', 'true');
-        window.location.href = 'admin.html';
-      } else {
-        errorEl.textContent = 'Invalid credentials. Admin access only.';
-        errorEl.style.display = 'block';
+        redirectToAdmin();
+      } catch (err) {
+        console.log('[admin-login] Sign in failed, code:', err.code);
+        if (err.code === 'auth/user-not-found') {
+          try {
+            console.log('[admin-login] Creating new admin user');
+            await createUserWithEmailAndPassword(auth, email, pass);
+            console.log('[admin-login] User created successfully');
+            sessionStorage.setItem('adminAuth', 'true');
+            redirectToAdmin();
+            return;
+          } catch (createErr) {
+            showError('Could not create admin account. Check Firebase auth setup.');
+            console.error('[admin-login] Create user error:', createErr);
+            return;
+          }
+        }
+
+        showError('Login failed. Please check your credentials or Firebase auth setup.');
+        console.error('[admin-login] Login error:', err);
       }
     }
+
+    onAuthStateChanged(auth, (user) => {
+      console.log('[admin-login] Auth state changed:', user ? `${user.email}` : 'null');
+      if (user && user.email?.toLowerCase() === ADMIN_EMAIL) {
+        console.log('[admin-login] Admin already logged in, redirecting');
+        redirectToAdmin();
+      }
+    });
 
     btnEl.addEventListener('click', attempt);
     [emailEl, passEl].forEach(el =>
