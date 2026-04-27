@@ -82,6 +82,7 @@ function renderAdminShell() {
         realtimeInitialized = true;
         try { initFirestoreAdminState(); } catch(e) { console.warn('initFirestoreAdminState', e); }
         try { loadCertificatesFromFirestore(); } catch(e) { console.warn('loadCertificatesFromFirestore', e); }
+        try { watchCertificateRequests(); } catch(e) { console.warn('watchCertificateRequests', e); }
     }
     try { initAdminAttachmentPreview(); } catch(e) {}
 }
@@ -200,7 +201,7 @@ async function initFirestoreAdminState() {
             if (!data) return;
             users = Array.isArray(data.users) ? data.users : users;
             programs = Array.isArray(data.programs) ? data.programs : programs;
-            certifications = Array.isArray(data.certifications) ? data.certifications : certifications;
+            // certifications loaded separately from certificates collection
             skills = Array.isArray(data.skills) ? data.skills : skills;
             restrictions = data.restrictions || restrictions;
             badgeThresholds = data.badgeThresholds || badgeThresholds;
@@ -313,6 +314,21 @@ async function loadCertificatesFromFirestore() {
         updateCertifications();
     } catch (error) {
         console.warn('Could not load certificates from Firestore:', error);
+    }
+}
+
+function watchCertificateRequests() {
+    if (!useFirestore) return;
+    try {
+        const certCollection = collection(db, 'certificates');
+        onSnapshot(certCollection, (snapshot) => {
+            certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+            updateCertifications();
+            console.log('Realtime certificate requests updated:', certifications.length);
+        });
+    } catch (error) {
+        console.warn('Could not watch certificate requests:', error);
     }
 }
 

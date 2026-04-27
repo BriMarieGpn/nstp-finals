@@ -263,6 +263,11 @@ async function persistCertifications() {
     localStorage.setItem('itanimCerts', JSON.stringify(certifications));
     if (!useFirestore) return;
     try {
+        // Save each certificate to the certificates collection
+        for (const cert of certifications) {
+            const certRef = doc(db, 'certificates', cert.id);
+            await setDoc(certRef, cert, { merge: true });
+        }
         await setDoc(adminStateDoc, { certifications }, { merge: true });
     } catch (err) {
         console.warn('Could not persist certifications', err);
@@ -386,6 +391,7 @@ function attachSkillControls(user) {
 function loadEnrolledPrograms(user, programs) {
     const container = document.getElementById('enrolledProgramsList');
     const enrolledIds = user.enrolledPrograms || [];
+    const completedIds = user.completedPrograms || [];
 
     if (enrolledIds.length === 0) {
         container.innerHTML = '<p>No programs enrolled yet.</p>';
@@ -394,7 +400,23 @@ function loadEnrolledPrograms(user, programs) {
 
     const enrolledPrograms = programs.filter(p => enrolledIds.includes(p.id)).map(normalizeProgram);
 
-    container.innerHTML = enrolledPrograms.map(program => `
+    container.innerHTML = enrolledPrograms.map(program => {
+        const isCompleted = completedIds.includes(program.id);
+        const hasCertificate = certifications.some(cert =>
+            cert.userId === user.id &&
+            cert.programId === program.id &&
+            ['requested', 'approved'].includes(cert.status)
+        );
+        const statusLabel = isCompleted
+            ? '<span class="status completed">Completed</span>'
+            : '<span class="status enrolled">Enrolled</span>';
+        const actionBtn = isCompleted
+            ? hasCertificate
+                ? '<span class="certificate-status">Certificate Requested</span>'
+                : `<button class="btn-secondary" onclick="requestCertificateForProgram('${program.id}', event)" style="margin-top:8px;font-size:0.82rem;">Request Certificate</button>`
+            : '';
+
+        return `
         <div class="program-card">
             <img src="${program.image}" alt="${program.title}" onerror="this.src='https://via.placeholder.com/300x200?text=Program+Image'">
             <div class="program-info">
@@ -405,12 +427,11 @@ function loadEnrolledPrograms(user, programs) {
                     <span>📍 ${program.location}</span>
                     <span>⏰ ${program.duration} hours</span>
                 </div>
-                <div class="program-status">
-                    <span class="status enrolled">Enrolled</span>
-                </div>
+                <div class="program-status">${statusLabel}</div>
+                ${actionBtn}
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function loadAvailablePrograms(user, programs) {

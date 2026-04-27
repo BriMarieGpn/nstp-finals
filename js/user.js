@@ -263,7 +263,11 @@ async function persistCertifications() {
     localStorage.setItem('itanimCerts', JSON.stringify(certifications));
     if (!useFirestore) return;
     try {
-        await setDoc(adminStateDoc, { certifications }, { merge: true });
+        // Save each certificate to the certificates collection
+        for (const cert of certifications) {
+            const certRef = doc(db, 'certificates', cert.id);
+            await setDoc(certRef, cert, { merge: true });
+        }
     } catch (err) {
         console.warn('Could not persist certifications', err);
     }
