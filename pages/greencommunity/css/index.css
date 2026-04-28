@@ -1,0 +1,250 @@
+html, body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+}
+
+.welcome-text {
+  text-align: center;
+  margin: 0 auto;
+}
+
+.welcome-text h1 {
+  font-size: 100px;
+  font-family: 'Archivo Black', sans-serif;
+  font-weight: bold;
+  color: var(--color-01);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.welcome-text p {
+  font-size: 20px;
+  font-family: 'Montserrat', sans-serif;
+  color: var(--color-01);
+  margin: 0;
+}
+
+.text{
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  color: var(--color-01);
+}
+
+.gif {
+  display: fixed;
+  top: 0;
+}
+
+#category-menu{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  min-height: 60vh;
+}
+
+#category-menu .category-button {
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 30px;
+  border: 2px solid var(--color-01);
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+#category-menu .category-button:hover {
+  background-color: var(--color1);
+  transform: scale(0.95);
+}
+
+#category-menu img {
+  object-fit: cover;
+  width: 100%;
+}
+
+/* ================== RESPONSIVE DESIGN ================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .welcome-text h1 {
+    font-size: 60px;
+  }
+
+  .welcome-text p {
+    font-size: 18px;
+  }
+
+  .text {
+    font-size: 18px;
+  }
+
+  #category-menu {
+    gap: 40px;
+    min-height: 60vh;
+  }
+
+  #category-menu .category-button {
+    width: 280px;
+  }
+}
+
+/* iPad/Small Tablet */
+@media (max-width: 768px) {
+  .welcome-section {
+    min-height: 40vh;
+    padding: 15px;
+  }
+
+  .welcome-text h1 {
+    font-size: 48px;
+  }
+
+  .welcome-text p {
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  .text {
+    font-size: 16px;
+  }
+
+  #category-menu {
+    gap: 30px;
+    min-height: 50vh;
+  }
+
+  #category-menu .category-button {
+    width: 240px;
+    border-radius: 15px;
+    border: 2px solid var(--color-01);
+  }
+
+  #category-menu .category-button:hover {
+    transform: scale(0.93);
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .welcome-section {
+    min-height: 35vh;
+    padding: 12px;
+  }
+
+  .welcome-text h1 {
+    font-size: 36px;
+    text-shadow: 1px 1px 0 var(--color-01);
+  }
+
+  .welcome-text p {
+    font-size: 14px;
+    margin-top: 12px;
+  }
+
+  .text {
+    font-size: 14px;
+  }
+
+  #category-menu {
+    gap: 20px;
+    min-height: 45vh;
+  }
+
+  #category-menu .category-button {
+    width: 200px;
+    border-radius: 12px;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  #category-menu .category-button:hover {
+    transform: scale(0.95);
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .welcome-section {
+    min-height: 30vh;
+    padding: 10px;
+  }
+
+  .welcome-text h1 {
+    font-size: 28px;
+    text-shadow: 1px 1px 0 var(--color-01);
+  }
+
+  .welcome-text p {
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .text {
+    font-size: 13px;
+  }
+
+  #category-menu {
+    gap: 15px;
+    min-height: 40vh;
+  }
+
+  #category-menu .category-button {
+    width: 160px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  #category-menu .category-button:hover {
+    transform: scale(0.92);
+  }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 360px) {
+  .welcome-section {
+    min-height: 25vh;
+    padding: 8px;
+  }
+
+  .welcome-text h1 {
+    font-size: 24px;
+  }
+
+  .welcome-text p {
+    font-size: 12px;
+  }
+
+  .text {
+    font-size: 12px;
+  }
+
+  #category-menu {
+    gap: 12px;
+    min-height: 35vh;
+  }
+
+  #category-menu .category-button {
+    width: 140px;
+    border-radius: 8px;
+  }
+}
+

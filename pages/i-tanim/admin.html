@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrowsauYOU | Admin Panel</title>
+    <link rel="stylesheet" href="../../header.css">
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -22,16 +23,32 @@
 
 <div id="appContent" style="display:none;">
 
-<!-- ── Topbar ── -->
-<header class="topbar">
-  <a href="index.html" class="brand-name">
-    <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
-    <span class="brand-logo-text">GrowSauYOU</span>
-  </a>
-  <div style="display:flex;align-items:center;gap:16px;">
-    <span class="hotline">BRGY SAUYO HOTLINE: 0919 096 6996</span>
-  </div>
-</header>
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <div class="nav-left">
+        <div class="nav-logo-circle"></div>
+        <a class="nav-site-name" href="../../index.html">GrowsauYOU</a>
+        <div class="brand-container">
+            <div class="brand-highlight">
+                <i class="fas fa-seedling"></i>
+                <span>GROW TOOLGETHER</span>
+            </div>
+            <div class="brand-dropdown">
+                <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                <a href="../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                <a href="../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../greencommunity/main/index.html">GREEN COMMUNITY</a></li>
+            <li><a href="user.html">I-TANIM</a></li>
+        </ul>
+    </div>
+    <div class="nav-right">
+        <a class="nav-auth-link" href="login.html">Login</a>
+        <a class="nav-auth-link" href="signup.html">Register</a>
+    </div>
+</nav>
 
 <!-- ── App shell: sidebar + main ── -->
 <div class="ad-shell">
