@@ -528,6 +528,11 @@ function populateCertificationProgramOptions(user, programsList) {
         .filter(p => completedIds.includes(p.id))
         .map(normalizeProgram);
 
+    const activeRequestProgramIds = certifications
+        .filter((c) => c.userId === user.id && ['pending', 'requested', 'approved'].includes(c.status))
+        .map((c) => c.programId)
+        .filter(Boolean);
+
     select.innerHTML = '';
 
     if (!completedPrograms.length) {
@@ -541,8 +546,6 @@ function populateCertificationProgramOptions(user, programsList) {
         return;
     }
 
-    select.disabled = false;
-
     const placeholder = document.createElement('option');
     placeholder.value = '';
     placeholder.textContent = 'Select completed program for this certification';
@@ -550,12 +553,31 @@ function populateCertificationProgramOptions(user, programsList) {
     placeholder.selected = true;
     select.appendChild(placeholder);
 
+    let hasAvailable = false;
     completedPrograms.forEach(program => {
         const opt = document.createElement('option');
         opt.value = program.id;
-        opt.textContent = program.title;
+        const alreadyRequested = activeRequestProgramIds.includes(program.id);
+        opt.disabled = alreadyRequested;
+        opt.textContent = alreadyRequested
+            ? `${program.title} (already requested or approved)`
+            : program.title;
+        if (!alreadyRequested) hasAvailable = true;
         select.appendChild(opt);
     });
+
+    if (!hasAvailable) {
+        select.innerHTML = '';
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No eligible completed programs available';
+        opt.disabled = true;
+        opt.selected = true;
+        select.appendChild(opt);
+        select.disabled = true;
+    } else {
+        select.disabled = false;
+    }
 }
 
 function attachCertificationRequestControls(user) {
@@ -563,10 +585,14 @@ function attachCertificationRequestControls(user) {
     if (!requestButton) return;
 
     const eligibility = getCertificationEligibility(user);
-    requestButton.disabled = !eligibility.eligible;
-    requestButton.textContent = eligibility.eligible
-        ? 'Request Certification'
-        : `Not Eligible (${eligibility.hours} hrs, ${eligibility.completedPrograms} completed)`;
+    const programSelect = document.getElementById('certProgramSelect');
+    const hasAvailableProgram = programSelect && !programSelect.disabled && Array.from(programSelect.options).some(opt => opt.value && !opt.disabled);
+    requestButton.disabled = !eligibility.eligible || !hasAvailableProgram;
+    requestButton.textContent = !eligibility.eligible
+        ? `Not Eligible (${eligibility.hours} hrs, ${eligibility.completedPrograms} completed)`
+        : !hasAvailableProgram
+            ? 'No eligible completed programs available'
+            : 'Request Certification';
 
     requestButton.onclick = async () => {
         const reason = (document.getElementById('certRequestReason')?.value || '').trim();
@@ -592,9 +618,13 @@ function attachCertificationRequestControls(user) {
             return;
         }
 
-        const latest = certifications.find((c) => c.userId === current.id && ['pending', 'requested', 'approved'].includes(c.status));
-        if (latest) {
-            alert(`You already have an active certification status: ${latest.status}.`);
+        const duplicateRequest = certifications.find((c) =>
+            c.userId === current.id &&
+            c.programId === selectedProgramId &&
+            ['pending', 'requested', 'approved'].includes(c.status)
+        );
+        if (duplicateRequest) {
+            alert(`You already have an active certification request for this program with status: ${duplicateRequest.status}.`);
             return;
         }
 
@@ -606,7 +636,7 @@ function attachCertificationRequestControls(user) {
             userEmail: current.email || '',
             programId: selectedProgramId,
             programTitle: associatedProgram ? (associatedProgram.title || associatedProgram.name || '') : '',
-            status: 'pending',
+            status: 'requested',
             reason,
             proofDetails: proof,
             requestedAt: new Date().toISOString(),
@@ -957,9 +987,11 @@ function loadUserCertifications(user, certifications) {
     container.innerHTML = userCerts.map(cert => `
         <div class="cert-item">
             <h4>${cert.name || 'Volunteer Certification'}</h4>
+            <p>${cert.programTitle ? `Program: ${cert.programTitle}` : 'Program not specified.'}</p>
             <p>${cert.description || cert.reason || 'No details provided.'}</p>
             <div class="cert-meta">
                 <span>Status: ${getCertificationStatusBadge(cert.status)}</span>
+                <span>Requested: ${cert.requestedAt ? new Date(cert.requestedAt).toLocaleString() : 'N/A'}</span>
                 <span>Issued: ${cert.issuedDate || 'N/A'}</span>
                 <span>Valid until: ${cert.validUntil || 'N/A'}</span>
                 ${cert.adminNote ? `<span>Admin note: ${cert.adminNote}</span>` : ''}

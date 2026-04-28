@@ -846,11 +846,11 @@ function updateCertifications() {
     const list = document.getElementById('certRequests');
     const eligibleUsers = users.filter((u) => {
         const eligibility = getUserCertificationEligibility(u);
-        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['requested', 'approved'].includes(c.status));
+        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status));
         return eligibility.eligible && !hasActiveOrApproved;
     });
 
-    const requested = certifications.filter((c) => c.status === 'requested');
+    const requested = certifications.filter((c) => ['pending', 'requested'].includes(c.status));
     const reviewed = certifications.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
 
     const eligibleMarkup = eligibleUsers.length > 0
@@ -868,6 +868,7 @@ function updateCertifications() {
                 <div>
                     <strong>${user?.name || 'Unknown'}</strong><br>
                     Email: ${user?.email || 'N/A'}<br>
+                    Program: ${c.programTitle || 'Unknown'}<br>
                     Hours: ${eligibility.hours}, Badge: ${user?.badge || 'None'}<br>
                     Completed Programs: ${eligibility.completedCount}<br>
                     Status: ${getCertificationStatusBadge(c.status)}<br>
@@ -876,14 +877,10 @@ function updateCertifications() {
                     ${c.adminNote ? `Admin Note: ${c.adminNote}<br>` : ''}
                 </div>
                 <div>
-                    ${c.status === 'pending' ? `
-                        <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
-                        <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
-                    ` : c.status === 'requested' ? `
+                    ${['pending', 'requested'].includes(c.status) ? `
                         <button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>
                         <button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>
                         <button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>
-                        <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
                     ` : `
                         <button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>
                         ${c.status !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}

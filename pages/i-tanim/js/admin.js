@@ -1574,16 +1574,27 @@ function updateCertifications() {
         cert.status = normalizeStatus(cert.status);
     });
 
-    const visibleCerts = getLatestCertificatesByUser(certifications);
+    const normalizedCerts = certifications.map((cert) => ({
+        ...cert,
+        status: normalizeStatus(cert.status)
+    }));
 
     const eligibleUsers = users.filter((u) => {
         const eligibility = getUserCertificationEligibility(u);
-        const hasActiveOrApproved = visibleCerts.some((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status));
-        return eligibility.eligible && !hasActiveOrApproved;
+        if (!eligibility.eligible) return false;
+
+        const activeRequestProgramIds = normalizedCerts
+            .filter((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status))
+            .map((c) => c.programId)
+            .filter(Boolean);
+
+        const completedProgramIds = Array.isArray(u.completedPrograms) ? u.completedPrograms : [];
+        const availablePrograms = completedProgramIds.filter((id) => !activeRequestProgramIds.includes(id));
+        return availablePrograms.length > 0;
     });
 
-    const requested = visibleCerts.filter((c) => ['pending', 'requested'].includes(c.status));
-    const reviewed = visibleCerts.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
+    const requested = normalizedCerts.filter((c) => ['pending', 'requested'].includes(c.status));
+    const reviewed = normalizedCerts.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
 
     const eligibleMarkup = eligibleUsers.length > 0
         ? eligibleUsers.map((u) => {
