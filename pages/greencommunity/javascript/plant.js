@@ -65,7 +65,7 @@ const fruitIconMap = {
     'LANZONES': 'plantimg_38.png',
     'PASSION FRUIT': 'plantimg_39.PNG',
     'CHICO': 'plantimg_40.png',
-    'STARFRUIT': 'plantimg_41.PNG',
+    'STARFRUIT': 'plantimg_41.PNG   ',
     'JACKFRUIT': 'plantimg_42.png',
     'MULBERRY': 'plantimg_43.PNG',
     'ORANGE': 'plantimg_44.png',
@@ -291,4 +291,3 @@ document.addEventListener("DOMContentLoaded", async () => {
         filterPlants(category);
     }
 });
-
