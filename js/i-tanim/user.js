@@ -302,12 +302,6 @@ function attachCertificationRequestControls(user) {
             return;
         }
 
-        const latest = certifications.find((c) => c.userId === current.id && ['pending', 'requested', 'approved'].includes(c.status));
-        if (latest) {
-            alert(`You already have an active certification status: ${latest.status}.`);
-            return;
-        }
-
         const certRequest = {
             id: `cert-${Date.now()}`,
             userId: current.id,

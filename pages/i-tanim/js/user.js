@@ -1333,14 +1333,6 @@ window.submitCertificateRequest = async function(programId, buttonElement) {
         modal.remove();
         return;
     }
-    
-    // Check if already has an active request
-const latest = certifications.find((c) => c.userId === current.id && ['pending', 'requested', 'approved'].includes(c.status));
-    if (latest) {
-        alert(`You already have an active certification status: ${latest.status}.`);
-        modal.remove();
-        return;
-    }
 
     const program = programs.find(p => p.id === programId);
 
