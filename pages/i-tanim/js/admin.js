@@ -1668,6 +1668,11 @@ function editCert(id) {
     updateCertifications();
 }
 
+window.approveCert = approveCert;
+window.rejectCert = rejectCert;
+window.cancelCert = cancelCert;
+window.editCert = editCert;
+
 // Notifications
 function updateNotifications() {
     const histEl = document.getElementById('notificationHistory');
