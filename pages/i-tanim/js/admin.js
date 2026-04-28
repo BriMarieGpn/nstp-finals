@@ -172,14 +172,18 @@ function saveCerts() {
     
     // Save certificates to Firestore
     if (useFirestore) {
+        let saveCount = 0;
         certifications.forEach(async (cert) => {
             try {
                 const certRef = doc(db, 'certificates', cert.id);
                 await setDoc(certRef, cert, { merge: true });
+                saveCount++;
+                console.log(`💾 Saved cert ${cert.id} - Status: ${cert.status}`);
             } catch (error) {
                 console.warn('Could not save certificate to Firestore:', cert.id, error);
             }
         });
+        console.log(`📝 Saving ${certifications.length} certificates to Firestore...`);
     }
     
     saveAdminStateToFirestore();
@@ -317,19 +321,17 @@ async function loadCertificatesFromFirestore() {
     
     try {
         const certificatesSnapshot = await getDocs(collection(db, 'certificates'));
-        const firestoreCertificates = certificatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) }));
+        const uniqueCerts = new Map();
         
-        // Merge with local certificates
-        const mergedCertificates = new Map();
-        certifications.forEach(cert => {
-            cert.status = normalizeStatus(cert.status);
-            mergedCertificates.set(cert.id, cert);
+        // Load ONLY from Firestore (don't merge with stale localStorage)
+        certificatesSnapshot.docs.forEach(doc => {
+            const cert = { id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) };
+            uniqueCerts.set(cert.id, cert);
         });
-        firestoreCertificates.forEach(cert => mergedCertificates.set(cert.id, cert));
         
-        certifications = Array.from(mergedCertificates.values());
+        certifications = Array.from(uniqueCerts.values());
         localStorage.setItem('itanimCerts', JSON.stringify(certifications));
-        console.log('Loaded certificates from Firestore:', certifications.length);
+        console.log('✅ Loaded certificates from Firestore:', certifications.length, 'unique records');
         updateCertifications();
     } catch (error) {
         console.warn('Could not load certificates from Firestore:', error);
@@ -341,11 +343,18 @@ function watchCertificateRequests() {
     try {
         const certCollection = collection(db, 'certificates');
         onSnapshot(certCollection, (snapshot) => {
-            certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) }));
+            // Build a deduplicated map using the cert ID as key (newest wins)
+            const uniqueCerts = new Map();
+            snapshot.docs.forEach(doc => {
+                const cert = { id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) };
+                uniqueCerts.set(cert.id, cert);
+            });
+            // Replace certifications with unique entries only from Firestore
+            certifications = Array.from(uniqueCerts.values());
             certifications.forEach(cert => { cert.status = normalizeStatus(cert.status); });
             localStorage.setItem('itanimCerts', JSON.stringify(certifications));
             updateCertifications();
-            console.log('Realtime certificate requests updated:', certifications.length);
+            console.log('✅ Real-time certificate requests updated:', certifications.length, 'unique records');
         });
     } catch (error) {
         console.warn('Could not watch certificate requests:', error);
@@ -1647,11 +1656,15 @@ function approveCert(id) {
         cert.issuedDate = new Date().toISOString().slice(0, 10);
         cert.validUntil = `${new Date().getFullYear() + 1}-12-31`;
         cert.approvedAt = new Date().toISOString();
+        cert.updatedAt = new Date().toISOString(); // Ensure this is the newest version
         cert.certificateType = user?.badge && user.badge !== 'None' ? 'with_badge' : 'without_badge';
         cert.adminNote = cert.adminNote || `Approved after verification (${eligibility.hours} hrs, ${eligibility.completedCount} completed).`;
+        
+        console.log(`✅ Approving cert ${id}:`, cert);
         saveCerts();
         updateCertifications();
         sendNotification(`Your certification request has been approved!`, 'certification', user?.email);
+        alert(`✅ Approved! Certificate for ${user?.name || 'volunteer'} is now approved.`);
     }
 }
 
