@@ -130,9 +130,9 @@ function getIconPath(plant) {
     }
 
     const folderMap = {
-        herbs: '../assets/pics&icon/r.image/herbs.r/',
-        fruits: '../assets/pics&icon/r.image/fruits.r/',
-        vegetables: '../assets/pics&icon/r.image/vegatables.r/'
+        herbs: 'assets/pics&icon/r.image/herbs.r/',
+        fruits: 'assets/pics&icon/r.image/fruits.r/',
+        vegetables: 'assets/pics&icon/r.image/vegatables.r/'
     };
 
     const bestFile = findBestMatch(plant.name, folderImageFiles[folderKey]);

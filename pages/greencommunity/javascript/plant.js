@@ -18,120 +18,88 @@ let allPlants = [];
 let currentCategory = null;
 let currentFilters = { search: "", lifespan: "All", sort: "name-asc" };
 
-const herbNames = [
-    'AKAPULKO', 
-    'ALOE VERA', 
-    'BALANOY', 
-    'BALBAS-PUSA', 
-    'BAYABAS', 
-    'CHIVES', 
-    'CILANTRO', 
-    'DAMONG MARIA', 
-    'DILL', 
-    'GINGER', 
-    'GOTU-KOLA', 
-    'LAGUNDI', 
-    'MAYANA', 
-    'OREGANO', 
-    'PANDAN', 
-    'PANSIT-PANSITAN', 
-    'ROSEMARY', 'SAMBONG', 
-    'SERPENTINA', 
-    'STEVIA', 
-    'TANGLAD', 
-    'TARRAGON', 
-    'TSAANG GUBAT', 
-    'TURMERIC', 
-    'YERBA BUENA'
-];
-const herbIcons = ['plantimg_01.png', 'plantimg_02.png', 'plantimg_03.png', 'plantimg_04.png', 'plantimg_05.png', 'plantimg_06.png', 'plantimg_07.png', 'plantimg_08.png', 'plantimg_09.png', 'plantimg_10.png', 'plantimg_11.png', 'plantimg_12.png', 'plantimg_13.png', 'plantimg_14.png', 'plantimg_15.png', 'plantimg_16.png', 'plantimg_17.png', 'plantimg_18.png', 'plantimg_19.png', 'plantimg_20.png', 'plantimg_21.png', 'plantimg_22.png', 'plantimg_23.png', 'plantimg_24.png', 'plantimg_25.png'];
-
-const herbIconMap = herbNames.reduce((map, name, idx) => {
-    map[normalizeName(name)] = herbIcons[idx];
-    return map;
-}, {});
-
-const fruitIconMap = {
-    'AVOCADO': 'plantimg_26.PNG',
-    'BANANA': 'plantimg_27.png',
-    'CALAMANSI': 'plantimg_28.PNG',
-    'GUYABANO': 'plantimg_29.png',
-    'SUGAR APPLE': 'plantimg_30.jpg',
-    'DURIAN': 'plantimg_33.png',
-    'RAMBUTAN': 'plantimg_34.png',
-    'PAPAYA': 'plantimg_35.PNG',
-    'DRAGON FRUIT': 'plantimg_36.PNG',
-    'GUAVA': 'plantimg_37.PNG',
-    'LANZONES': 'plantimg_38.png',
-    'PASSION FRUIT': 'plantimg_39.PNG',
-    'CHICO': 'plantimg_40.png',
-    'STARFRUIT': 'plantimg_41.PNG   ',
-    'JACKFRUIT': 'plantimg_42.png',
-    'MULBERRY': 'plantimg_43.PNG',
-    'ORANGE': 'plantimg_44.png',
-    'SANTOL': 'plantimg_45.png',
-    'MANGO': 'plantimg_46.png',
-    'FIG': 'plantimg_47.png',
-    'TOMATO': 'plantimg_49.png'
-};
-
-const vegetableIconMap = {
-    'PECHAY': 'plantimg_48.jpg',
-    'TALONG': 'plantimg_50.jpg',
-    'LABANOS': 'plantimg_51.png',
-    'AMPALAYA': 'plantimg_52.jpg',
-    'KANGKONG': 'plantimg_53.jpg',
-    'SALUYOT': 'plantimg_54.png',
-    'MALUNGGAY': 'plantimg_55.png',
-    'SITAW': 'plantimg_56.png',
-    'GABI': 'plantimg_57.jpg',
-    'KAMOTE': 'plantimg_58.jpg',
-    'BELL PEPPER': 'plantimg_59.jpg',
-    'LETSUGAS': 'plantimg_60.jpg',
-    'BAWANG': 'plantimg_61.jpg',
-    'REPOLYO': 'plantimg_62.jpg',
-    'CARROT': 'plantimg_63.jpg',
-    'CELERY': 'plantimg_64.png',
-    'SIBUYAS': 'plantimg_65.jpg',
-    'SILI': 'plantimg_66.jpg',
-    'POTATO': 'plantimg_67.png',
-    'SNAP BEANS': 'plantimg_68.png',
-    'SWEET PEA': 'plantimg_69.png',
-    'PIPINO': 'plantimg_70.png',
-    'OKRA': 'plantimg_71.png',
+const folderImageFiles = {
+    herbs: [
+        'akapulko.png', 'aloe vera.jpeg', 'balanoy.png', 'balbaspusa.png', 'bayabas.jpg',
+        'chives.jpg', 'cilantro.jpg', 'damong maria.png', 'dill.jpeg', 'ginger.jpeg',
+        'gotu kola.jpeg', 'lagundi.jpg', 'mayana.jpg', 'oregano.jpg', 'pandan.png',
+        'pansitpansitan.jpg', 'rosemary.jpeg', 'sambong.jpeg', 'serpentina.png',
+        'stevia.jpg', 'tanglad.jpeg', 'tarragon.jpg', 'tsaang gubat.png', 'turmeric.jpeg',
+        'yerba buena.jpeg'
+    ],
+    fruits: [
+        'Avocado.jpg', 'Balimbing.jpg', 'Banana.jpg', 'Calamansi.jpg', 'Chico.jpg',
+        'Dalandan.jpg', 'Dragon Fruit.jpg', 'Durian.jpg', 'Fig - Ficus Carica.jpg',
+        'Guava Bayabas.jpg', 'Guyabano.jpg', 'Jackfruit.jpg', 'Lanzones.jpg', 'Manga.jpg',
+        'Mulberry.jpg', 'Papaya.jpg', 'Passion Fruit.jpg', 'Rambutan.jpg', 'Santol.jpg', 
+        'Starfruit.jpg', 'Sugar apple.jpg', 'Tomato.jpg'
+    ],
+    vegetables: [
+        'Ampalaya.jpg', 'Baguio Beans.jpg', 'Bawang.jpg', 'Bell Pepper.jpg', 'Carrot.jpg',
+        'Gabi.jpg', 'Kamote.jpg', 'Kangkong.jpg', 'Kintsay.jpg', 'Labanos.jpg',
+        'Letsugas.jpg', 'Malunggay.jpg', 'Okra.jpg', 'Patatas.jpg', 'Pechay.jpg',
+        'Pipino.jpg', 'Repolyo.jpg', 'Saluyot.jpg', 'Sibuyas Dahon.jpg', 'Sibuyas.jpg',
+        'Sili.jpg', 'Sitaw.jpg', 'Snap Beans.jpg', 'Sweet Pea.jpg', 'Talong.jpg'
+    ]
 };
 
 function normalizeName(value) {
-    return (value || "").toString().toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+    return (value || "").toString().replace(/[^a-zA-Z0-9 ]+/g, '').trim();
 }
 
-function findIconFromMap(name, iconMap) {
-    const exact = iconMap[name];
-    if (exact) return exact;
-    const partialMatch = Object.keys(iconMap).find(key => key.includes(name) || name.includes(key));
-    return partialMatch ? iconMap[partialMatch] : null;
+function findBestMatch(name, fileNames) {
+    const normalized = normalizeName(name).toLowerCase();
+    if (!normalized) return null;
+
+    const simpleMatch = fileNames.find(file => {
+        const base = normalizeName(file.replace(/\.[^.]+$/, '')).toLowerCase();
+        return base === normalized || base.includes(normalized) || normalized.includes(base);
+    });
+    if (simpleMatch) return simpleMatch;
+
+    const score = (a, b) => {
+        const m = Math.min(a.length, b.length);
+        let dist = 0;
+        for (let i = 0; i < m; i += 1) {
+            if (a[i] !== b[i]) dist += 1;
+        }
+        return dist + Math.abs(a.length - b.length);
+    };
+
+    const best = fileNames.reduce((bestFile, current) => {
+        const currentBase = normalizeName(current.replace(/\.[^.]+$/, '')).toLowerCase();
+        const currentScore = score(normalized, currentBase);
+        if (!bestFile || currentScore < bestFile.score) {
+            return { score: currentScore, file: current };
+        }
+        return bestFile;
+    }, null);
+
+    return best && best.score <= 2 ? best.file : null;
 }
 
 function getIconPath(plant) {
-    const name = normalizeName(plant.name);
     const category = (plant.category || '').toLowerCase();
-    let iconMap, path;
+    let folderKey;
 
     if (category.includes('herb')) {
-        iconMap = herbIconMap;
-        path = '../assets/pics&icon/icon/herbs.i/';
+        folderKey = 'herbs';
     } else if (category.includes('fruit')) {
-        iconMap = fruitIconMap;
-        path = '../assets/pics&icon/icon/fruits.i/';
+        folderKey = 'fruits';
     } else if (category.includes('vegetable')) {
-        iconMap = vegetableIconMap;
-        path = '../assets/pics&icon/icon/vegetables.i/';
+        folderKey = 'vegetables';
     } else {
         return null;
     }
 
-    const iconName = findIconFromMap(name, iconMap);
-    return iconName ? path + iconName : null;
+    const folderMap = {
+        herbs: 'assets/pics&icon/r.image/herbs.r/',
+        fruits: 'assets/pics&icon/r.image/fruits.r/',
+        vegetables: 'assets/pics&icon/r.image/vegatables.r/'
+    };
+
+    const bestFile = findBestMatch(plant.name, folderImageFiles[folderKey]);
+    return bestFile ? folderMap[folderKey] + bestFile : null;
 }
 
 function debounce(func, delay) {
