@@ -145,11 +145,14 @@ async function fetchCurrentUserProfile(uid, email) {
     }
 
     if (!profile) {
-        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        const storedUser = storedUsers.find(u => u.id === uid) || storedUsers[0];
-        if (storedUser) {
-            profile = storedUser;
-        } else {
+        if (!useFirestore) {
+            const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+            const storedUser = storedUsers.find(u => u.id === uid) || storedUsers[0];
+            if (storedUser) {
+                profile = storedUser;
+            }
+        }
+        if (!profile) {
             profile = {
                 id: uid,
                 name: 'Volunteer',
@@ -356,7 +359,21 @@ async function initFirestoreUserState() {
     try {
         onSnapshot(adminStateDoc, (snapshot) => {
             if (!snapshot.exists()) {
-                console.warn('Firestore user state not found, using local demo data');
+                console.warn('Firestore user state not found, clearing stale cached state');
+                users = [];
+                programs = [];
+                badges = [];
+                certifications = [];
+                notifications = [];
+                localStorage.removeItem('itanimUsers');
+                localStorage.removeItem('users');
+                localStorage.removeItem('itanimPrograms');
+                localStorage.removeItem('programs');
+                localStorage.removeItem('itanimCerts');
+                localStorage.removeItem('certifications');
+                localStorage.removeItem('badges');
+                localStorage.removeItem('itanimNotifications');
+                localStorage.removeItem('notifications');
                 loadUserDashboard();
                 return;
             }
@@ -784,14 +801,16 @@ function loadEnrolledPrograms(user, programs) {
 
         if (isCompleted) {
             statusLabel = '<span class="status-badge status-badge--completed">Completed ✓</span>';
-            // Check if user already has a certificate for this program
-            const hasCertificate = certifications.some(cert => 
+            const certForProgram = certifications.find(cert => 
                 cert.userId === user.id && 
-                cert.programId === program.id && 
-                ['pending', 'requested', 'approved'].includes(cert.status)
+                cert.programId === program.id
             );
-            if (hasCertificate) {
-                actionBtn = '<span class="certificate-status">Certificate Requested</span>';
+            if (certForProgram) {
+                if (certForProgram.status === 'approved') {
+                    actionBtn = '<span class="certificate-status">Certificate Approved</span>';
+                } else {
+                    actionBtn = '<span class="certificate-status">Certificate Requested</span>';
+                }
             } else {
                 actionBtn = `<button class="btn-secondary" onclick="requestCertificateForProgram('${program.id}', event)" style="margin-top:8px;font-size:0.82rem;">Request Certificate</button>`;
             }

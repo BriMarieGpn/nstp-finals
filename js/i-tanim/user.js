@@ -76,17 +76,22 @@ async function fetchCurrentUserProfile(uid, email) {
     }
 
     if (!profile) {
-        const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
-        profile = storedUsers.find(u => u.id === uid) || storedUsers[0] || {
-            id: uid,
-            name: 'Volunteer',
-            email: '',
-            enrolledPrograms: [],
-            hours: 0,
-            badges: [],
-            certifications: [],
-            skills: []
-        };
+        if (!useFirestore) {
+            const storedUsers = JSON.parse(localStorage.getItem('itanimUsers') || localStorage.getItem('users') || '[]');
+            profile = storedUsers.find(u => u.id === uid) || storedUsers[0];
+        }
+        if (!profile) {
+            profile = {
+                id: uid,
+                name: 'Volunteer',
+                email: '',
+                enrolledPrograms: [],
+                hours: 0,
+                badges: [],
+                certifications: [],
+                skills: []
+            };
+        }
     }
 
     return profile;
@@ -396,17 +401,18 @@ function loadEnrolledPrograms(user, programs) {
 
     container.innerHTML = enrolledPrograms.map(program => {
         const isCompleted = completedIds.includes(program.id);
-        const hasCertificate = certifications.some(cert =>
+        const certForProgram = certifications.find(cert =>
             cert.userId === user.id &&
-            cert.programId === program.id &&
-            ['pending', 'requested', 'approved'].includes(cert.status)
+            cert.programId === program.id
         );
         const statusLabel = isCompleted
             ? '<span class="status completed">Completed</span>'
             : '<span class="status enrolled">Enrolled</span>';
         const actionBtn = isCompleted
-            ? hasCertificate
-                ? '<span class="certificate-status">Certificate Requested</span>'
+            ? certForProgram
+                ? (certForProgram.status === 'approved'
+                    ? '<span class="certificate-status">Certificate Approved</span>'
+                    : '<span class="certificate-status">Certificate Requested</span>')
                 : `<button class="btn-secondary" onclick="requestCertificateForProgram('${program.id}', event)" style="margin-top:8px;font-size:0.82rem;">Request Certificate</button>`
             : '';
 
