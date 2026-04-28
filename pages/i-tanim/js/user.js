@@ -333,6 +333,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (useFirestore) {
                     initFirestoreUserState();
                     listenFirestorePrograms();
+                    listenFirestoreCertificates();
                 } else {
                     programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
                     loadUserDashboard();
@@ -402,6 +403,24 @@ async function listenFirestorePrograms() {
     } catch (err) {
         console.warn('Could not listen to Firestore programs', err);
         loadUserDashboard();
+    }
+}
+
+async function listenFirestoreCertificates() {
+    try {
+        const certificatesCollection = collection(db, 'certificates');
+        onSnapshot(certificatesCollection, (snapshot) => {
+            certifications = [];
+            snapshot.forEach((docSnapshot) => {
+                certifications.push({ id: docSnapshot.id, ...docSnapshot.data() });
+            });
+            // Update localStorage cache so updates persist
+            localStorage.setItem('itanimCerts', JSON.stringify(certifications));
+            console.log('📜 Real-time certifications updated:', certifications.length);
+            loadUserDashboard();
+        });
+    } catch (err) {
+        console.warn('Could not listen to Firestore certificates', err);
     }
 }
 
