@@ -410,13 +410,22 @@ async function listenFirestoreCertificates() {
     try {
         const certificatesCollection = collection(db, 'certificates');
         onSnapshot(certificatesCollection, (snapshot) => {
-            certifications = [];
+            const newCertifications = [];
             snapshot.forEach((docSnapshot) => {
-                certifications.push({ id: docSnapshot.id, ...docSnapshot.data() });
+                const cert = { id: docSnapshot.id, ...docSnapshot.data() };
+                // Normalize status to lowercase
+                if (cert.status) {
+                    cert.status = String(cert.status || '').toLowerCase().trim();
+                }
+                newCertifications.push(cert);
             });
+            certifications = newCertifications;
             // Update localStorage cache so updates persist
             localStorage.setItem('itanimCerts', JSON.stringify(certifications));
-            console.log('📜 Real-time certifications updated:', certifications.length);
+            console.log(`📜 Real-time certifications updated:`, certifications.length, 'total records');
+            certifications.forEach(c => {
+                console.log(`  - ${c.userEmail || c.userId}: Status = "${c.status}"`);
+            });
             loadUserDashboard();
         });
     } catch (err) {
@@ -1322,10 +1331,18 @@ const latest = certifications.find((c) => c.userId === current.id && ['pending',
     
     if (useFirestore) {
         try {
-            await addDoc(collection(db, 'certificates'), certRequest);
+            // Remove the temporary ID before saving to Firestore (it will generate a new one)
+            const { id, ...certData } = certRequest;
+            const docRef = await addDoc(collection(db, 'certificates'), certData);
+            // Update the local copy with the actual Firestore ID
+            certRequest.id = docRef.id;
+            certifications[0].id = docRef.id;
+            console.log(`✅ Certificate request created with ID: ${docRef.id}`);
         } catch (error) {
             console.error('Could not save certificate request to Firestore', error);
             alert('Could not submit certificate request. Please try again.');
+            // Remove from local copy on error
+            certifications = certifications.filter(c => c.id !== certRequest.id);
             return;
         }
     }

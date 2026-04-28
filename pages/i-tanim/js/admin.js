@@ -172,18 +172,19 @@ function saveCerts() {
     
     // Save certificates to Firestore
     if (useFirestore) {
-        let saveCount = 0;
-        certifications.forEach(async (cert) => {
+        console.log(`📝 Saving ${certifications.length} certificates to Firestore...`);
+        certifications.forEach((cert) => {
             try {
                 const certRef = doc(db, 'certificates', cert.id);
-                await setDoc(certRef, cert, { merge: true });
-                saveCount++;
-                console.log(`💾 Saved cert ${cert.id} - Status: ${cert.status}`);
+                setDoc(certRef, cert, { merge: true }).then(() => {
+                    console.log(`💾 Saved cert ${cert.id} - Status: ${cert.status}`);
+                }).catch(err => {
+                    console.warn('Could not save certificate to Firestore:', cert.id, err);
+                });
             } catch (error) {
                 console.warn('Could not save certificate to Firestore:', cert.id, error);
             }
         });
-        console.log(`📝 Saving ${certifications.length} certificates to Firestore...`);
     }
     
     saveAdminStateToFirestore();
@@ -1662,9 +1663,9 @@ function approveCert(id) {
         
         console.log(`✅ Approving cert ${id}:`, cert);
         saveCerts();
-        updateCertifications();
+        // Don't call updateCertifications() here - let the real-time listener handle it
         sendNotification(`Your certification request has been approved!`, 'certification', user?.email);
-        alert(`✅ Approved! Certificate for ${user?.name || 'volunteer'} is now approved.`);
+        alert(`✅ Approved! Certificate for ${user?.name || 'volunteer'} is now approved. Updates will appear shortly.`);
     }
 }
 
@@ -1675,8 +1676,9 @@ function rejectCert(id) {
         cert.status = 'rejected';
         cert.adminNote = reason.trim() || 'Rejected by admin.';
         cert.rejectedAt = new Date().toISOString();
+        cert.updatedAt = new Date().toISOString();
         saveCerts();
-        updateCertifications();
+        // Don't call updateCertifications() - let the real-time listener handle it
         const user = users.find(u => u.id === cert.userId);
         sendNotification(`Your certification request has been rejected.${reason ? ` Reason: ${reason}` : ''}`, 'certification', user?.email);
     }
@@ -1689,8 +1691,9 @@ function cancelCert(id) {
     cert.status = 'cancelled';
     cert.adminNote = reason.trim() || 'Cancelled by admin.';
     cert.cancelledAt = new Date().toISOString();
+    cert.updatedAt = new Date().toISOString();
     saveCerts();
-    updateCertifications();
+    // Don't call updateCertifications() - let the real-time listener handle it
     const user = users.find(u => u.id === cert.userId);
     sendNotification(`Your certification has been cancelled.${reason ? ` Note: ${reason}` : ''}`, 'certification', user?.email);
 }
@@ -1706,7 +1709,7 @@ function editCert(id) {
     cert.description = nextDescription.trim() || cert.description || '';
     cert.updatedAt = new Date().toISOString();
     saveCerts();
-    updateCertifications();
+    // Don't call updateCertifications() - let the real-time listener handle it
 }
 
 window.approveCert = approveCert;
