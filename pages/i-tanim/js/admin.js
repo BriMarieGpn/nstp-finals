@@ -31,6 +31,19 @@ function normalizeStatus(status) {
     return String(status || 'pending').toLowerCase().trim();
 }
 
+function getLatestCertificatesByUser(certs) {
+    const latestByUser = new Map();
+    (Array.isArray(certs) ? certs : []).forEach((cert) => {
+        const userId = cert.userId || cert.userEmail || cert.id;
+        const score = new Date(cert.updatedAt || cert.requestedAt || cert.createdAt || 0).getTime();
+        const existing = latestByUser.get(userId);
+        if (!existing || score > existing.score) {
+            latestByUser.set(userId, { cert, score });
+        }
+    });
+    return Array.from(latestByUser.values()).map((entry) => entry.cert);
+}
+
 function isAdminEmail(email) {
     const val = String(email || '').toLowerCase();
     return val.includes('admin');
@@ -152,6 +165,9 @@ function syncProgramsFromTasks() {
     return;
 }
 function saveCerts() {
+    certifications.forEach((cert) => {
+        cert.status = normalizeStatus(cert.status);
+    });
     localStorage.setItem('itanimCerts', JSON.stringify(certifications));
     
     // Save certificates to Firestore
@@ -301,11 +317,14 @@ async function loadCertificatesFromFirestore() {
     
     try {
         const certificatesSnapshot = await getDocs(collection(db, 'certificates'));
-        const firestoreCertificates = certificatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const firestoreCertificates = certificatesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) }));
         
         // Merge with local certificates
         const mergedCertificates = new Map();
-        certifications.forEach(cert => mergedCertificates.set(cert.id, cert));
+        certifications.forEach(cert => {
+            cert.status = normalizeStatus(cert.status);
+            mergedCertificates.set(cert.id, cert);
+        });
         firestoreCertificates.forEach(cert => mergedCertificates.set(cert.id, cert));
         
         certifications = Array.from(mergedCertificates.values());
@@ -322,7 +341,8 @@ function watchCertificateRequests() {
     try {
         const certCollection = collection(db, 'certificates');
         onSnapshot(certCollection, (snapshot) => {
-            certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            certifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), status: normalizeStatus(doc.data()?.status) }));
+            certifications.forEach(cert => { cert.status = normalizeStatus(cert.status); });
             localStorage.setItem('itanimCerts', JSON.stringify(certifications));
             updateCertifications();
             console.log('Realtime certificate requests updated:', certifications.length);
@@ -1539,14 +1559,21 @@ function getCertificationStatusBadge(status) {
 function updateCertifications() {
     const list = document.getElementById('certRequests');
     if (!list) return;
+
+    certifications.forEach((cert) => {
+        cert.status = normalizeStatus(cert.status);
+    });
+
+    const visibleCerts = getLatestCertificatesByUser(certifications);
+
     const eligibleUsers = users.filter((u) => {
         const eligibility = getUserCertificationEligibility(u);
-        const hasActiveOrApproved = certifications.some((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status));
+        const hasActiveOrApproved = visibleCerts.some((c) => c.userId === u.id && ['pending', 'requested', 'approved'].includes(c.status));
         return eligibility.eligible && !hasActiveOrApproved;
     });
 
-    const requested = certifications.filter((c) => ['pending', 'requested'].includes(c.status));
-    const reviewed = certifications.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
+    const requested = visibleCerts.filter((c) => ['pending', 'requested'].includes(c.status));
+    const reviewed = visibleCerts.filter((c) => ['approved', 'rejected', 'cancelled'].includes(c.status));
 
     const eligibleMarkup = eligibleUsers.length > 0
         ? eligibleUsers.map((u) => {
@@ -1560,7 +1587,8 @@ function updateCertifications() {
         const eligibility = getUserCertificationEligibility(user || {});
         const program = c.programId ? programs.find(p => p.id === c.programId) : null;
         const programLabel = c.programTitle || program?.name || program?.title || '';
-        const isActionable = ['requested', 'pending'].includes(String(c.status || '').toLowerCase().trim());
+        const normalizedStatus = normalizeStatus(c.status);
+        const isActionable = ['requested', 'pending'].includes(normalizedStatus);
         return `
             <div class="cert-item">
                 <div>
@@ -1572,13 +1600,13 @@ function updateCertifications() {
                 <div>${eligibility.completedCount > 0 ? 'Yes' : 'No'}</div>
                 <div>
                     ${programLabel ? `<div style="margin-bottom:6px;">${programLabel}</div>` : ''}
-                    ${getCertificationStatusBadge(c.status)}
+                    ${getCertificationStatusBadge(normalizedStatus)}
                     ${c.requestedAt ? `<div style="margin-top:8px;font-size:0.82rem;color:var(--primary);">${new Date(c.requestedAt).toLocaleDateString()}</div>` : ''}
                     ${isActionable ? `<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">` : ''}
                         ${isActionable ? `<button class="approve-btn" onclick="approveCert('${c.id}')">Approve</button>` : ''}
                         ${isActionable ? `<button class="reject-btn" onclick="rejectCert('${c.id}')">Reject</button>` : ''}
                         ${isActionable ? `<button class="edit-btn" onclick="editCert('${c.id}')">Edit</button>` : ''}
-                        ${isActionable && c.status !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}
+                        ${isActionable && normalizedStatus !== 'cancelled' ? `<button class="archive-btn" onclick="cancelCert('${c.id}')">Cancel</button>` : ''}
                     ${isActionable ? `</div>` : ''}
                 </div>
             </div>
