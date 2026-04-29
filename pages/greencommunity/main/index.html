@@ -23,102 +23,53 @@
 
 <body>
 
-  <!-- NAVBAR -->
-<nav class="landing-navbar">
+  <nav class="landing-navbar">
     <div class="landing-nav-left">
-        <a href="index.html" class="brand">
-            <img src="assets/images/main-logo.png" alt="GrowSauYou Logo">
+        <a href="../../../index.html" class="brand">
             <span>GrowSauYou</span>
         </a>
 
         <div class="landing-links">
-            <a href="index.html">Home</a>
-            <a href="pages/i-tanim/user.html">I-Tanim</a>
-            <a href="pages/overview.html">Here-Ramin</a>
-            <a href="pages/greencommunity/main/index.html">Green Community</a>
+            <a href="../../../index.html">Home</a>
+            <a href="../../i-tanim/user.html">I-Tanim</a>
+            <a href="../../../hereramin/index.html">Here-Ramin</a>
+            <a href="index.html">Green Community</a>
         </div>
     </div>
 
     <!-- REQUIRED FOR navbar-auth.js -->
     <div class="nav-right">
-        <a class="nav-auth-link" href="pages/i-tanim/login.html">Login</a>
-        <a class="nav-auth-link" href="pages/i-tanim/signup.html">Register</a>
+        <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
+        <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
     </div>
-</nav>
+  </nav>
 
-<!-- HERO -->
-<section class="hero">
-    <div class="hero-overlay"></div>
+  <main class="bg">
+    <section class="welcome-section">
+      <div class="welcome-text">
+        <h1>Green Community</h1>
+        <p><i>Your Guide to Local Planting</i></p>
+      </div>
+    </section>
 
-    <div class="hero-content">
-        <h1>Welcome to<br>GrowSauYOU!</h1>
+    <div class="gif">
+      <div class="text">
+        <h4>What plant are you looking for today?</h4>
+      </div>
 
-        <q>
-            Grow together with our community through volunteering, gardening,
-            and learning.
-        </q>
-
-        <p>
-            Choose a project below to get started.
-        </p>
-
-        <a href="contactus.html" class="contact-btn">CONTACT US TODAY</a>
-
-        <div class="stats">
-            <div class="stat-box">
-                <strong>3</strong>
-                <span>Projects</span>
-            </div>
-
-            <div class="stat-box">
-                <strong>100+</strong>
-                <span>Community Members</span>
-            </div>
-
-            <div class="stat-box">
-                <strong>Growing</strong>
-                <span>Together</span>
-            </div>
+      <section id="category-menu">
+        <div class="category-button" onclick="filterPlants('Herbs')">
+          <img src="../assets/images/herbs.png" alt="this is an image of herbs">
         </div>
+        <div class="category-button" onclick="filterPlants('Fruits')">
+          <img src="../assets/images/fruits.png" alt="this is an image of fruits">
+        </div>
+        <div class="category-button" onclick="filterPlants('Vegetables')">
+          <img src="../assets/images/vegetables.png" alt="this is an image of vegetables">
+        </div>
+      </section>
     </div>
-</section>
 
-<!-- FEATURES -->
-<section class="features">
-    <div class="feature-grid">
-
-        <div class="feature-card">
-            <i class="fas fa-leaf"></i>
-            <h2>I-TANIM</h2>
-            <p>
-                Join volunteer programs and make a community impact.
-                Grow together with like-minded individuals.
-            </p>
-            <a onclick="explorePrograms()">Explore Programs</a>
-        </div>
-
-        <div class="feature-card">
-            <i class="fas fa-seedling"></i>
-            <h2>GREEN COMMUNITY</h2>
-            <p>
-                Discover plants, herbs, fruits, and vegetables.
-                Learn growing tips from the community.
-            </p>
-            <a href="../pages/greencommunity/main/index.html">Browse Plants</a>
-        </div>
-
-        <div class="feature-card">
-            <i class="fas fa-hand-holding"></i>
-            <h2>HERE-RAMIN</h2>
-            <p>
-                Handpicked tools and products for gardeners.
-                Everything you need to grow.
-            </p>
-            <a href="pages/overview.html">View Tools</a>
-        </div>
-
-    </div>
-</section>
 
     <div id="plant-grid" style="display:none;">
       <div class="grid-header">
@@ -185,7 +136,7 @@
 
     <div>
       <div class="footer-brand">
-        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <img src="assets/images/main-logo.png"alt="GrowSauYOU Logo">
         <span>GrowSauYOU</span>
       </div>
 

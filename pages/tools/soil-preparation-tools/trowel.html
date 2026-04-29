@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trowel | Soil Preparation Tools</title>
+    <title>Tool Info | Trowel</title>
 
     <link rel="stylesheet" href="../../../css/landing.css">
     <link rel="stylesheet" href="../../../css/footer.css">
@@ -12,7 +12,6 @@
 </head>
 <body data-initial-tool="Trowel">
 
-<!-- NAVBAR -->
 <nav class="landing-navbar">
     <div class="landing-nav-left">
         <a href="../../../index.html" class="brand">
@@ -31,95 +30,117 @@
     <div class="nav-right"></div>
 </nav>
 
-<!-- HERO -->
 <section class="tool-hero">
     <div class="hero-overlay"></div>
     <div class="tool-hero-content">
-        <a href="../../categories/soil-preparation-tools.html" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back to Soil Preparation Tools
-        </a>
-
-        <h1>Tool Information</h1>
-        <p>Learn more about this gardening tool and related recommendations.</p>
+        <h1>Welcome to<br>Here-ramin!</h1>
+        <p>
+            Where Barangay Sauyo comes together to borrow tools,
+            learn urban farming, and grow food — and friendships — together.
+        </p>
     </div>
 </section>
 
-<!-- DETAIL SECTION -->
-<section class="tool-detail-section">
-    <div class="tool-layout">
+<section class="tool-detail-shell">
+    <div class="tool-detail-card">
 
-        <!-- IMAGE -->
-        <div class="tool-preview-card">
-            <img id="toolImage" src="../../../assets/images/trowel.png" alt="Trowel">
+        <div class="tool-main-layout">
+            <div class="tool-info-side">
+                <h3>Tool Name:</h3>
+                <h1 id="toolTitle">Trowel</h1>
+
+                <h3>Description:</h3>
+                <p id="toolDescription">
+                    A small hand tool used for digging small holes,
+                    planting, transplanting, and loosening soil.
+                </p>
+            </div>
+
+            <div class="tool-preview-side">
+                <img id="toolImage"
+                     src="../../../assets/images/trowel.png"
+                     alt="Trowel">
+
+                <div class="tool-buttons">
+                    <a href="../../../hereramin/index.html" class="tool-btn">
+                        <i class="fas fa-seedling"></i> Here-ramin
+                    </a>
+
+                    <button class="tool-btn" id="wikiHowBtn" type="button">
+                        <i class="fas fa-play"></i> WikiHOW?
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- MAIN INFO -->
-        <div class="tool-info-card">
-            <span class="tool-category-label">SOIL PREPARATION TOOLS</span>
+        <hr>
 
-            <h2 id="toolTitle">Trowel</h2>
+        <div class="bottom-layout">
 
-            <p id="toolDescription">
-                A small hand tool used for digging small holes, planting,
-                transplanting, and loosening soil.
-            </p>
+            <div class="recommended-section">
+                <h2>Recommended Tools</h2>
 
-            <div class="tool-actions">
-                <a href="../../../hereramin/index.html" class="tool-btn primary">
-                    HERE-RAMIN
+                <div class="recommend-grid">
+                    <button class="recommend-item active" data-tool="Trowel">
+                        <img src="../../../assets/images/trowel.png">
+                        <div><span>Tool Name:</span><strong>Trowel</strong></div>
+                    </button>
+
+                    <button class="recommend-item" data-tool="Hoe">
+                        <img src="../../../assets/images/hoe.png">
+                        <div><span>Tool Name:</span><strong>Hoe</strong></div>
+                    </button>
+
+                    <button class="recommend-item" data-tool="Pitchfork">
+                        <img src="../../../assets/images/pitchfork.png">
+                        <div><span>Tool Name:</span><strong>Pitchfork</strong></div>
+                    </button>
+
+                    <button class="recommend-item" data-tool="Shovel">
+                        <img src="../../../assets/images/shovel.png">
+                        <div><span>Tool Name:</span><strong>Shovel</strong></div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="category-sidecards">
+                <a href="../../categories/planting-and-propagation-tools.html" class="mini-category-card">
+                    <img src="../../../assets/images/seed-trays.png">
+                    <span>Planting & Propagation Tools</span>
                 </a>
 
-                <button class="tool-btn secondary" type="button">
-                    WIKIHOW?
-                </button>
+                <a href="../../categories/watering-and-irrigation-tools.html" class="mini-category-card">
+                    <img src="../../../assets/images/watering-can.png">
+                    <span>Watering & Irrigation Tools</span>
+                </a>
             </div>
+
         </div>
-
-        <!-- RECOMMENDATIONS -->
-        <aside class="recommend-card">
-            <h3>Recommended Tools</h3>
-
-            <div class="recommend-list">
-
-                <button class="recommend-item active" data-tool="Trowel">
-                    <img src="../../../assets/images/trowel.png" alt="Trowel">
-                    <div>
-                        <span>Soil Preparation</span>
-                        <strong>Trowel</strong>
-                    </div>
-                </button>
-
-                <button class="recommend-item" data-tool="Hoe">
-                    <img src="../../../assets/images/hoe.png" alt="Hoe">
-                    <div>
-                        <span>Soil Preparation</span>
-                        <strong>Hoe</strong>
-                    </div>
-                </button>
-
-                <button class="recommend-item" data-tool="Pitchfork">
-                    <img src="../../../assets/images/pitchfork.png" alt="Pitchfork">
-                    <div>
-                        <span>Soil Preparation</span>
-                        <strong>Pitchfork</strong>
-                    </div>
-                </button>
-
-                <button class="recommend-item" data-tool="Shovel">
-                    <img src="../../../assets/images/shovel.png" alt="Shovel">
-                    <div>
-                        <span>Soil Preparation</span>
-                        <strong>Shovel</strong>
-                    </div>
-                </button>
-
-            </div>
-        </aside>
 
     </div>
 </section>
 
-<!-- FOOTER -->
+<!-- INTERNAL TUTORIAL MODAL -->
+<div id="wikiModal" class="wiki-modal">
+    <div class="wiki-modal-content">
+        <button class="wiki-close" id="wikiClose">&times;</button>
+
+        <h2 id="tutorialTitle">How to Use Trowel</h2>
+
+        <div class="tutorial-body">
+            <div class="tutorial-text" id="tutorialText"></div>
+
+            <div class="tutorial-video-wrap">
+                <iframe
+                    id="tutorialVideo"
+                    src=""
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer class="site-footer">
     ...
 </footer>
@@ -130,46 +151,97 @@
         Trowel: {
             title: 'Trowel',
             description: 'A small hand tool used for digging small holes, planting, transplanting, and loosening soil.',
-            image: '../../../assets/images/trowel.png'
+            image: '../../../assets/images/trowel.png',
+            tutorial: `
+                <ol>
+                    <li>Grip the handle firmly.</li>
+                    <li>Insert the blade into the soil at an angle.</li>
+                    <li>Dig small holes for planting seeds or seedlings.</li>
+                    <li>Use the edge to loosen compact soil.</li>
+                </ol>
+            `,
+            video: 'https://www.youtube.com/embed/Ud9jB7Jm4b8'
         },
+
         Hoe: {
             title: 'Hoe',
             description: 'A flat-bladed tool for shaping soil, removing weeds, and creating planting rows.',
-            image: '../../../assets/images/hoe.png'
+            image: '../../../assets/images/hoe.png',
+            tutorial: '<ol><li>Swing the hoe downward toward the soil.</li><li>Drag to remove weeds.</li><li>Use repeated strokes for shaping rows.</li></ol>',
+            video: 'https://www.youtube.com/embed/V8fR4K4sAfA'
         },
+
         Pitchfork: {
             title: 'Pitchfork',
             description: 'A long-handled fork designed to lift, turn, and aerate soil, compost, and mulch.',
-            image: '../../../assets/images/pitchfork.png'
+            image: '../../../assets/images/pitchfork.png',
+            tutorial: '<ol><li>Push fork into soil/compost.</li><li>Lift upward carefully.</li><li>Turn material over for aeration.</li></ol>',
+            video: 'https://www.youtube.com/embed/lH2K7z7Qv4E'
         },
+
         Shovel: {
             title: 'Shovel',
             description: 'A long-handled scoop-shaped tool used for digging, lifting soil, and moving materials.',
-            image: '../../../assets/images/shovel.png'
+            image: '../../../assets/images/shovel.png',
+            tutorial: '<ol><li>Step on shovel blade.</li><li>Push into ground.</li><li>Lift and move soil/material.</li></ol>',
+            video: 'https://www.youtube.com/embed/9kF0mD5s6D0'
         }
     };
+
+    let currentTool = 'Trowel';
 
     const toolTitle = document.getElementById('toolTitle');
     const toolDescription = document.getElementById('toolDescription');
     const toolImage = document.getElementById('toolImage');
+
+    const tutorialTitle = document.getElementById('tutorialTitle');
+    const tutorialText = document.getElementById('tutorialText');
+    const tutorialVideo = document.getElementById('tutorialVideo');
+
     const recommendButtons = document.querySelectorAll('.recommend-item');
 
-    function setTool(toolName) {
+    function setTool(toolName){
         const tool = toolData[toolName];
-        if (!tool) return;
+        if(!tool) return;
+
+        currentTool = toolName;
 
         toolTitle.textContent = tool.title;
         toolDescription.textContent = tool.description;
         toolImage.src = tool.image;
         toolImage.alt = tool.title;
 
-        recommendButtons.forEach(btn => {
+        tutorialTitle.textContent = `How to Use ${tool.title}`;
+        tutorialText.innerHTML = tool.tutorial;
+        tutorialVideo.src = tool.video;
+
+        recommendButtons.forEach(btn=>{
             btn.classList.toggle('active', btn.dataset.tool === toolName);
         });
     }
 
-    recommendButtons.forEach(btn => {
-        btn.addEventListener('click', () => setTool(btn.dataset.tool));
+    recommendButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>setTool(btn.dataset.tool));
+    });
+
+    const wikiBtn = document.getElementById('wikiHowBtn');
+    const wikiModal = document.getElementById('wikiModal');
+    const wikiClose = document.getElementById('wikiClose');
+
+    wikiBtn.addEventListener('click', ()=>{
+        wikiModal.classList.add('active');
+    });
+
+    wikiClose.addEventListener('click', ()=>{
+        wikiModal.classList.remove('active');
+        tutorialVideo.src = tutorialVideo.src;
+    });
+
+    wikiModal.addEventListener('click', (e)=>{
+        if(e.target === wikiModal){
+            wikiModal.classList.remove('active');
+            tutorialVideo.src = tutorialVideo.src;
+        }
     });
 
     setTool('Trowel');

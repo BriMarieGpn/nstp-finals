@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/user.css">
 </head>
-<body class="auth-pending">
+<body class="auth-pending itanim-user">
 <style>
   #appContent { opacity: 1; transition: opacity 220ms ease; }
   body.auth-pending #appContent { opacity: 0; pointer-events: none; }
@@ -67,7 +67,10 @@
     <!-- ══ TAB: OVERVIEW (Welcome / Profile) ══ -->
     <section class="ud-tab active" id="tab-overview">
 
-      <h1 class="ud-page-title" id="welcomeMessage">Welcome, User!</h1>
+      <div class="ud-page-header">
+        <p class="ud-welcome-label" id="welcomeMessage">Welcome, User!</p>
+        <h1 class="ud-page-title">PROFILE</h1>
+      </div>
 
       <!-- Row 1: Profile + Status -->
       <div class="ud-row ud-row--2col">

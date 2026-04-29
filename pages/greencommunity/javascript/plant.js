@@ -1,5 +1,37 @@
 ﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+function createGreenCommunityHeader() {
+    const headerHTML = `
+        <header class="green-community-header">
+            <div class="header-container">
+                <div class="logo-section">
+                    <img src="pages/greencommunity/assets/images" alt="GrowSauYou Logo">
+                    <span class="brand-name">GrowSauYou</span>
+                </div>
+
+                <nav class="main-nav">
+                    <a href="../../../index.html">Home</a>
+                    <a href="../../i-tanim/user.html">I-Tanim</a>
+                    <a href="../../../hereramin/index.html">Here-Ramin</a>
+                    <a href="index.html" class="active">Green Community</a>
+                </nav>
+
+                <div class="auth-buttons">
+                    <a href="../../i-tanim/login.html" class="btn-auth">LOGIN</a>
+                    <a href="../../i-tanim/signup.html" class="btn-auth">REGISTER</a>
+                </div>
+            </div>
+        </header>
+    `;
+
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+}
+
+// Call it when page loads
+document.addEventListener("DOMContentLoaded", () => {
+    createGreenCommunityHeader();
+    // your existing code...
+});
 
 const firebaseConfig = {
     apiKey: "AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w",

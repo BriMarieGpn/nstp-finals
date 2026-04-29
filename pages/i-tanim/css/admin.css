@@ -12,18 +12,21 @@ body { background: var(--cream); margin: 0; }
   align-items: center;
   justify-content: space-between;
   padding: 12px 28px;
-  background: var(--sand);
-  border-bottom: 1px solid var(--border);
+  background: #a9c086;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   flex-wrap: wrap;
   gap: 8px;
 }
 .topbar .brand-name {
   font-family: 'Archivo Black', sans-serif;
-  color: var(--primary);
+  color: #fff;
   display: flex; align-items: center; gap: 8px;
   text-decoration: none;
 }
-.topbar .hotline { font-size: 0.82rem; font-weight: 600; color: var(--primary); }
+.topbar .brand-name .brand-logo-img {
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.25));
+}
+.topbar .hotline { font-size: 0.82rem; font-weight: 600; color: #fff; }
 
 /* ── App shell ── */
 .ad-shell {
@@ -89,12 +92,65 @@ body { background: var(--cream); margin: 0; }
 /* ── Page title ── */
 .ad-page-title {
   font-family: 'Archivo Black', sans-serif;
-  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
   color: var(--primary);
-  margin: 0 0 20px;
+  margin: 0;
 }
 
-/* ── Row layouts ── */
+.ad-subtitle {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.92rem;
+  color: var(--primary);
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px;
+}
+
+.ad-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.ad-card {
+  background: rgba(255, 248, 236, 0.94);
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: 0 18px 40px rgba(84, 107, 65, 0.12);
+  border: 1px solid rgba(84, 107, 65, 0.14);
+  margin-bottom: 16px;
+}
+
+.ad-sidebar {
+  width: 82px;
+}
+
+.ad-sidenav__item--active {
+  background: var(--primary);
+  box-shadow: 0 8px 24px rgba(84, 107, 65, 0.16);
+}
+
+.ad-sidenav__item:hover {
+  background: rgba(255, 248, 236, 0.35);
+}
+
+.ad-overview-header {
+  align-items: flex-start;
+}
+
+.ad-card--overview {
+  padding: 26px 24px;
+}
+
+.ad-task-table {
+  background: rgba(84, 107, 65, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(84, 107, 65, 0.12);
+}
+
 .ad-row {
   display: grid;
   gap: 16px;
@@ -764,6 +820,137 @@ body { background: var(--cream); margin: 0; }
 }
 .ad-toggle-cb:checked + .ad-toggle-track { background: var(--primary); }
 .ad-toggle-cb:checked + .ad-toggle-track::after { transform: translateX(20px); }
+
+/* I-Tanim admin dashboard background */
+body.itanim-admin {
+  min-height: 100vh;
+  background: linear-gradient(rgba(255,248,236,0.84), rgba(255,248,236,0.84)), url("../../../assets/images/itanim-background.png") center/cover no-repeat fixed;
+  background-attachment: fixed;
+}
+
+body.itanim-admin .ad-shell {
+  background: transparent;
+}
+
+body.itanim-admin .topbar {
+  background: rgba(145, 166, 104, 0.95);
+  border-bottom: 1px solid rgba(84,107,65,0.22);
+}
+
+body.itanim-admin .ad-main {
+  background: transparent;
+}
+
+body.itanim-admin .ad-card,
+body.itanim-admin .ad-card--overview,
+body.itanim-admin .ad-card--stat,
+body.itanim-admin .ad-task-table,
+body.itanim-admin .ad-val-body,
+body.itanim-admin .cert-item,
+body.itanim-admin .task-item {
+  background: rgba(226, 238, 205, 0.92);
+  border-color: rgba(84,107,65,0.18);
+  box-shadow: 0 20px 50px rgba(84,107,65,0.14);
+  backdrop-filter: blur(14px);
+}
+
+body.itanim-admin .ad-page-title,
+body.itanim-admin .ad-card__label,
+body.itanim-admin .ad-stat-big,
+body.itanim-admin .ad-stat-unit {
+  color: var(--primary);
+}
+
+body.itanim-admin .ad-card__sub,
+body.itanim-admin .ad-val-row,
+body.itanim-admin .ad-badge-row__name,
+body.itanim-admin .ad-tag {
+  color: #577843;
+}
+
+body.itanim-admin .ad-sidenav__item {
+  background: rgba(255,255,255,0.18);
+}
+
+body.itanim-admin .ad-sidenav__item--active {
+  background: var(--primary);
+  box-shadow: 0 12px 24px rgba(84,107,65,0.25);
+}
+
+body.itanim-admin .ad-sidenav__item:hover {
+  background: rgba(255,255,255,0.32);
+}
+
+body.itanim-admin .ad-page-header {
+  color: var(--primary);
+}
+
+/* I-Tanim admin dashboard overrides */
+body.itanim-admin .ad-shell {
+  background: transparent;
+}
+body.itanim-admin .topbar {
+  background: rgba(169,192,134,0.95);
+  border-bottom-color: rgba(255,255,255,0.22);
+}
+body.itanim-admin .ad-sidebar {
+  width: 88px;
+  background: var(--secondary);
+}
+body.itanim-admin .ad-sidenav__item {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.18);
+}
+body.itanim-admin .ad-sidenav__item:hover {
+  background: rgba(255,255,255,0.32);
+}
+body.itanim-admin .ad-sidenav__item--active {
+  background: var(--primary);
+  box-shadow: 0 12px 24px rgba(84,107,65,0.26);
+}
+body.itanim-admin .ad-main {
+  padding: 32px 32px 48px;
+  max-width: 1100px;
+}
+body.itanim-admin .ad-page-title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+}
+body.itanim-admin .ad-subtitle {
+  letter-spacing: 0.12em;
+}
+body.itanim-admin .ad-card {
+  background: rgba(239, 246, 220, 0.95);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(84,107,65,0.12);
+  border: 1px solid rgba(84,107,65,0.14);
+}
+body.itanim-admin .ad-card--stat,
+body.itanim-admin .ad-card--overview,
+body.itanim-admin .ad-task-table,
+body.itanim-admin .ad-val-body,
+body.itanim-admin .task-item,
+body.itanim-admin .cert-item {
+  background: rgba(255,255,255,0.9);
+}
+body.itanim-admin .ad-task-table__head,
+body.itanim-admin .ad-val-head,
+body.itanim-admin .ad-prog-table-head,
+body.itanim-admin .ad-cert-table-head {
+  background: rgba(84,107,65,0.14);
+}
+body.itanim-admin .ad-card__label {
+  letter-spacing: 0.12em;
+  color: #425a2e;
+}
+body.itanim-admin .ad-page-header {
+  color: var(--primary);
+}
+body.itanim-admin .ad-page-header {
+  margin-bottom: 28px;
+}
 
 /* Responsive additions */
 @media (max-width: 640px) {

@@ -1,5 +1,3 @@
-index.html
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +6,11 @@ index.html
 <title>GrowsauYOU | Home</title>
 <link rel="stylesheet" href="css/common.css">
 <link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/index-redesign.css">
+<link rel="stylesheet" href="../../css/footer.css">
 </head>
 
-<body class="home auth-pending">
+<body class="home auth-pending redesigned-home">
 <style>
   #appContent { opacity: 1; transition: opacity 220ms ease; }
   body.auth-pending #appContent { opacity: 0; pointer-events: none; }
@@ -25,7 +25,7 @@ index.html
   body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
 </style>
 
-<div id="authLoadingGate">Checking session…</div>
+<div id="authLoadingGate">Checking sessionâ€¦</div>
 <div id="appContent">
 
 <!-- Hidden stubs required by index.js -->
@@ -44,8 +44,10 @@ index.html
     <!-- Nav links + auth buttons -->
     <div class="nav-right">
       <div class="nav-links">
-        <a href="../greencommunity/main/index.html">Green Community</a>
+        <a href="../../../index.html">Home</a>
+        <a href="./index.html" class="active">I-Tanim</a>
         <a href="../../hereramin/index.html">Here-Ramin</a>
+        <a href="../greencommunity/main/index.html">Green Community</a>
         <a id="userDashboardLink" href="user.html" style="display:none;">Dashboard</a>
         <a id="adminLink" href="admin.html" style="display:none;">Admin Panel</a>
       </div>
@@ -59,7 +61,7 @@ index.html
 </nav>
 
 
-<!-- ── Hero — centered layout ── -->
+<!-- â”€â”€ Hero â€” centered layout â”€â”€ -->
 <section class="hero">
 
   <!-- Decorative leaf bg -->
@@ -81,36 +83,12 @@ index.html
     <span class="hero-logo__text">auYOU</span>
   </div>
 
-  <p class="hero-tagline">Growth starts with you</p>
-
-  <!-- ── Image carousel — 3D depth effect ── -->
-  <div class="hc-wrap" aria-label="Community photo gallery">
-    <button class="hc-arrow hc-arrow--prev" id="heroPrev" aria-label="Previous">&#8592;</button>
-
-    <div class="hc-stage">
-      <div class="hc-slide" data-index="0"><img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=700&q=80" alt="Community garden aerial view"></div>
-      <div class="hc-slide" data-index="1"><img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=700&q=80" alt="Volunteers in a garden"></div>
-      <div class="hc-slide" data-index="2"><img src="https://images.unsplash.com/photo-1492496913980-501348b61469?auto=format&fit=crop&w=700&q=80" alt="Barangay planting event"></div>
-      <div class="hc-slide" data-index="3"><img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=700&q=80" alt="Green vertical garden building"></div>
-      <div class="hc-slide" data-index="4"><img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=700&q=80" alt="Lush forest canopy"></div>
-    </div>
-
-    <button class="hc-arrow hc-arrow--next" id="heroNext" aria-label="Next">&#8594;</button>
-  </div>
-
-  <!-- Dots -->
-  <div class="hc-dots" id="heroDots" aria-hidden="true"></div>
-
   <!-- CTA -->
   <div class="hero-cta">
     <a id="pageRegisterBtn" class="hero-btn hero-btn--solid" href="signup.html">Register</a>
     <a id="pageLoginBtn" class="hero-btn hero-btn--ghost" href="login.html">Log In</a>
   </div>
 
-  <p class="hero-desc">
-    Join our community initiative to build a greener, stronger, and more resilient barangay together.
-    Your hands can shape the future of our neighborhood.
-  </p>
 
   <!-- Stats -->
   <div class="hero-stats">
@@ -120,7 +98,7 @@ index.html
     </div>
     <div class="hero-stat-divider" aria-hidden="true"></div>
     <div class="hero-stat">
-      <span class="hero-stat-value" id="volunteerCount">…</span>
+      <span class="hero-stat-value" id="volunteerCount">â€¦</span>
       <span class="hero-stat-label">Community Volunteers</span>
     </div>
   </div>
@@ -154,7 +132,7 @@ index.html
       if (i === current) s.classList.add('hc-active');
       else if (i === prev) s.classList.add('hc-prev');
       else if (i === next) s.classList.add('hc-next');
-      /* all others stay bare — hidden behind */
+      /* all others stay bare â€” hidden behind */
     });
 
     dotsWrap.querySelectorAll('.hc-dot').forEach(function (d, i) {
@@ -179,7 +157,7 @@ index.html
 }());
 </script>
 
-<!-- ── Programs section ── -->
+<!-- â”€â”€ Programs section â”€â”€ -->
 <div class="container" style="position:relative;z-index:1;">
 
   <!-- Hidden page-intro kept so index.js doesn't break -->
@@ -205,7 +183,7 @@ index.html
     </div>
 </div>
 
-<!-- ── Program Detail Modal ── -->
+<!-- â”€â”€ Program Detail Modal â”€â”€ -->
 <div id="programDetailModal" style="
     display:none;
     position:fixed;
@@ -225,10 +203,10 @@ index.html
       border:1px solid rgba(255,248,236,0.22);
       position:relative;
   ">
-    <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:1px solid rgba(255,248,236,0.22); border-radius:50%; background:rgba(255,248,236,0.12); color:#FFF8EC; cursor:pointer; font-size:18px;">×</button>
+    <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:1px solid rgba(255,248,236,0.22); border-radius:50%; background:rgba(255,248,236,0.12); color:#FFF8EC; cursor:pointer; font-size:18px;">Ã—</button>
     <img id="detailImage" src="https://via.placeholder.com/500x280?text=Program+Image" style="width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:16px; border:1px solid rgba(255,248,236,0.18);">
     <h3 id="detailTitle" style="margin:0 0 10px 0; color:white;">Program Title</h3>
-    <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0; color:white;">Program description appears here…</p>
+    <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0; color:white;">Program description appears hereâ€¦</p>
     <p style="margin:0 0 8px 0; color:white;"><strong>Hours:</strong> <span id="detailHours"></span></p>
     <p style="margin:0 0 8px 0; color:white;"><strong>Requirement:</strong> <span id="detailRequirement"></span></p>
     <p style="margin:0 0 16px 0; color:white;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
@@ -240,7 +218,7 @@ index.html
   </div>
 </div>
 
-<!-- ── Add Program Modal ── -->
+<!-- â”€â”€ Add Program Modal â”€â”€ -->
 <div id="programModal" style="
     display:none;
     position:fixed;
@@ -279,13 +257,56 @@ index.html
   </div>
 </div>
 
-<!-- ── Admin link footer ── -->
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>Â© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="../../aboutus.html">Barangay</a>
+      <a href="../../aboutus.html">Community</a>
+      <a href="../../aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="../../contactus.html">7 - 3694 - 382</a>
+      <a href="../../contactus.html">7 - 3699 - 156</a>
+      <a href="../../contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<!-- â”€â”€ Admin link footer â”€â”€ -->
 <footer class="admin-footer-link">
   Are you an admin?
   <a href="admin-login.html" class="admin-footer-link__a">Click here to log in</a>
 </footer>
 
-<!-- Carousel stubs — hidden, required by index.js carousel logic -->
+<!-- Carousel stubs â€” hidden, required by index.js carousel logic -->
 <div style="display:none;" aria-hidden="true">
   <div id="carousel">
     <div class="slide"></div>
@@ -300,3 +321,4 @@ index.html
 </div>
 </body>
 </html>
+

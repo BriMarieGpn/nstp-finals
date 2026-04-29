@@ -97,9 +97,26 @@ body {
 /* ── Page title ── */
 .ud-page-title {
   font-family: 'Archivo Black', sans-serif;
-  font-size: clamp(1.4rem, 3.5vw, 2rem);
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
   color: var(--primary);
-  margin: 0 0 20px;
+  margin: 0;
+}
+
+.ud-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.ud-welcome-label {
+  font-family: 'Montserrat', sans-serif;
+  color: var(--primary);
+  opacity: 0.8;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
 }
 
 .ud-section-title {
@@ -108,6 +125,94 @@ body {
   color: var(--primary);
   margin: 24px 0 12px;
 }
+
+.ud-card {
+  background: rgba(255, 248, 236, 0.94);
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: 0 18px 40px rgba(84, 107, 65, 0.12);
+  border: 1px solid rgba(84, 107, 65, 0.14);
+}
+
+.ud-card--badge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ud-sidebar {
+  width: 82px;
+}
+
+.ud-sidenav__item--active {
+  background: var(--primary);
+  box-shadow: 0 8px 24px rgba(84, 107, 65, 0.16);
+}
+
+.ud-sidenav__item:hover {
+  background: rgba(255, 248, 236, 0.35);
+}
+
+.ud-card__label {
+  display: block;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--primary);
+  opacity: 0.75;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ud-card__sub {
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.ud-card__status {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 1.6rem;
+  margin: 4px 0 6px;
+}
+
+.ud-card--progress {
+  padding: 24px 26px;
+}
+
+.ud-progress-bar-wrap {
+  flex: 1;
+  height: 28px;
+  background: rgba(84, 107, 65, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(84, 107, 65, 0.12);
+}
+
+.ud-progress-bar {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.ud-card--table {
+  padding: 0;
+  overflow: hidden;
+}
+
+.ud-table-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: rgba(84, 107, 65, 0.08);
+  padding: 14px 20px;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 0.82rem;
+  color: var(--primary);
+  letter-spacing: 0.06em;
+  border-radius: 18px 18px 0 0;
+}
+
 
 /* ── Row layouts ── */
 .ud-row {
@@ -939,3 +1044,142 @@ body {
 .status-badge--completed   { background: var(--primary); color: var(--cream); }
 .status-badge--inprogress  { background: color-mix(in srgb, var(--secondary) 40%, var(--sand)); color: var(--primary); }
 .status-badge--pending     { background: #f0ad4e; color: #7a5800; }
+
+/* I-Tanim dashboard background */
+body.itanim-user {
+  min-height: 100vh;
+  background: linear-gradient(rgba(255,248,236,0.82), rgba(255,248,236,0.82)), url("../../../assets/images/itanim-background.png") center/cover no-repeat fixed;
+  background-attachment: fixed;
+}
+
+body.itanim-user .ud-shell {
+  background: transparent;
+}
+
+body.itanim-user .topbar {
+  background: rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(84,107,65,0.18);
+}
+
+body.itanim-user .ud-main {
+  background: transparent;
+}
+
+body.itanim-user .ud-card,
+body.itanim-user .ud-card--overview,
+body.itanim-user .ud-card--stat,
+body.itanim-user .ud-card--progress,
+body.itanim-user .ud-task-table,
+body.itanim-user .ud-recent-list {
+  background: rgba(217, 234, 193, 0.86);
+  border-color: rgba(84,107,65,0.16);
+  box-shadow: 0 18px 40px rgba(84,107,65,0.14);
+  backdrop-filter: blur(12px);
+}
+
+body.itanim-user .ud-page-title,
+body.itanim-user .ud-card__name,
+body.itanim-user .ud-card__status,
+body.itanim-user .ud-card__label {
+  color: #37501f;
+}
+
+body.itanim-user .ud-card__sub,
+body.itanim-user .ud-lb-hours,
+body.itanim-user .ud-status-pill {
+  color: #425a2e;
+}
+
+body.itanim-user .ud-sidenav__item--active {
+  background: rgba(84,107,65,0.96);
+}
+
+/* I-Tanim dashboard overrides */
+body.itanim-user .ud-shell {
+  background: transparent;
+}
+body.itanim-user .topbar {
+  background: rgba(84,107,65,0.96);
+  border-bottom-color: rgba(255,255,255,0.22);
+}
+body.itanim-user .ud-sidebar {
+  width: 88px;
+  background: var(--secondary);
+}
+body.itanim-user .ud-sidenav__item {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.18);
+}
+body.itanim-user .ud-sidenav__item svg {
+  width: 24px;
+  height: 24px;
+}
+body.itanim-user .ud-sidenav__item:hover {
+  background: rgba(255,255,255,0.32);
+}
+body.itanim-user .ud-sidenav__item--active {
+  background: var(--primary);
+  box-shadow: 0 12px 24px rgba(84,107,65,0.26);
+}
+body.itanim-user .ud-main {
+  padding: 32px 32px 48px;
+  max-width: 1080px;
+}
+body.itanim-user .ud-page-title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+body.itanim-user .ud-card {
+  background: rgba(239, 246, 220, 0.95);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 22px 50px rgba(84,107,65,0.14);
+  border: 1px solid rgba(84,107,65,0.14);
+}
+body.itanim-user .ud-card__label {
+  letter-spacing: 0.12em;
+  color: #425a2e;
+}
+body.itanim-user .ud-card__name,
+body.itanim-user .ud-card__status,
+body.itanim-user .ud-card__sub,
+body.itanim-user .ud-stat-big,
+body.itanim-user .ud-status-pill {
+  color: var(--primary);
+}
+body.itanim-user .ud-card--stat,
+body.itanim-user .ud-card--badge,
+body.itanim-user .ud-card--progress,
+body.itanim-user .ud-task-table,
+body.itanim-user .ud-recent-list {
+  background: rgba(255,255,255,0.86);
+}
+body.itanim-user .ud-badge-medal {
+  font-size: 3rem;
+}
+body.itanim-user .ud-progress-bar-wrap {
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(84,107,65,0.24);
+}
+body.itanim-user .ud-chart-canvas {
+  background: rgba(255,255,255,0.85);
+  box-shadow: inset 0 0 0 1px rgba(84,107,65,0.08);
+  border-radius: 18px;
+}
+body.itanim-user .ud-recent-list {
+  background: rgba(255,255,255,0.9);
+  border-radius: 20px;
+  padding: 18px;
+}
+body.itanim-user .ud-recent-item {
+  border-bottom: 1px solid rgba(84,107,65,0.12);
+  padding: 14px 0;
+}
+body.itanim-user .ud-welcome-label {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--primary);
+}
