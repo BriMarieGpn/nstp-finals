@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;700&family=Product+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p7MHX4zZ32TqQte97ulRkzvBvs2rR0KpFv8o7w9m1tK0v4uR0K0bA7+K1K0uR8n8x8TsXfy8J4qL6AwD4w5oqg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <title>Green Community</title>
+
+  <link rel="stylesheet" href="../../../css/styles.css">
+  <link rel="stylesheet" href="../../../css/i-tanim/common.css">
+  <link rel="stylesheet" href="../css/reusable.css">
+  <link rel="stylesheet" href="../../../css/landing.css">
+  <link rel="stylesheet" href="../../../css/footer.css">
+  <link rel="stylesheet" href="../css/index.css">
+  <link rel="stylesheet" href="../css/plant.css">
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+<nav class="landing-navbar">
+    <div class="landing-nav-left">
+        <a href="index.html" class="brand">
+            <img src="assets/images/main-logo.png" alt="GrowSauYou Logo">
+            <span>GrowSauYou</span>
+        </a>
+
+        <div class="landing-links">
+            <a href="index.html">Home</a>
+            <a href="pages/i-tanim/user.html">I-Tanim</a>
+            <a href="pages/overview.html">Here-Ramin</a>
+            <a href="pages/greencommunity/main/index.html">Green Community</a>
+        </div>
+    </div>
+
+    <!-- REQUIRED FOR navbar-auth.js -->
+    <div class="nav-right">
+        <a class="nav-auth-link" href="pages/i-tanim/login.html">Login</a>
+        <a class="nav-auth-link" href="pages/i-tanim/signup.html">Register</a>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <h1>Welcome to<br>GrowSauYOU!</h1>
+
+        <q>
+            Grow together with our community through volunteering, gardening,
+            and learning.
+        </q>
+
+        <p>
+            Choose a project below to get started.
+        </p>
+
+        <a href="contactus.html" class="contact-btn">CONTACT US TODAY</a>
+
+        <div class="stats">
+            <div class="stat-box">
+                <strong>3</strong>
+                <span>Projects</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>100+</strong>
+                <span>Community Members</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>Growing</strong>
+                <span>Together</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+    <div class="feature-grid">
+
+        <div class="feature-card">
+            <i class="fas fa-leaf"></i>
+            <h2>I-TANIM</h2>
+            <p>
+                Join volunteer programs and make a community impact.
+                Grow together with like-minded individuals.
+            </p>
+            <a onclick="explorePrograms()">Explore Programs</a>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-seedling"></i>
+            <h2>GREEN COMMUNITY</h2>
+            <p>
+                Discover plants, herbs, fruits, and vegetables.
+                Learn growing tips from the community.
+            </p>
+            <a href="../pages/greencommunity/main/index.html">Browse Plants</a>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-hand-holding"></i>
+            <h2>HERE-RAMIN</h2>
+            <p>
+                Handpicked tools and products for gardeners.
+                Everything you need to grow.
+            </p>
+            <a href="pages/overview.html">View Tools</a>
+        </div>
+
+    </div>
+</section>
+
+    <div id="plant-grid" style="display:none;">
+      <div class="grid-header">
+        <button onclick="showMenu()" class="back-button">← Back to Categories</button>
+
+        <div class="search-wrapper">
+          <input type="text" id="live-search" placeholder="Live search by name or scientific name...">
+          <div id="suggestions-dropdown" class="suggestions-dropdown"></div>
+        </div>
+
+        <button id="filter-btn" class="filter-btn">Filter ▼</button>
+      </div>
+      <div id="grid-container"></div>
+    </div>
+
+
+    <!-- BACK BUTTON -->
+    <div id="plant-detail" style="display:none;">
+      <button onclick="showGrid()">← Back to Grid</button>
+      <div id="detail-content"></div>
+    </div>
+
+    <div id="filter-popup" class="filter-popup" style="display:none;">
+      <div class="popup-content">
+        <h3>Filter & Sort</h3>
+
+        <div class="filter-section">
+          <label>Lifespan:</label>
+          <select id="popup-lifespan">
+            <option value="All">All Plants</option>
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <label>Sort by:</label>
+          <select id="popup-sort">
+            <option value="name-asc">Name (A-Z)</option>
+            <option value="name-desc">Name (Z-A)</option>
+          </select>
+        </div>
+
+        <div class="popup-buttons">
+          <button onclick="applyFilters()" class="apply-btn">Apply</button>
+          <button onclick="closePopup()" class="cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="../javascript/plant.js"></script>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("category")) {
+        document.getElementById("category-menu").style.display = "none";
+        document.getElementById("plant-grid").style.display = "block";
+      }
+    </script>
+
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+  </main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="aboutus.html">Barangay</a>
+      <a href="aboutus.html">Community</a>
+      <a href="aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="contactus.html">7 - 3694 - 382</a>
+      <a href="contactus.html">7 - 3699 - 156</a>
+      <a href="contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script></body>
+
+</html>

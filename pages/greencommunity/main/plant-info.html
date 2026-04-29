@@ -6,44 +6,38 @@
     <title>Planting Guide</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;700&family=Product+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p7MHX4zZ32TqQte97ulRkzvBvs2rR0KpFv8o7w9m1tK0v4uR0K0bA7+K1K0uR8n8x8TsXfy8J4qL6AwD4w5oqg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="../../css/styles.css">
-    <link rel="stylesheet" href="../../css/reusable.css">
-    <link rel="stylesheet" href="css/index.css">
-    <link rel="stylesheet" href="css/plant-info.css">
+    <link rel="stylesheet" href="../../../css/styles.css">
+    <link rel="stylesheet" href="../../../css/landing.css">
+      <link rel="stylesheet" href="../../../css/footer.css" />
+    <link rel="stylesheet" href="../css/reusable.css">
+    <link rel="stylesheet" href="../css/plant-info.css">
 </head>
 
 <body class="background-image">
 
-  <header>
-    <nav class="navbar">
-      <div class="nav-left">
-        <div class="nav-logo-circle"></div>
-        <a class="nav-site-name" href="../../index.html">GrowsauYOU</a>
-        <div class="brand-container">
-          <div class="brand-highlight">
-            <i class="fas fa-seedling"></i>
-            <span>GROW TOOLGETHER</span>
-          </div>
-          <div class="brand-dropdown">
-            <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
-            <a href="../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
-            <a href="../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
-          </div>
+  <nav class="landing-navbar">
+    <div class="landing-nav-left">
+        <a href="../../../index.html" class="brand">
+            <span>GrowSauYou</span>
+        </a>
+
+        <div class="landing-links">
+            <a href="../../../index.html">Home</a>
+            <a href="../../i-tanim/user.html">I-Tanim</a>
+            <a href="../../../hereramin/index.html">Here-Ramin</a>
+            <a href="index.html">Green Community</a>
         </div>
-        <ul class="nav-links">
-          <li><a href="index.html" class="active-link">GREEN COMMUNITY</a></li>
-          <li><a href="../i-tanim/user.html">I-TANIM</a></li>
-        </ul>
-      </div>
-      <div class="nav-right">
-        <a id="navLoginLink" class="nav-auth-link" href="../i-tanim/login.html">Login</a>
-        <a id="navRegisterLink" class="nav-auth-link" href="../i-tanim/signup.html">Register</a>
-        <a id="navLogoutLink" class="nav-auth-link" href="#" style="display:none;">Logout</a>
-      </div>
-    </nav>
-  </header>
+    </div>
+
+    <!-- REQUIRED FOR navbar-auth.js -->
+    <div class="nav-right">
+        <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
+        <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
+    </div>
+  </nav>
 
     <div class="content">
         <div class="info-card">
@@ -96,10 +90,8 @@
         </div>
     </div>
 
-    <script type="module" src="../../js/navbar-auth.js"></script>
-    <script type="module" src="javascript/plant-info.js"></script>
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+    <script type="module" src="../javascript/plant-info.js"></script>
 </body>
 
 </html>
-
-

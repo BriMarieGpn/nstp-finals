@@ -1,103 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;500;700&display=swap');
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GrowsauYOU | Home</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GrowSauYou | Home</title>
 
-<link rel="stylesheet" href="css/i-tanim/common.css">
-<link rel="stylesheet" href="css/i-tanim/home.css">
-<link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="css/landing.css" />
+<link rel="stylesheet" href="css/footer.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
+<body>
 
-<body class="home">
-<nav class="navbar">
-    <div class="nav-left">
-        <div class="nav-logo-circle"></div>
-        <a class="nav-site-name" href="index.html">GrowsauYOU</a>
-        <div class="brand-container">
-            <div class="brand-highlight">
-                <i class="fas fa-seedling"></i>
-                <span>GROW TOOLGETHER</span>
-            </div>
-            <div class="brand-dropdown">
-                <a href="pages/overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
-                <a href="hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
-                <a href="pages/receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
-            </div>
+<!-- NAVBAR -->
+<nav class="landing-navbar">
+    <div class="landing-nav-left">
+        <a href="index.html" class="brand">
+            <img src="assets/images/main-logo.png" alt="GrowSauYou Logo">
+            <span>GrowSauYou</span>
+        </a>
+
+        <div class="landing-links">
+            <a href="index.html">Home</a>
+            <a href="pages/i-tanim/user.html">I-Tanim</a>
+            <a href="pages/overview.html">Here-Ramin</a>
+            <a href="pages/greencommunity/main/index.html">Green Community</a>
         </div>
-        <ul class="nav-links">
-            <li><a href="pages/greencommunity/index.html">GREEN COMMUNITY</a></li>
-            <li><a href="pages/i-tanim/user.html">I-TANIM</a></li>
-        </ul>
     </div>
+
+    <!-- REQUIRED FOR navbar-auth.js -->
     <div class="nav-right">
         <a class="nav-auth-link" href="pages/i-tanim/login.html">Login</a>
         <a class="nav-auth-link" href="pages/i-tanim/signup.html">Register</a>
     </div>
 </nav>
 
-<div class="container">
-  <section class="page-intro">
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <h1>Welcome to<br>GrowSauYOU!</h1>
+
+        <q>
+            Grow together with our community through volunteering, gardening,
+            and learning.
+        </q>
+
+        <p>
+            Choose a project below to get started.
+        </p>
+
+        <a href="contactus.html" class="contact-btn">CONTACT US TODAY</a>
+
+        <div class="stats">
+            <div class="stat-box">
+                <strong>3</strong>
+                <span>Projects</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>100+</strong>
+                <span>Community Members</span>
+            </div>
+
+            <div class="stat-box">
+                <strong>Growing</strong>
+                <span>Together</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+    <div class="feature-grid">
+
+        <div class="feature-card">
+            <i class="fas fa-leaf"></i>
+            <h2>I-TANIM</h2>
+            <p>
+                Join volunteer programs and make a community impact.
+                Grow together with like-minded individuals.
+            </p>
+            <a onclick="explorePrograms()">Explore Programs</a>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-seedling"></i>
+            <h2>GREEN COMMUNITY</h2>
+            <p>
+                Discover plants, herbs, fruits, and vegetables.
+                Learn growing tips from the community.
+            </p>
+            <a href="pages/greencommunity/main/index.html">Browse Plants</a>
+        </div>
+
+        <div class="feature-card">
+            <i class="fas fa-hand-holding"></i>
+            <h2>HERE-RAMIN</h2>
+            <p>
+                Handpicked tools and products for gardeners.
+                Everything you need to grow.
+            </p>
+            <a href="pages/overview.html">View Tools</a>
+        </div>
+
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
     <div>
-      <span class="pill">Discover</span>
-      <h1>Welcome to GrowsauYOU</h1>
-      <p>Grow together with our community through volunteering, gardening, and learning. Choose a project below to get started.</p>
-      <div class="action-row">
-        <a id="pageRegisterBtn" class="btn" href="pages/i-tanim/signup.html">Register</a>
-        <a id="pageLoginBtn" class="btn ghostBtn" href="pages/i-tanim/login.html">Login</a>
+      <div class="footer-brand">
+        <img src="assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
       </div>
-    </div>
-    <div class="status-cards">
-      <div class="status-card">
-        <strong>3</strong>
-        <span>Projects</span>
-      </div>
-      <div class="status-card">
-        <strong>100+</strong>
-        <span>Community Members</span>
-      </div>
-      <div class="status-card">
-        <strong>Growing</strong>
-        <span>Together</span>
-      </div>
-    </div>
-  </section>
 
-  <!-- THREE PROJECT CARDS -->
-  <div class="cards">
-    <!-- I-TANIM CARD -->
-    <div class="home-card" style="background: linear-gradient(135deg, rgba(63, 112, 69, 0.9), rgba(88, 131, 77, 0.9)); border: 1px solid rgba(255,248,236,0.2); transition: all 0.3s ease;">
-      <div style="text-align: center; padding: 30px 20px;">
-        <i class="fas fa-leaf" style="font-size: 56px; color: #b9d8a3; margin-bottom: 15px; display: block;"></i>
-        <h2 style="color: #ffffff; margin: 0 0 12px 0; font-size: 24px;">I-TANIM</h2>
-        <p style="color: #e8f2dc; margin: 0 0 24px 0; font-size: 14px; line-height: 1.6;">Join volunteer programs and make a community impact. Grow together with like-minded individuals.</p>
-        <a class="btn" onclick="explorePrograms()" style="background: #99ad7a; border: none; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: bold; cursor: pointer;">Explore Programs</a>
-      </div>
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
     </div>
 
-    <!-- GREEN COMMUNITY CARD -->
-    <div class="home-card" style="background: linear-gradient(135deg, rgba(51, 93, 59, 0.9), rgba(84, 107, 65, 0.9)); border: 1px solid rgba(255,248,236,0.2); transition: all 0.3s ease;">
-      <div style="text-align: center; padding: 30px 20px;">
-        <i class="fas fa-seedling" style="font-size: 56px; color: #b9d8a3; margin-bottom: 15px; display: block;"></i>
-        <h2 style="color: #ffffff; margin: 0 0 12px 0; font-size: 24px;">GREEN COMMUNITY</h2>
-        <p style="color: #e8f2dc; margin: 0 0 24px 0; font-size: 14px; line-height: 1.6;">Discover plants, herbs, fruits, and vegetables. Learn growing tips from the community.</p>
-        <a class="btn" href="pages/greencommunity/index.html" style="background: #99ad7a; border: none; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: bold;">Browse Plants</a>
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="aboutus.html">Barangay</a>
+      <a href="aboutus.html">Community</a>
+      <a href="aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="contactus.html">7 - 3694 - 382</a>
+      <a href="contactus.html">7 - 3699 - 156</a>
+      <a href="contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
       </div>
     </div>
 
-    <!-- HERE-RAMIN CARD -->
-    <div class="home-card" style="background: linear-gradient(135deg, rgba(43, 61, 36, 0.9), rgba(63, 112, 69, 0.9)); border: 1px solid rgba(255,248,236,0.2); transition: all 0.3s ease;">
-      <div style="text-align: center; padding: 30px 20px;">
-        <i class="fas fa-hand-holding" style="font-size: 56px; color: #b9d8a3; margin-bottom: 15px; display: block;"></i>
-        <h2 style="color: #ffffff; margin: 0 0 12px 0; font-size: 24px;">HERE-RAMIN</h2>
-        <p style="color: #e8f2dc; margin: 0 0 24px 0; font-size: 14px; line-height: 1.6;">Handpicked tools and products for gardeners. Everything you need to grow.</p>
-        <a class="btn" href="hereramin/index.html" style="background: #99ad7a; border: none; color: white; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block; font-weight: bold;">View Tools</a>
-      </div>
-    </div>
   </div>
-</div>
+</footer>
 
 <script type="module" src="js/navbar-auth.js"></script>
 </body>

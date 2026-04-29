@@ -1,0 +1,140 @@
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#F7F5EF;
+    color:#333;
+}
+
+/* HERO */
+.hereramin-hero{
+    position:relative;
+    min-height:650px;
+    padding-top:82px;
+    background:
+        url('../assets/images/hereramin-header.png') center/cover no-repeat;
+    display:flex;
+    align-items:center;
+}
+
+.hero-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(32,52,17,0.45);
+}
+
+.hero-content{
+    position:relative;
+    z-index:2;
+    max-width:1200px;
+    margin:auto;
+    width:100%;
+    padding:0 40px;
+    color:white;
+}
+
+.hero-content h1{
+    font-size:clamp(3rem,8vw,6rem);
+    line-height:0.95;
+    margin-bottom:24px;
+    font-weight:700;
+}
+
+.hero-content p{
+    max-width:800px;
+    font-size:1.4rem;
+    line-height:1.5;
+}
+
+/* BORROW BANNER */
+.borrow-banner{
+    background:#546B41;
+    color:white;
+    text-align:center;
+    padding:28px 20px;
+}
+
+.borrow-banner h2{
+    margin:0;
+    font-size:4rem;
+    font-weight:700;
+}
+
+/* TOOLS SECTION */
+.tool-section{
+    background:
+        url('../assets/images/hereramin-background.png') center/cover no-repeat;
+    padding:70px 20px 90px;
+}
+
+.tool-section-inner{
+    max-width:1250px;
+    margin:auto;
+    text-align:center;
+}
+
+.tool-section-inner h3{
+    font-size:2rem;
+    color:#546B41;
+    margin-bottom:40px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:28px;
+}
+
+.tool-card{
+    background:rgba(211,229,181,0.85);
+    border:2px solid rgba(84,107,65,0.25);
+    border-radius:26px;
+    padding:26px 18px 18px;
+    text-decoration:none;
+    color:#546B41;
+    box-shadow:0 12px 28px rgba(0,0,0,0.12);
+    transition:.3s ease;
+}
+
+.tool-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 35px rgba(0,0,0,0.16);
+}
+
+.tool-card img{
+    width:100%;
+    max-width:180px;
+    height:180px;
+    object-fit:contain;
+    margin-bottom:18px;
+}
+
+.tool-card span{
+    display:block;
+    background:#7E9D5E;
+    color:white;
+    padding:12px 18px;
+    border-radius:999px;
+    font-weight:600;
+    font-size:.95rem;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+
+    .hero-content h1{
+        font-size:3.2rem;
+    }
+
+    .hero-content p{
+        font-size:1.05rem;
+    }
+
+    .borrow-banner h2{
+        font-size:2.4rem;
+    }
+
+    .tool-grid{
+        grid-template-columns:1fr;
+    }
+
+}

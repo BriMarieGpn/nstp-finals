@@ -4,7 +4,7 @@ import { getFirestore, collection, query, where, getDocs } from "https://www.gst
 // Intro overlay animation
 document.addEventListener('DOMContentLoaded', () => {
     const introOverlay = document.getElementById('intro-overlay');
-    
+
     // Remove the intro overlay after animation completes (3.3 seconds total)
     setTimeout(() => {
         if (introOverlay) {
@@ -72,7 +72,7 @@ const folderImageFiles = {
         'Avocado.jpg', 'Balimbing.jpg', 'Banana.jpg', 'Calamansi.jpg', 'Chico.jpg',
         'Dalandan.jpg', 'Dragon Fruit.jpg', 'Durian.jpg', 'Fig - Ficus Carica.jpg',
         'Guava Bayabas.jpg', 'Guyabano.jpg', 'Jackfruit.jpg', 'Lanzones.jpg', 'Manga.jpg',
-        'Mulberry.jpg', 'Papaya.jpg', 'Passion Fruit.jpg', 'Rambutan.jpg', 'Santol.jpg', 
+        'Mulberry.jpg', 'Papaya.jpg', 'Passion Fruit.jpg', 'Rambutan.jpg', 'Santol.jpg',
         'Starfruit.jpg', 'Sugar apple.jpg', 'Tomato.jpg'
     ],
     vegetables: [
@@ -130,9 +130,9 @@ function getIconPath(plant) {
     }
 
     const folderMap = {
-        herbs: 'assets/pics&icon/r.image/herbs.r/',
-        fruits: 'assets/pics&icon/r.image/fruits.r/',
-        vegetables: 'assets/pics&icon/r.image/vegatables.r/'
+        herbs: '../assets/pics&icon/r.image/herbs.r/',
+        fruits: '../assets/pics&icon/r.image/fruits.r/',
+        vegetables: '../assets/pics&icon/r.image/vegatables.r/'
     };
 
     const bestFile = findBestMatch(plant.name, folderImageFiles[folderKey]);
@@ -164,10 +164,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             const q = query(collection(db, "plants"), where("name", "==", plantName));
             const snapshot = await getDocs(q);
-            
+
             if (!snapshot.empty) {
                 const plantData = snapshot.docs[0].data();
-                
+
                 const setText = (id, value) => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = value ?? 'N/A';
@@ -261,4 +261,3 @@ window.addEventListener('DOMContentLoaded', async () => {
         backBtn.href = category ? `index.html?category=${encodeURIComponent(category)}` : 'index.html';
     }
 });
-

@@ -1,0 +1,137 @@
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:#F7F5EF;
+    color:#333;
+}
+
+/* HERO */
+.category-hero{
+    position:relative;
+    min-height:420px;
+    padding-top:82px;
+    background:
+        url('../assets/images/hereramin-header.png') center/cover no-repeat;
+    display:flex;
+    align-items:center;
+}
+
+.hero-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(32,52,17,0.55);
+}
+
+.hero-content{
+    position:relative;
+    z-index:2;
+    max-width:1200px;
+    margin:auto;
+    width:100%;
+    padding:0 40px;
+    color:white;
+}
+
+.back-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:24px;
+    padding:12px 20px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.15);
+    color:white;
+    text-decoration:none;
+    font-weight:600;
+    backdrop-filter:blur(8px);
+}
+
+.back-btn:hover{
+    background:rgba(255,255,255,0.25);
+}
+
+.hero-content h1{
+    font-size:clamp(2.8rem,6vw,5rem);
+    margin-bottom:14px;
+    line-height:1;
+}
+
+.hero-content p{
+    font-size:1.15rem;
+    max-width:700px;
+}
+
+/* TOOLS SECTION */
+.category-tools-section{
+    background:
+        url('../assets/images/hereramin-background.png') center/cover no-repeat;
+    padding:70px 20px 90px;
+}
+
+.category-inner{
+    max-width:1200px;
+    margin:auto;
+    text-align:center;
+}
+
+.category-inner h2{
+    font-size:2rem;
+    color:#546B41;
+    margin-bottom:40px;
+}
+
+.tool-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:28px;
+}
+
+.tool-card{
+    background:rgba(211,229,181,0.88);
+    border:2px solid rgba(84,107,65,0.22);
+    border-radius:26px;
+    padding:26px 18px 18px;
+    text-decoration:none;
+    color:#546B41;
+    box-shadow:0 12px 28px rgba(0,0,0,0.12);
+    transition:.3s ease;
+}
+
+.tool-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 20px 35px rgba(0,0,0,0.16);
+}
+
+.tool-card img{
+    width:100%;
+    max-width:180px;
+    height:180px;
+    object-fit:contain;
+    margin-bottom:18px;
+}
+
+.tool-card span{
+    display:block;
+    background:#7E9D5E;
+    color:white;
+    padding:12px 18px;
+    border-radius:999px;
+    font-weight:600;
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+
+    .hero-content{
+        padding:0 20px;
+    }
+
+    .hero-content h1{
+        font-size:3rem;
+    }
+
+    .tool-grid{
+        grid-template-columns:1fr;
+    }
+
+}
