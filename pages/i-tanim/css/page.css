@@ -156,10 +156,45 @@ body {
     background: white;
 }
 
-.org-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+/* Organizational Hierarchy Levels */
+.org-level {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
     gap: 30px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+.captain-level {
+    margin-bottom: 80px;
+}
+
+.captain-card {
+    max-width: 300px;
+}
+
+.executives-level {
+    justify-content: center;
+    margin-bottom: 80px;
+}
+
+.executives-level .org-card.head {
+    max-width: 280px;
+    flex: 0 1 calc(50% - 15px);
+    min-width: 250px;
+}
+
+.councilors-level {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    width: 100%;
+}
+
+.councilors-level .org-card {
+    max-width: 250px;
+    justify-self: center;
 }
 
 .org-card {
@@ -170,14 +205,18 @@ body {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-align: center;
     border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .org-card.head {
-    grid-column: 1 / -1; /* Span full width */
-    max-width: 400px;
-    margin: 0 auto;
-    background: #81985a; /* Green bg for Captain */
+    background: #81985a; /* Green bg for executives */
     color: white;
+}
+
+.org-card.head.captain-card {
+    background: #546B41; /* Darker green for captain */
 }
 
 .org-card.head h3, .org-card.head p {
@@ -363,9 +402,18 @@ body {
         order: -1; /* Image on top on mobile */
     }
 
-    .org-card.head {
-        grid-column: auto; /* Reset grid span */
-        max-width: 100%;
+    .org-level {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .executives-level .org-card.head {
+        max-width: 280px;
+        flex: none;
+    }
+
+    .councilors-level {
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
