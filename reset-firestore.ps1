@@ -61,4 +61,60 @@ if ($DryRun) {
     Write-Host "\nDry run complete. No changes were made." -ForegroundColor Green
 } else {
     Write-Host "\nFirestore reset complete. greencommunity collections are preserved." -ForegroundColor Green
+
+    $localStorageResetFile = Join-Path $PSScriptRoot 'reset-localstorage.html'
+    $localStorageKeys = @(
+        'itanimUsers',
+        'itanimPrograms',
+        'itanimCerts',
+        'itanimSkills',
+        'itanimRestrictions',
+        'itanimBadges',
+        'itanimNotifications',
+        'itanimAdminLogs',
+        'itanimLocalPrograms',
+        'users',
+        'programs',
+        'badges',
+        'certifications',
+        'notifications',
+        'growsauyouRoleCache',
+        'PROFILE_CACHE_KEY',
+        'activeTab'
+    )
+
+    $keysJson = '[' + (($localStorageKeys | ForEach-Object { "'$_'" }) -join ', ') + ']' 
+
+    $htmlContent = @"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='utf-8'>
+    <title>GrowSauYOU Local Cache Reset</title>
+    <style>
+        body { font-family: Segoe UI, sans-serif; background: #f7f7f7; color: #333; padding: 30px; }
+        button { padding: 12px 22px; border: none; border-radius: 8px; background: #4b7f38; color: #fff; cursor: pointer; font-size: 1rem; }
+        .status { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>GrowSauYOU Local Cache Reset</h1>
+    <p>This helper page will clear the browser local storage keys used by the i-tanim admin and volunteer dashboard.</p>
+    <button id='resetBtn'>Clear local cache now</button>
+    <div class='status' id='status'></div>
+    <script>
+        const keys = $keysJson;
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            keys.forEach(key => localStorage.removeItem(key));
+            document.getElementById('status').textContent = 'Cleared localStorage keys. Reload the app pages now.';
+        });
+    </script>
+</body>
+</html>
+"@
+
+    Set-Content -Path $localStorageResetFile -Value $htmlContent -Encoding UTF8
+    Write-Host "A local cache reset page was created at: $localStorageResetFile" -ForegroundColor Green
+    Write-Host "Opening your default browser so you can clear localStorage for the app..." -ForegroundColor Cyan
+    Start-Process $localStorageResetFile
 }
