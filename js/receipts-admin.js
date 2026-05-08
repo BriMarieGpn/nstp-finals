@@ -15,6 +15,10 @@ import firebaseConfig from "./firebaseConfig.js";
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     let borrowRecords = [];
 
+    function isAdminEmail(email) {
+        return String(email || '').toLowerCase().includes('admin');
+    }
+
     // Check authentication and admin role
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -32,7 +36,7 @@ import firebaseConfig from "./firebaseConfig.js";
                 }
             }
             const role = userDoc.exists() ? String(userDoc.data().role || '').toLowerCase().trim() : 'user';
-            if (role !== 'admin') {
+            if (role !== 'admin' && !isAdminEmail(user.email)) {
                 showPermissionDenied("You do not have permission to access this admin page.");
                 return;
             }
@@ -46,6 +50,14 @@ import firebaseConfig from "./firebaseConfig.js";
     });
 
     function showPermissionDenied(message) {
+        document.body.classList.remove('auth-pending');
+        const gate = document.getElementById('authLoadingGate');
+        if (gate) {
+            gate.style.opacity = '0';
+            gate.style.visibility = 'hidden';
+            gate.style.pointerEvents = 'none';
+        }
+
         const main = document.querySelector('main.receipts-shell');
         if (main) {
             main.innerHTML = `

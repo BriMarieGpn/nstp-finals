@@ -74,7 +74,7 @@ function isProtectedCurrentPage() {
 }
 
 function isProtectedHref(href) {
-    return /hereramin\/index\.html|pages\/receipts\/|pages\/i-tanim\/user\.html|pages\/i-tanim\/admin\.html|\/i-tanim\/user\.html|\/i-tanim\/admin\.html/i.test(href);
+    return /hereramin\/index\.html|hereramin\/admin\.html|pages\/receipts\/|pages\/i-tanim\/user\.html|pages\/i-tanim\/admin\.html|\/i-tanim\/user\.html|\/i-tanim\/admin\.html/i.test(href);
 }
 
 function buildAppUrl(path) {
@@ -182,6 +182,11 @@ function renderNavRight(user, role) {
             <a class="nav-auth-link" href="${loginHref}">Login</a>
             <a class="nav-auth-link" href="${signupHref}">Register</a>
         `;
+
+        // Hide admin link if exists
+        const adminLink = document.getElementById("adminLink");
+        if (adminLink) adminLink.style.display = "none";
+
         return;
     }
 
@@ -191,6 +196,12 @@ function renderNavRight(user, role) {
         <a class="nav-auth-link" href="${dashboardHref}">Dashboard</a>
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
     `;
+
+    // Show admin link for hereramin if user is admin
+    const adminLink = document.getElementById("adminLink");
+    if (adminLink) {
+        adminLink.style.display = role === 'admin' ? "inline-block" : "none";
+    }
 
     document.getElementById("globalLogoutBtn")?.addEventListener("click", async () => {
         try {

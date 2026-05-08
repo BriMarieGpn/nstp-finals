@@ -13,68 +13,69 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+    const imageFolder = "assets/images/";
 
     const defaultGroupedTools = [
         {
             category: "Soil Preparation",
             tools: [
-                { name: "Trowel", image: "../assets/images/trowel.png", available: true },
-                { name: "Hoe", image: "../assets/images/hoe.png", available: false },
-                { name: "Pitchfork", image: "../assets/images/pitchfork.png", available: true },
-                { name: "Shovel", image: "../assets/images/shovel.png", available: true }
+                { name: "Trowel", image: "trowel.png", available: true },
+                { name: "Hoe", image: "hoe.png", available: false },
+                { name: "Pitchfork", image: "pitchfork.png", available: true },
+                { name: "Shovel", image: "shovel.png", available: true }
             ]
         },
         {
             category: "Planting & Propagation",
             tools: [
-                { name: "Seed Trays", image: "../assets/images/seed-trays.png", available: true },
-                { name: "Dibbers", image: "../assets/images/dibbers.png", available: true },
-                { name: "Plant Labels", image: "../assets/images/plant-labels.png", available: false },
-                { name: "Seed Starter Kit", image: "../assets/images/seed-starter-kit.png", available: true }
+                { name: "Seed Trays", image: "seed-trays.png", available: true },
+                { name: "Dibbers", image: "dibbers.png", available: true },
+                { name: "Plant Labels", image: "plant-labels.png", available: false },
+                { name: "Seed Starter Kit", image: "seed-starter-kit.png", available: true }
             ]
         },
         {
             category: "Watering & Irrigation",
             tools: [
-                { name: "Watering Can", image: "../assets/images/watering-can.png", available: true },
-                { name: "Hose", image: "../assets/images/hose.png", available: false },
-                { name: "Spray Nozzles", image: "../assets/images/spray-nozzles.png", available: true },
-                { name: "Sprinkler", image: "../assets/images/sprinkler.png", available: true }
+                { name: "Watering Can", image: "watering-can.png", available: true },
+                { name: "Hose", image: "hose.png", available: false },
+                { name: "Spray Nozzles", image: "spray-nozzles.png", available: true },
+                { name: "Sprinkler", image: "sprinkler.png", available: true }
             ]
         },
         {
             category: "Pruning & Maintenance",
             tools: [
-                { name: "Garden Scissors", image: "../assets/images/garden-scissors.png", available: false },
-                { name: "Hedge Trimmers", image: "../assets/images/hedge-trimmers.png", available: true },
-                { name: "Pruning Shears", image: "../assets/images/pruning-shears.png", available: true }
+                { name: "Garden Scissors", image: "garden-scissors.png", available: false },
+                { name: "Hedge Trimmers", image: "hedge-trimmers.png", available: true },
+                { name: "Pruning Shears", image: "pruning-shears.png", available: true }
             ]
         },
         {
             category: "Harvesting",
             tools: [
-                { name: "Harvest Baskets", image: "../assets/images/harvest-baskets.png", available: true },
-                { name: "Garden Knives", image: "../assets/images/garden-knives.png", available: false },
-                { name: "Fruit Pickers", image: "../assets/images/fruit-pickers.png", available: true },
-                { name: "Harvest Scissors", image: "../assets/images/harvest-scissors.png", available: true }
+                { name: "Harvest Baskets", image: "harvest-baskets.png", available: true },
+                { name: "Garden Knives", image: "garden-knives.png", available: false },
+                { name: "Fruit Pickers", image: "fruit-pickers.png", available: true },
+                { name: "Harvest Scissors", image: "harvest-scissors.png", available: true }
             ]
         },
         {
             category: "Pest Control",
             tools: [
-                { name: "Garden Sprayers", image: "../assets/images/garden-sprayers.png", available: true },
-                { name: "Insect Nets", image: "../assets/images/insect-nets.png", available: true },
-                { name: "Sticky Traps", image: "../assets/images/sticky-traps.png", available: false },
-                { name: "Hand Dusters", image: "../assets/images/hand-dusters.png", available: true }
+                { name: "Garden Sprayers", image: "garden-sprayers.png", available: true },
+                { name: "Insect Nets", image: "insect-nets.png", available: true },
+                { name: "Sticky Traps", image: "sticky-traps.png", available: false },
+                { name: "Hand Dusters", image: "hand-dusters.png", available: true }
             ]
         },
         {
             category: "Protective & Safety",
             tools: [
-                { name: "Gloves", image: "../assets/images/gloves.png", available: true },
-                { name: "Aprons", image: "../assets/images/aprons.png", available: true },
-                { name: "Masks", image: "../assets/images/masks.png", available: false },
-                { name: "Knee Pads", image: "../assets/images/knee-pads.png", available: true }
+                { name: "Gloves", image: "gloves.png", available: true },
+                { name: "Aprons", image: "aprons.png", available: true },
+                { name: "Masks", image: "masks.png", available: false },
+                { name: "Knee Pads", image: "knee-pads.png", available: true }
             ]
         }
     ];
@@ -149,6 +150,36 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         return map;
     }
 
+    function getLocalImagePath(imageNameOrPath) {
+        if (!imageNameOrPath) {
+            return `${imageFolder}shovel.png`;
+        }
+        if (imageNameOrPath.startsWith("data:")) {
+            return imageNameOrPath;
+        }
+        if (imageNameOrPath.startsWith("http://") || imageNameOrPath.startsWith("https://")) {
+            const baseName = imageNameOrPath.replace(/^.*[\\/]/, "");
+            return `${imageFolder}${baseName}`;
+        }
+        const normalized = imageNameOrPath.replace(/^\.\//, "");
+        if (normalized.startsWith("assets/images/")) {
+            return normalized;
+        }
+        if (!normalized.includes("/")) {
+            return `${imageFolder}${normalized}`;
+        }
+        const baseName = normalized.replace(/^.*[\\/]/, "");
+        return `${imageFolder}${baseName}`;
+    }
+
+    function getFallbackToolImage(name) {
+        const fallback = getFallbackToolByName(name);
+        if (fallback?.image) {
+            return getLocalImagePath(fallback.image);
+        }
+        return getLocalImagePath(`${slugify(name)}.png`);
+    }
+
     function populateTools() {
         toolSelect.innerHTML = "";
         groupedTools.forEach((group) => {
@@ -158,6 +189,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                 const option = document.createElement("option");
                 option.value = tool.name;
                 option.textContent = tool.name;
+                option.dataset.image = getLocalImagePath(tool.image || getFallbackToolImage(tool.name));
                 optGroup.appendChild(option);
             });
             toolSelect.appendChild(optGroup);
@@ -171,11 +203,17 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     }
 
     function setTool(toolName) {
-        const tool = getAllTools().find((entry) => entry.name === toolName);
-        if (!tool) return;
-        if (tool.image) {
-            toolImage.src = tool.image;
+        const name = toolName || toolSelect.value || toolSelect.options[0]?.value || "";
+        const tool = getAllTools().find((entry) => entry.name === name);
+        if (!tool) {
+            return;
         }
+
+        const selectedOption = toolSelect.options[toolSelect.selectedIndex] || toolSelect.options[0];
+        const rawImage = tool.image || selectedOption?.dataset.image || getFallbackToolImage(tool.name);
+        toolImage.src = getLocalImagePath(rawImage);
+        toolImage.alt = tool.name;
+
         setAvailability(tool.available);
         if (quantity > (tool.maxQuantity || 10)) {
             quantity = Math.max(1, tool.maxQuantity || 10);
@@ -186,6 +224,11 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     function getSelectedTool() {
         return getAllTools().find((entry) => entry.name === toolSelect.value) || null;
     }
+
+    toolImage.onerror = () => {
+        console.warn("Tool image failed to load:", toolImage.src);
+        toolImage.src = "./assets/images/shovel.png";
+    };
 
     function applyToolFromQueryParam() {
         const toolFromParam = getToolFromUrlParam();
@@ -227,7 +270,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             id: docId,
             name: toolName,
             category: data.category || fallback?.category || getCategoryForToolName(toolName),
-            image: data.image_url || data.image || data.tool_image || fallback?.image || toolImage.src,
+            image: getLocalImagePath(fallback?.image || `${slugify(toolName)}.png`),
             available: isAvailable,
             maxQuantity: Math.max(1, quantityAvailable || quantityTotal || 1),
             quantityAvailable: Math.max(0, quantityAvailable),
@@ -253,7 +296,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                     tool_name: tool.name,
                     category: group.category,
                     description: `${tool.name} tool for ${group.category.toLowerCase()}.`,
-                    image_url: new URL(tool.image, window.location.href).href,
+                    image_url: getLocalImagePath(tool.image),
                     quantity_available: tool.available ? 5 : 0,
                     quantity_total: 5,
                     status_: tool.available ? "Available" : "Unavailable",
