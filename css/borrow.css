@@ -1,0 +1,263 @@
+body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:
+        url('../assets/images/hereramin-background.png') center/cover no-repeat;
+    background-attachment:fixed;
+}
+
+/* PAGE */
+.borrow-page-shell{
+    padding:120px 24px 80px;
+}
+
+.borrow-grid{
+    max-width:1450px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:380px 1fr;
+    gap:28px;
+    align-items:start;
+}
+
+/* LEFT PANEL */
+.borrow-tool-panel{
+    background:#DDE8C7;
+    border:3px solid #8DA56B;
+    border-radius:28px;
+    padding:24px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+}
+
+.borrow-tool-image-wrap{
+    background:#EDF4E3;
+    border-radius:22px;
+    padding:18px;
+    margin-bottom:18px;
+}
+
+.borrow-tool-image-wrap img{
+    width:100%;
+    height:260px;
+    object-fit:contain;
+}
+
+.availability-badge-wrap{
+    text-align:center;
+    margin-bottom:18px;
+}
+
+.availability-badge{
+    padding:12px 26px;
+    border-radius:999px;
+    background:#6D944A;
+    color:white;
+    font-weight:700;
+}
+
+.borrow-label{
+    display:block;
+    font-weight:700;
+    font-size:1.15rem;
+    margin:18px 0 10px;
+    color:#546B41;
+}
+
+.borrow-input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:none;
+    background:#6D944A;
+    color:white;
+    font-size:1rem;
+}
+
+.qty-control{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.qty-btn{
+    width:48px;
+    height:48px;
+    border:none;
+    border-radius:12px;
+    background:#6D944A;
+    color:white;
+    font-size:1.6rem;
+    cursor:pointer;
+}
+
+.qty-value{
+    font-size:1.3rem;
+    font-weight:700;
+    min-width:30px;
+    text-align:center;
+}
+
+.date-separator{
+    text-align:center;
+    margin:10px 0;
+    font-weight:700;
+    color:#546B41;
+}
+
+/* RIGHT PANEL */
+.borrow-form-panel{
+    background:rgba(255,255,255,.82);
+    border:3px solid #8DA56B;
+    border-radius:28px;
+    padding:34px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);
+    backdrop-filter:blur(10px);
+}
+
+.borrow-intro{
+    font-size:1.1rem;
+    margin-bottom:28px;
+    color:#32492A;
+}
+
+.borrow-form-grid{
+    display:grid;
+    grid-template-columns:230px 1fr;
+    gap:18px 24px;
+    align-items:center;
+}
+
+.borrow-form-grid label{
+    font-size:1.15rem;
+    font-weight:800;
+    color:#1F2D17;
+}
+
+.borrow-form-grid input,
+.borrow-form-grid textarea{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:2px solid #9BA98C;
+    background:white;
+    font-size:1rem;
+}
+
+.borrow-form-grid textarea{
+    min-height:120px;
+    resize:vertical;
+}
+
+/* ID */
+.id-upload-section{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+}
+
+.id-preview{
+    width:240px;
+    height:150px;
+    border-radius:16px;
+    overflow:hidden;
+    border:2px solid #9BA98C;
+}
+
+.id-preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.id-btn,
+.clear-btn{
+    background:#546B41;
+    color:white;
+    border:none;
+    padding:14px 20px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.id-dropdown{
+    display:none;
+    margin-top:10px;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+.id-actions.show .id-dropdown{
+    display:block;
+}
+
+.id-choice{
+    display:block;
+    width:100%;
+    border:none;
+    padding:12px;
+    background:#DDE8C7;
+    cursor:pointer;
+}
+
+/* SIGNATURE */
+.signature-area{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+#signaturePad{
+    width:100%;
+    height:150px;
+    background:white;
+    border:2px solid #9BA98C;
+    border-radius:14px;
+}
+
+/* ACTIONS */
+.agreement{
+    text-align:center;
+    margin:26px 0 20px;
+    color:#32492A;
+}
+
+.borrow-actions{
+    display:flex;
+    justify-content:space-between;
+    gap:18px;
+}
+
+.back-action,
+.submit-action{
+    border:none;
+    padding:14px 32px;
+    border-radius:999px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.back-action{
+    background:#E6E6E6;
+}
+
+.submit-action{
+    background:#6D944A;
+    color:white;
+}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+    .borrow-grid{
+        grid-template-columns:1fr;
+    }
+
+    .borrow-form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .id-upload-section{
+        flex-direction:column;
+    }
+}

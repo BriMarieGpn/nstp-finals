@@ -1,0 +1,541 @@
+/* 
+   pages.css
+   Shared styles for About Us and Contact Us pages
+   Inherits variables and base styles from landing.css
+*/
+
+/* Reset & Typography overrides for these pages */
+body {
+    font-family: 'Poppins', sans-serif; /* Consistent with Login page */
+    color: #333;
+}
+
+/* ── SHARED HERO SECTION ── */
+.page-hero {
+    min-height: 600px;
+    background:
+        linear-gradient(rgba(32,52,17,0.6), rgba(32,52,17,0.6)),
+        url("../assets/images/main-background.png") center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding-top: 82px; /* Offset for fixed navbar */
+    position: relative;
+}
+
+.page-hero .hero-overlay {
+    /* Optional overlay tweaks if needed */
+}
+
+.page-hero h1 {
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 700;
+    color: white;
+    margin-bottom: 16px;
+    line-height: 1.1;
+}
+
+.page-hero p {
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.9);
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.scroll-down {
+    position: absolute;
+    bottom: 30px;
+    color: white;
+    font-size: 1.5rem;
+    animation: bounce 2s infinite;
+    cursor: pointer;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+/* ── GENERAL LAYOUTS ── */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #546B41; /* Dark Green */
+    margin-bottom: 50px;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 4px;
+    background: #81985a;
+    margin: 15px auto 0;
+    border-radius: 2px;
+}
+
+/* ── ABOUT US: TEXT SECTION ── */
+.content-section {
+    background: white;
+}
+
+.text-block p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 20px;
+    text-align: center;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ── ABOUT US: URBAN FARM HIGHLIGHT ── */
+.highlight-section {
+    background: #F7F5EF; /* Cream */
+}
+
+.split-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+}
+
+.image-side img {
+    width: 100%;
+    border-radius: 24px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+}
+
+.text-side h2 {
+    font-size: 2.2rem;
+    color: #546B41;
+    margin-bottom: 20px;
+}
+
+.text-side p {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.feature-list {
+    list-style: none;
+}
+
+.feature-list li {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+    color: #546B41;
+}
+
+.feature-list i {
+    color: #81985a;
+    font-size: 1.2rem;
+}
+
+/* ── ABOUT US: ORGANIZATIONAL CHART ── */
+.chart-section {
+    background: white;
+}
+
+/* Organizational Hierarchy Levels */
+.org-level {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 60px;
+    flex-wrap: wrap;
+}
+
+.captain-level {
+    margin-bottom: 80px;
+}
+
+.captain-card {
+    max-width: 300px;
+}
+
+.executives-level {
+    justify-content: center;
+    margin-bottom: 80px;
+}
+
+.executives-level .org-card.head {
+    max-width: 280px;
+    flex: 0 1 calc(50% - 15px);
+    min-width: 250px;
+}
+
+.councilors-level {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    width: 100%;
+}
+
+.councilors-level .org-card {
+    max-width: 250px;
+    justify-self: center;
+}
+
+.org-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.org-card.head {
+    background: #81985a; /* Green bg for executives */
+    color: white;
+}
+
+.org-card.head.captain-card {
+    background: #546B41; /* Darker green for captain */
+}
+
+.org-card.head h3, .org-card.head p {
+    color: white;
+}
+
+.org-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.org-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.org-card h3 {
+    font-size: 1.3rem;
+    margin: 15px 0 5px;
+    color: #333;
+}
+
+.org-card p {
+    font-size: 0.95rem;
+    color: #888;
+    margin-bottom: 15px;
+    padding: 0 15px 15px;
+}
+
+/* ── CONTACT US: EMERGENCY SECTION ── */
+.emergency-section {
+    background: #F7F5EF;
+    padding-bottom: 80px;
+}
+
+.emergency-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.emergency-header i {
+    font-size: 3rem;
+    color: #d9534f; /* Alert Red */
+    margin-bottom: 15px;
+}
+
+.emergency-header h2 {
+    font-size: 2.2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.emergency-header p {
+    color: #666;
+}
+
+.emergency-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+}
+
+.emergency-card {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    border-bottom: 5px solid #d9534f; /* Red bottom border */
+}
+
+.emergency-card h3 {
+    margin: 15px 0 10px;
+    color: #333;
+}
+
+.emergency-card a {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #546B41;
+    text-decoration: none;
+    margin-bottom: 5px;
+    transition: color 0.2s;
+}
+
+.emergency-card a:hover {
+    color: #81985a;
+}
+
+.emergency-card span {
+    font-size: 0.9rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ── CONTACT US: REACH SECTION ── */
+.reach-section {
+    background: white;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.contact-card {
+    background: #F7F5EF;
+    padding: 40px 30px;
+    border-radius: 24px;
+    border: 1px solid #e0e0e0;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid rgba(0,0,0,0.05);
+    padding-bottom: 15px;
+}
+
+.card-header i {
+    font-size: 1.8rem;
+    color: #81985a;
+}
+
+.card-header h3 {
+    font-size: 1.4rem;
+    color: #333;
+}
+
+.card-body p {
+    margin-bottom: 12px;
+    color: #555;
+    font-size: 1rem;
+}
+
+.card-body strong {
+    color: #546B41;
+    display: inline-block;
+    width: 90px;
+}
+
+.social-links {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.social-links a {
+    padding: 10px 20px;
+    background: #81985a;
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.social-links a:hover {
+    background: #546B41;
+}
+
+.map-placeholder {
+    width: 100%;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+    .split-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .image-side {
+        order: -1; /* Image on top on mobile */
+    }
+
+    .org-level {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .executives-level .org-card.head {
+        max-width: 280px;
+        flex: none;
+    }
+
+    .councilors-level {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* =========================
+   SCROLL REVEAL
+========================= */
+.reveal-hidden{
+    opacity:0;
+    transform:translateY(60px);
+    transition:
+        opacity 0.8s ease,
+        transform 0.8s ease;
+}
+
+.reveal-visible{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* =========================
+   ACTIVE NAV LINK
+========================= */
+.landing-links a.active-nav{
+    position:relative;
+}
+
+.landing-links a.active-nav::after{
+    content:'';
+    position:absolute;
+    bottom:-8px;
+    left:0;
+    width:100%;
+    height:3px;
+    background:white;
+    border-radius:999px;
+}
+
+/* =========================
+   HERO FLOATING ICON
+========================= */
+.scroll-down i{
+    animation:
+        bounce 2s infinite,
+        floatY 3s ease-in-out infinite;
+}
+
+@keyframes floatY{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-6px);}
+}
+
+/* =========================
+   LIGHTBOX
+========================= */
+.img-lightbox{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.82);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+    cursor:zoom-out;
+    backdrop-filter:blur(8px);
+}
+
+.img-lightbox img{
+    max-width:90%;
+    max-height:90%;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    animation:zoomIn .3s ease;
+}
+
+@keyframes zoomIn{
+    from{
+        opacity:0;
+        transform:scale(.8);
+    }
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+}
+
+/* =========================
+   HOVER ENHANCEMENTS
+========================= */
+.org-card,
+.emergency-card,
+.contact-card{
+    transition:
+        transform .35s ease,
+        box-shadow .35s ease;
+    transform-style:preserve-3d;
+}
+
+.org-card:hover,
+.contact-card:hover{
+    box-shadow:0 18px 40px rgba(0,0,0,0.12);
+}
+
+/* Emergency Cards Glow */
+.emergency-card:hover{
+    box-shadow:
+        0 0 0 1px rgba(217,83,79,.15),
+        0 15px 35px rgba(217,83,79,.18);
+}
+
+.page-hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(32,52,17,0.45);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}

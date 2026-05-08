@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Dusters | Pest Control Tools</title>
+    <link rel="stylesheet" href="../../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="tool-info-page" data-initial-tool="Hand Dusters">
+                <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+    <a href="../../overview.html" class="side-item active"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+    <a href="../../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+    <a href="../../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../greencommunity/main/index.html">GREEN COMMUNITY</a></li>
+                <li><a href="../../i-tanim/user.html">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+    <a class="subpage-back" href="../../categories/pest-control-tools.html">Back</a>
+    <main class="detail-section">
+        <div class="tool-info-layout">
+            <section class="preview-panel">
+                <div class="preview-card">
+                    <img id="toolImage" class="preview-image" src="../../../assets/images/hand-dusters.png" alt="Hand Dusters">
+                </div>
+            </section>
+            <section class="info-panel">
+                <div class="info-card">
+                    <div class="info-header">
+                        <h2>PEST CONTROL TOOLS</h2>
+                    </div>
+                    <button class="floating-action" type="button" aria-label="Tool options">
+                        <i class="fas fa-seedling"></i>
+                    </button>
+                    <div class="info-body">
+                        <div class="info-section">
+                            <label>Tool Name</label>
+                            <h1 id="toolTitle" class="tool-title-large">Hand Dusters</h1>
+                        </div>
+                        <div class="info-section">
+                            <label>Description</label>
+                            <p id="toolDescription" class="tool-description">Manual applicators used to dust powdered treatments evenly over affected plants and soil.</p>
+                        </div>
+                        <div class="tool-actions">
+                            <a class="tool-action-button" href="../../../hereramin/index.html">HERE-RAMIN</a>
+                            <button class="tool-action-button" type="button">WIKIHOW?</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <aside class="recommend-panel">
+                <div class="recommend-card">
+                    <div class="recommend-header">RECOMMENDED TOOLS</div>
+                    <div class="recommend-list" id="recommendList">
+                        <button class="recommend-item" data-tool="Garden Sprayers" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/garden-sprayers.png" alt="Garden Sprayers">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pest Control</span>
+                                <span class="recommend-name">Garden Sprayers</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item" data-tool="Insect Nets" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/insect-nets.png" alt="Insect Nets">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pest Control</span>
+                                <span class="recommend-name">Insect Nets</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item" data-tool="Sticky Traps" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/sticky-traps.png" alt="Sticky Traps">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pest Control</span>
+                                <span class="recommend-name">Sticky Traps</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item active" data-tool="Hand Dusters" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/hand-dusters.png" alt="Hand Dusters">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Pest Control</span>
+                                <span class="recommend-name">Hand Dusters</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <script src="../../../js/tool-detail-enhancements.js"></script>
+    <script>
+        (function() {
+            const toolData = {
+                'Garden Sprayers': {
+                    title: 'Garden Sprayers',
+                    description: 'Handheld sprayers used to apply water, organic treatments, and pest-control solutions to plants.',
+                    image: '../../../assets/images/garden-sprayers.png'
+                },
+                'Insect Nets': {
+                    title: 'Insect Nets',
+                    description: 'Protective mesh nets placed over plants to block insects while still allowing sunlight and airflow.',
+                    image: '../../../assets/images/insect-nets.png'
+                },
+                'Sticky Traps': {
+                    title: 'Sticky Traps',
+                    description: 'Sticky monitoring cards used to attract and catch flying insects around plants and seedling areas.',
+                    image: '../../../assets/images/sticky-traps.png'
+                },
+                'Hand Dusters': {
+                    title: 'Hand Dusters',
+                    description: 'Manual applicators used to dust powdered treatments evenly over affected plants and soil.',
+                    image: '../../../assets/images/hand-dusters.png'
+                }
+            };
+
+            const toolTitle = document.getElementById('toolTitle');
+            const toolDescription = document.getElementById('toolDescription');
+            const toolImage = document.getElementById('toolImage');
+            const recommendButtons = document.querySelectorAll('.recommend-item');
+            const initialTool = document.body.dataset.initialTool || 'Hand Dusters';
+
+            function setTool(toolName) {
+                const tool = toolData[toolName];
+                if (!tool) {
+                    return;
+                }
+
+                toolTitle.textContent = tool.title;
+                toolDescription.textContent = tool.description;
+                toolImage.src = tool.image;
+                toolImage.alt = tool.title;
+
+                recommendButtons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.tool === toolName);
+                });
+            }
+
+            recommendButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    setTool(button.dataset.tool);
+                });
+            });
+
+            setTool(initialTool);
+        })();
+    </script>
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

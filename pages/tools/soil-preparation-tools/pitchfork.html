@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitchfork | Soil Preparation Tools</title>
+    <link rel="stylesheet" href="../../../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="tool-info-page" data-initial-tool="Pitchfork">
+                <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+    <a href="../../overview.html" class="side-item active"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+    <a href="../../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+    <a href="../../receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../greencommunity/main/index.html">GREEN COMMUNITY</a></li>
+                <li><a href="../../i-tanim/user.html">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+    <a class="subpage-back" href="../../categories/soil-preparation-tools.html">Back</a>
+    <main class="detail-section">
+        <div class="tool-info-layout">
+            <section class="preview-panel">
+                <div class="preview-card">
+                    <img id="toolImage" class="preview-image" src="../../../assets/images/pitchfork.png" alt="Pitchfork">
+                </div>
+            </section>
+            <section class="info-panel">
+                <div class="info-card">
+                    <div class="info-header">
+                        <h2>SOIL PREPARATION TOOLS</h2>
+                    </div>
+                    <button class="floating-action" type="button" aria-label="Tool options">
+                        <i class="fas fa-seedling"></i>
+                    </button>
+                    <div class="info-body">
+                        <div class="info-section">
+                            <label>Tool Name</label>
+                            <h1 id="toolTitle" class="tool-title-large">Pitchfork</h1>
+                        </div>
+                        <div class="info-section">
+                            <label>Description</label>
+                            <p id="toolDescription" class="tool-description">A long-handled fork designed to lift, turn, and aerate soil, compost, and mulch.</p>
+                        </div>
+                        <div class="tool-actions">
+                            <a class="tool-action-button" href="../../../hereramin/index.html">HERE-RAMIN</a>
+                            <button class="tool-action-button" type="button">WIKIHOW?</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <aside class="recommend-panel">
+                <div class="recommend-card">
+                    <div class="recommend-header">RECOMMENDED TOOLS</div>
+                    <div class="recommend-list" id="recommendList">
+                        <button class="recommend-item" data-tool="Trowel" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/trowel.png" alt="Trowel">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Soil Preparation</span>
+                                <span class="recommend-name">Trowel</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item" data-tool="Hoe" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/hoe.png" alt="Hoe">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Soil Preparation</span>
+                                <span class="recommend-name">Hoe</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item active" data-tool="Pitchfork" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/pitchfork.png" alt="Pitchfork">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Soil Preparation</span>
+                                <span class="recommend-name">Pitchfork</span>
+                            </span>
+                        </button>
+                        <button class="recommend-item" data-tool="Shovel" type="button">
+                            <span class="recommend-thumb">
+                                <img src="../../../assets/images/shovel.png" alt="Shovel">
+                            </span>
+                            <span class="recommend-details">
+                                <span class="recommend-category">Soil Preparation</span>
+                                <span class="recommend-name">Shovel</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+    <script src="../../../js/tool-detail-enhancements.js"></script>
+    <script>
+        (function() {
+            const toolData = {
+                'Trowel': {
+                    title: 'Trowel',
+                    description: 'A small hand tool used for digging small holes, planting, transplanting, and loosening soil.',
+                    image: '../../../assets/images/trowel.png'
+                },
+                'Hoe': {
+                    title: 'Hoe',
+                    description: 'A flat-bladed tool for shaping soil, removing weeds, and creating planting rows.',
+                    image: '../../../assets/images/hoe.png'
+                },
+                'Pitchfork': {
+                    title: 'Pitchfork',
+                    description: 'A long-handled fork designed to lift, turn, and aerate soil, compost, and mulch.',
+                    image: '../../../assets/images/pitchfork.png'
+                },
+                'Shovel': {
+                    title: 'Shovel',
+                    description: 'A long-handled scoop-shaped tool used for digging, lifting soil, and moving materials.',
+                    image: '../../../assets/images/shovel.png'
+                }
+            };
+
+            const toolTitle = document.getElementById('toolTitle');
+            const toolDescription = document.getElementById('toolDescription');
+            const toolImage = document.getElementById('toolImage');
+            const recommendButtons = document.querySelectorAll('.recommend-item');
+            const initialTool = document.body.dataset.initialTool || 'Pitchfork';
+
+            function setTool(toolName) {
+                const tool = toolData[toolName];
+                if (!tool) {
+                    return;
+                }
+
+                toolTitle.textContent = tool.title;
+                toolDescription.textContent = tool.description;
+                toolImage.src = tool.image;
+                toolImage.alt = tool.title;
+
+                recommendButtons.forEach((button) => {
+                    button.classList.toggle('active', button.dataset.tool === toolName);
+                });
+            }
+
+            recommendButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    setTool(button.dataset.tool);
+                });
+            });
+
+            setTool(initialTool);
+        })();
+    </script>
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
