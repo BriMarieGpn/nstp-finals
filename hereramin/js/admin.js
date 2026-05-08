@@ -6,6 +6,9 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const toolsCollection = "tools";
+const borrowRequestsCollection = "borrow_requests";
+let uploadedImageDataUrl = null;
 
 async function getProfile(user) {
     if (!user) {
@@ -140,27 +143,55 @@ document.getElementById("addToolBtn").addEventListener("click", () => {
     document.getElementById("toolForm").style.display = "block";
     document.getElementById("toolFormElement").reset();
     document.getElementById("toolFormElement").dataset.id = "";
+    uploadedImageDataUrl = null;
+    const preview = document.getElementById("toolImagePreview");
+    if (preview) {
+        preview.style.display = "none";
+        preview.src = "";
+    }
 });
 
 document.getElementById("cancelToolBtn").addEventListener("click", () => {
     document.getElementById("toolForm").style.display = "none";
+    uploadedImageDataUrl = null;
+});
+
+document.getElementById("toolImageFile").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+        uploadedImageDataUrl = null;
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        uploadedImageDataUrl = e.target.result;
+        const preview = document.getElementById("toolImagePreview");
+        if (preview) {
+            preview.src = uploadedImageDataUrl;
+            preview.style.display = "block";
+        }
+        document.getElementById("toolImage").value = uploadedImageDataUrl;
+    };
+    reader.readAsDataURL(file);
 });
 
 document.getElementById("toolFormElement").addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("toolName").value;
     const category = document.getElementById("toolCategory").value;
-    const image = document.getElementById("toolImage").value;
+    const image = uploadedImageDataUrl || document.getElementById("toolImage").value;
     const available = document.getElementById("toolAvailable").checked;
     const id = e.target.dataset.id;
 
+    const payload = { name, category, image, available };
     if (id) {
-        await updateDoc(doc(db, toolsCollection, id), { name, category, image, available });
+        await updateDoc(doc(db, toolsCollection, id), payload);
     } else {
-        await addDoc(collection(db, toolsCollection), { name, category, image, available });
+        await addDoc(collection(db, toolsCollection), payload);
     }
 
     document.getElementById("toolForm").style.display = "none";
+    uploadedImageDataUrl = null;
     loadTools();
 });
 
@@ -170,8 +201,17 @@ async function editTool(id) {
         const tool = docSnap.data();
         document.getElementById("toolName").value = tool.name;
         document.getElementById("toolCategory").value = tool.category;
-        document.getElementById("toolImage").value = tool.image;
+        document.getElementById("toolImage").value = tool.image || tool.image_url || "";
         document.getElementById("toolAvailable").checked = tool.available;
+        uploadedImageDataUrl = tool.image || tool.image_url || null;
+        const preview = document.getElementById("toolImagePreview");
+        if (preview && uploadedImageDataUrl && uploadedImageDataUrl.startsWith("data:")) {
+            preview.src = uploadedImageDataUrl;
+            preview.style.display = "block";
+        } else if (preview) {
+            preview.style.display = "none";
+            preview.src = "";
+        }
         document.getElementById("toolFormElement").dataset.id = id;
         document.getElementById("toolForm").style.display = "block";
     }

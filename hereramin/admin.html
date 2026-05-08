@@ -83,9 +83,13 @@
         </div>
         <div class="landing-links">
             <a href="../index.html">Home</a>
-            <a href="../../hereramin/index.html">Borrow Tools</a>
-            <a href="#" id="logoutBtn">Logout</a>
+            <a href="../pages/i-tanim/index.html">I-Tanim</a>
+            <a href="../pages/overview.html">Here-Ramin</a>
+            <a href="../pages/greencommunity/main/index.html">Green Community</a>
         </div>
+    </div>
+
+    <div class="nav-right"></div>
     </div>
 </nav>
 
@@ -120,8 +124,13 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="toolImage">Image:</label>
-                    <input type="text" id="toolImage" required>
+                    <label for="toolImage">Image URL or Base64:</label>
+                    <input type="text" id="toolImage" placeholder="Paste image URL or base64 data URL">
+                </div>
+                <div class="form-group">
+                    <label for="toolImageFile">Upload Image:</label>
+                    <input type="file" id="toolImageFile" accept="image/*">
+                    <img id="toolImagePreview" alt="Preview" style="max-width: 160px; margin-top: 10px; display: none; border: 1px solid #ddd; padding: 5px;" />
                 </div>
                 <div class="form-group">
                     <label for="toolAvailable">Available:</label>
@@ -140,5 +149,6 @@
 </div>
 
 <script type="module" src="js/admin.js"></script>
+<script type="module" src="../js/navbar-auth.js"></script>
 </body>
 </html>
