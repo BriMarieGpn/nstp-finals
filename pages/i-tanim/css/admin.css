@@ -278,7 +278,7 @@ body { background: var(--cream); margin: 0; }
 
 .ad-prog-table-head {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 0.65fr 0.55fr 0.5fr 0.65fr 1fr 0.7fr;
   padding: 12px 18px;
   background: color-mix(in srgb, var(--primary) 22%, var(--sand));
   font-family: 'Archivo Black', sans-serif;
@@ -307,6 +307,16 @@ body { background: var(--cream); margin: 0; }
 }
 .task-item:last-child { border-bottom: none; }
 .task-item strong { font-size: 0.85rem; }
+.task-item span:last-child {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.task-item span:last-child button {
+  min-width: 80px;
+}
 .task-item div { flex: none; }
 
 /* ── Volunteer table ── */
@@ -791,6 +801,74 @@ body { background: var(--cream); margin: 0; }
   gap: 12px;
   cursor: pointer;
   user-select: none;
+}
+.notification-system {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.notification-history {
+  max-height: 280px;
+  overflow-y: auto;
+  display: grid;
+  gap: 10px;
+  padding-right: 4px;
+}
+.notification-history::-webkit-scrollbar {
+  width: 10px;
+}
+.notification-history::-webkit-scrollbar-track {
+  background: rgba(84,107,65,0.08);
+  border-radius: 10px;
+}
+.notification-history::-webkit-scrollbar-thumb {
+  background: rgba(84,107,65,0.24);
+  border-radius: 10px;
+}
+.notification-card {
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(84,107,65,0.16);
+  border-radius: 14px;
+  display: grid;
+  gap: 8px;
+}
+.notification-card strong {
+  display: block;
+  font-size: 0.92rem;
+}
+.notification-card img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.attachment-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+.attachment-preview-card {
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+}
+.attachment-preview-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+.attachment-preview-name {
+  padding: 8px 10px;
+  font-size: 0.78rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ad-toggle-label {
   font-family: 'Montserrat', sans-serif;

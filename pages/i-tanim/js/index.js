@@ -555,7 +555,7 @@ function syncToAdminPrograms() {
             requirement: p.requirement || 'None',
             maxVolunteers: 10, // Default value since homepage doesn't track this
             assigned: [],
-            status: 'active',
+            status: p.status || 'active',
             attachments: p.image && p.image !== defaultImage ? [{ dataUrl: p.image, name: 'program-image.jpg', type: 'image/jpeg' }] : [],
             joined: p.joined || [],
             skills: p.skills || []
@@ -570,23 +570,25 @@ function syncToAdminPrograms() {
 }
 
 function renderPrograms(programs) {
+    const visiblePrograms = programs.filter(p => p.status !== 'archived');
+
     // Update active programs count
     const activeProgramsEl = document.getElementById('activeProgramsCount');
     if (activeProgramsEl) {
-        activeProgramsEl.textContent = programs.length;
+        activeProgramsEl.textContent = visiblePrograms.length;
     }
 
     // Debug: log what we're rendering
-    console.log("renderPrograms called with", programs.length, "programs:");
-    programs.forEach((p, idx) => {
-        console.log(`  [${idx}]`, p.title || '(no title)', "image:", p.image ? p.image.substring(0, 50) : '(none)');
+    console.log("renderPrograms called with", programs.length, "programs (", visiblePrograms.length, "visible):");
+    visiblePrograms.forEach((p, idx) => {
+        console.log(`  [${idx}]`, p.title || '(no title)', "status:", p.status || 'active', "image:", p.image ? p.image.substring(0, 50) : '(none)');
     });
 
     // CLEAR THE ENTIRE LIST first
     publicList.innerHTML = "";
     console.log("Cleared publicList");
 
-    if (!programs.length) {
+    if (!visiblePrograms.length) {
         publicList.innerHTML = `
             <div style="padding: 18px; border-radius: 14px; background: rgba(255,255,255,0.08); opacity: 0.9;">
                 No programs available yet.
@@ -597,7 +599,7 @@ function renderPrograms(programs) {
 
     const currentUserData = getCurrentUserData();
 
-    programs.forEach((program) => {
+    visiblePrograms.forEach((program) => {
         const item = document.createElement("div");
         item.className = "program-item";
         item.style.position = "relative";
@@ -1075,6 +1077,7 @@ function mapAdminProgramsToHomepagePrograms(adminPrograms) {
         image: (p.attachments && p.attachments[0] && p.attachments[0].dataUrl) ? p.attachments[0].dataUrl : defaultImage,
         joined: p.joined || [],
         skills: p.skills || [],
+        status: p.status || 'active',
         _source: 'program'
     }));
 }
@@ -1097,7 +1100,8 @@ function listenPrograms() {
                     joined: p.joined || [],
                     pendingJoins: p.pendingJoins || [],
                     maxVolunteers: p.maxVolunteers || 0,
-                    skills: p.skills || []
+                    skills: p.skills || [],
+                    status: p.status || 'active'
                 });
             });
             programDocs.length = 0;
@@ -1107,7 +1111,8 @@ function listenPrograms() {
             // Update active programs count
             const activeProgramsEl = document.getElementById('activeProgramsCount');
             if (activeProgramsEl) {
-                activeProgramsEl.textContent = next.length;
+                const activeCount = next.filter(p => p.status !== 'archived').length;
+                activeProgramsEl.textContent = activeCount;
             }
             renderPrograms(programDocs);
         },
@@ -1125,14 +1130,16 @@ function listenPrograms() {
                     joined: p.joined || [],
                     pendingJoins: p.pendingJoins || [],
                     maxVolunteers: p.maxVolunteers || 0,
-                    skills: p.skills || []
+                    skills: p.skills || [],
+                    status: p.status || 'active'
                 }));
                 programDocs.length = 0;
                 programDocs.push(...next);
                 // Update active programs count
                 const activeProgramsEl = document.getElementById('activeProgramsCount');
                 if (activeProgramsEl) {
-                    activeProgramsEl.textContent = next.length;
+                    const activeCount = next.filter(p => p.status !== 'archived').length;
+                    activeProgramsEl.textContent = activeCount;
                 }
                 renderPrograms(programDocs);
             } catch(e) {

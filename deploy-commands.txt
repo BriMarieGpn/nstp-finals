@@ -1,7 +1,7 @@
 # Firebase Deployment Commands
 # Copy and paste these commands to deploy your GrowSauYOU app
 
-cd "c:\Users\rhejie carl\Downloads\nstp-finals-20260427T040545Z-3-001\nstp-finals"
+cd "C:\Users\rhejie carl\Downloads\GrowsauyouV12\nstp-finals-GrowsauyouV12"
 firebase deploy
 
 # Alternative: Deploy only hosting

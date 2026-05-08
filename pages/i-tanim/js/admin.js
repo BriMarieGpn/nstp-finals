@@ -372,17 +372,18 @@ function readFileAsDataUrl(file) {
     });
 }
 
-function renderProgramAttachmentPreview(attachments) {
-    const container = document.getElementById('programAttachmentPreview');
+function renderProgramAttachmentPreview(attachments, containerId = 'programAttachmentPreview') {
+    const container = document.getElementById(containerId);
     if (!container) return;
     if (!Array.isArray(attachments) || attachments.length === 0) {
         container.innerHTML = '';
         return;
     }
+    container.classList.add('attachment-preview-grid');
     container.innerHTML = attachments.map(att => `
-        <div style="border:1px solid rgba(255,255,255,0.18); border-radius:12px; overflow:hidden; background:rgba(255,255,255,0.06);">
-            <img src="${att.dataUrl}" alt="${att.name}" style="width:100%; height:86px; object-fit:cover; display:block;">
-            <div style="padding:6px 8px; font-size:12px; opacity:0.85; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${att.name}</div>
+        <div class="attachment-preview-card">
+            <img src="${att.dataUrl}" alt="${att.name}">
+            <div class="attachment-preview-name">${att.name}</div>
         </div>
     `).join('');
 }
@@ -392,8 +393,8 @@ function renderTaskAttachmentPreview(attachments) {
     renderProgramAttachmentPreview(attachments);
 }
 
-async function getAttachmentsFromInput() {
-    const input = document.getElementById('programAttachments');
+async function getAttachmentsFromInput(inputId = 'programAttachments') {
+    const input = document.getElementById(inputId);
     if (!input || !input.files || input.files.length === 0) return [];
     const files = Array.from(input.files);
     const results = [];
@@ -404,10 +405,10 @@ async function getAttachmentsFromInput() {
     return results;
 }
 
-function clearAttachmentInput() {
-    const input = document.getElementById('programAttachments');
+function clearAttachmentInput(inputId = 'programAttachments', containerId = 'programAttachmentPreview') {
+    const input = document.getElementById(inputId);
     if (input) input.value = '';
-    renderProgramAttachmentPreview([]);
+    renderProgramAttachmentPreview([], containerId);
 }
 
 async function syncProgramsFromPrograms() {
@@ -1543,7 +1544,7 @@ function renderProgramRows(list, filtered) {
         const joined      = Array.isArray(p.joined) ? p.joined.length : 0;
         const maxVol      = p.maxVolunteers || 0;
         const isFull      = maxVol > 0 && joined >= maxVol;
-        const statusLabel = isFull ? 'Full' : (p.status || 'active');
+        const statusLabel = p.status === 'archived' ? 'Archived' : (isFull ? 'Full' : (p.status || 'Active'));
         return `
         <div class="ad-task-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;">
           <span style="font-weight:600;">${p.name || p.title || 'Untitled'}</span>
@@ -1551,8 +1552,10 @@ function renderProgramRows(list, filtered) {
           <span>${maxVol || '—'}</span>
           <span>${joined}</span>
           <span>${statusLabel}</span>
-          <span style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
             <button class="edit-btn" onclick="editProgram('${p.id}')">Edit</button>
+            ${p.status === 'active' ? `<button class="archive-btn" onclick="archiveProgram('${p.id}')">Archive</button>` : ''}
+            ${p.status === 'archived' ? `<button class="edit-btn" style="background:var(--secondary);border-color:var(--secondary);" onclick="restoreProgram('${p.id}')">Restore</button>` : ''}
             <button class="delete-btn" onclick="deleteProgram('${p.id}')">Delete</button>
           </span>
         </div>`;
@@ -1569,9 +1572,11 @@ function updatePrograms(searchTerm) {
         ? programs.filter(p => (p.name || p.title || '').toLowerCase().includes(term) || (p.desc || '').toLowerCase().includes(term))
         : programs;
 
-    // Task Management tab list
-    renderProgramRows(document.getElementById('programList'), filtered);
-    // Settings tab list (always shows full unfiltered list)
+    // Task Management tab list - exclude archived programs from public display
+    const activePrograms = filtered.filter(p => p.status !== 'archived');
+    renderProgramRows(document.getElementById('programList'), activePrograms);
+    
+    // Settings tab list (always shows full list including archived for admin management)
     renderProgramRows(document.getElementById('settingsProgramList'), programs);
 }
 
@@ -1737,10 +1742,22 @@ function editProgram(id) {
 function archiveProgram(id) {
     const program = programs.find(p => p.id === id);
     if (program) {
-        program.status = 'completed';
+        program.status = 'archived';
         savePrograms();
         syncProgramsFromPrograms();
         updatePrograms();
+        logAction('program_archive', `Archived program: "${program.name || program.title}"`, { programId: id });
+    }
+}
+
+function restoreProgram(id) {
+    const program = programs.find(p => p.id === id);
+    if (program) {
+        program.status = 'active';
+        savePrograms();
+        syncProgramsFromPrograms();
+        updatePrograms();
+        logAction('program_restore', `Restored program: "${program.name || program.title}"`, { programId: id });
     }
 }
 
@@ -2050,9 +2067,10 @@ window.editCert = editCert;
 function updateNotifications() {
     const histEl = document.getElementById('notificationHistory');
     if (!histEl) return;
-    histEl.innerHTML = notifications.slice(-10).reverse().map(n => `
-        <div style="padding: 10px; margin: 5px 0; background: var(--glass); border-radius: 8px;">
-            <strong>${n.type}</strong>: ${n.message}<br>
+    histEl.innerHTML = notifications.slice().reverse().map(n => `
+        <div class="notification-card">
+            <strong>${n.type}</strong>
+            <div>${n.message}</div>
             <small>To: ${n.recipient}</small>
         </div>
     `).join('');
@@ -2435,6 +2453,7 @@ window.closeProgramModal = closeProgramModal;
 window.saveProgram = saveProgram;
 window.editProgram = editProgram;
 window.archiveProgram = archiveProgram;
+window.restoreProgram = restoreProgram;
 window.deleteProgram = deleteProgram;
 window.approveProgram = approveProgram;
 window.rejectProgram = rejectProgram;
