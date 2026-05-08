@@ -192,8 +192,10 @@ function renderNavRight(user, role) {
 
     // User is logged in - show Dashboard and Logout
     const dashboardHref = resolveDashboardUrl(role);
+    const adminHref = buildAppUrl('/hereramin/admin.html');
     navRight.innerHTML = `
         <a class="nav-auth-link" href="${dashboardHref}">Dashboard</a>
+        ${role === 'admin' ? `<a class="nav-auth-link" href="${adminHref}">Admin</a>` : ''}
         <button class="nav-auth-link nav-auth-button" type="button" id="globalLogoutBtn">Logout</button>
     `;
 
@@ -201,6 +203,9 @@ function renderNavRight(user, role) {
     const adminLink = document.getElementById("adminLink");
     if (adminLink) {
         adminLink.style.display = role === 'admin' ? "inline-block" : "none";
+        if (role === 'admin') {
+            adminLink.href = adminHref;
+        }
     }
 
     document.getElementById("globalLogoutBtn")?.addEventListener("click", async () => {

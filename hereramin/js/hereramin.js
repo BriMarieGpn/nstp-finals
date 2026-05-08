@@ -266,11 +266,12 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             ? explicitAvailable
             : quantityAvailable > 0 && statusValue !== "borrowed" && statusValue !== "unavailable";
 
+        const rawImage = data.image || data.image_url || fallback?.image || `${slugify(toolName)}.png`;
         return {
             id: docId,
             name: toolName,
             category: data.category || fallback?.category || getCategoryForToolName(toolName),
-            image: getLocalImagePath(fallback?.image || `${slugify(toolName)}.png`),
+            image: getLocalImagePath(rawImage),
             available: isAvailable,
             maxQuantity: Math.max(1, quantityAvailable || quantityTotal || 1),
             quantityAvailable: Math.max(0, quantityAvailable),
