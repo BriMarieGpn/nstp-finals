@@ -52,9 +52,6 @@
       <a href="#" class="ad-sidenav__item" data-tab="analytics" onclick="showAdminTab('analytics');return false;" title="Analytics">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       </a>
-      <a href="#" class="ad-sidenav__item" data-tab="taskvalidation" onclick="showAdminTab('taskvalidation');return false;" title="Task Validation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      </a>
       <a href="#" class="ad-sidenav__item" data-tab="programs" onclick="showAdminTab('programs');return false;" title="Task Management">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </a>
@@ -246,29 +243,6 @@
 
     </div>
 
-    <!-- ══ TASK VALIDATION ══ -->
-    <div class="ad-tab" id="ad-tab-taskvalidation">
-
-      <h1 class="ad-page-title">Task Validation</h1>
-
-      <div class="ad-card ad-card--table" style="padding:0;">
-        <div class="ad-val-head">
-          <span>Submitted Tasks Awaiting Validation</span>
-        </div>
-        <div class="ad-val-cols">
-          <span>User</span>
-          <span>Task Description</span>
-          <span>Hours Claimed</span>
-          <span>Status / Submitted</span>
-          <span>Action</span>
-        </div>
-        <div id="taskValidationList" class="ad-val-body">
-          <div class="ad-val-empty">No tasks pending validation.</div>
-        </div>
-      </div>
-
-    </div>
-
     <!-- ══ PROGRAMS / TASK MANAGEMENT ══ -->
     <div class="ad-tab" id="ad-tab-programs">
 
@@ -441,7 +415,7 @@
             <label class="ad-label" style="margin-bottom:4px;display:block;">Program Photo</label>
             <input type="file" id="newProgAttachments" accept="image/*" class="ad-input" style="width:100%;padding:10px 14px;" multiple>
             <small style="display:block;margin-top:6px;color:rgba(84,107,65,0.75);font-size:0.85rem;">Upload one or more images for this program. The first image is used as the program photo.</small>
-            <div id="newProgramAttachmentPreview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:12px;"></div>
+            <div id="newProgramAttachmentPreview" class="attachment-preview-grid" style="margin-top:12px;"></div>
           </div>
           <div id="addProgramError" style="display:none;color:#c0392b;font-size:0.83rem;font-weight:600;margin-bottom:10px;"></div>
           <button class="ad-btn ad-btn--solid" id="addProgramSubmitBtn" onclick="submitNewProgram()" style="min-width:180px;">Save Program</button>
@@ -498,7 +472,7 @@
       </div>
 
       <!-- Notification System -->
-      <div class="ad-card">
+      <div class="ad-card notification-system">
         <h2 class="ad-section-title">Notification System</h2>
         <div class="ad-notif-grid">
           <label class="ad-toggle-row">
@@ -532,7 +506,7 @@
           </select>
           <button onclick="sendNotification()">Send</button>
         </div>
-        <div id="notificationHistory" style="margin-top:12px;"></div>
+        <div id="notificationHistory" class="notification-history" style="margin-top:12px;"></div>
       </div>
 
       <!-- Logs (collapsed under settings) -->
@@ -585,7 +559,7 @@
     <input id="programMaxVolunteers" type="number" placeholder="Max Volunteers" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
     <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Program Image</label>
     <input id="programAttachments" type="file" accept="image/*" multiple style="width:100%;margin-bottom:10px;">
-    <div id="programAttachmentPreview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
+    <div id="programAttachmentPreview" class="attachment-preview-grid" style="margin-bottom:12px;"></div>
     <div style="display:flex;justify-content:space-between;gap:10px;">
       <button onclick="closeProgramModal()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Cancel</button>
       <button id="saveProgramBtn" onclick="saveProgram()" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--primary);color:#FFF8EC;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Save</button>

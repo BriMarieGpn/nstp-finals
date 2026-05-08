@@ -219,7 +219,11 @@ function updateMainPageStats() {
         onSnapshot(
             collection(db, 'programs'),
             (snap) => {
-                projectsEl.textContent = snap.size;
+                const activePrograms = snap.docs.filter(doc => {
+                    const data = doc.data();
+                    return data.status !== 'archived';
+                });
+                projectsEl.textContent = activePrograms.length;
             },
             (err) => {
                 console.warn('Could not load projects count', err);
