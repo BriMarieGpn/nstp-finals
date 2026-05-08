@@ -1,6 +1,6 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+import { getFirestore, doc, collection, getDocs, addDoc, updateDoc, deleteDoc, getDoc, query, where } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 import firebaseConfig from "../../js/firebaseConfig.js";
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);

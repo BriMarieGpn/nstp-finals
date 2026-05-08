@@ -55,6 +55,9 @@
       <a href="#" class="ad-sidenav__item" data-tab="programs" onclick="showAdminTab('programs');return false;" title="Task Management">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       </a>
+      <a href="#" class="ad-sidenav__item" data-tab="hereramin" onclick="showAdminTab('hereramin');return false;" title="Here-Ramin Tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 1 0 1.4l-7 7a2 2 0 0 1-2.8 0l-1.8-1.8a2 2 0 0 1 0-2.8l7-7a1 1 0 0 1 1.4 0z"/><path d="M16 8l2.5-2.5a2.1 2.1 0 0 1 3 3L19 11"/><path d="M2 22l6-1-5-5-1 6z"/></svg>
+      </a>
       <a href="#" class="ad-sidenav__item" data-tab="badges" onclick="showAdminTab('badges');return false;" title="Badge Management">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
       </a>
@@ -274,6 +277,84 @@
         <div id="programList" class="ad-prog-table-body"></div>
       </div>
 
+    </div>
+
+    <!-- ══ HERE-RAMIN TOOL MANAGEMENT ══ -->
+    <div class="ad-tab" id="ad-tab-hereramin">
+      <h1 class="ad-page-title">Here-Ramin Tool Management</h1>
+
+      <div class="ad-card" style="margin-bottom:16px;">
+        <h2 class="ad-section-title">Add New Tool</h2>
+        <div class="ad-form-row">
+          <label class="ad-label">Tool Name *</label>
+          <input id="hrToolName" class="ad-input" type="text" placeholder="e.g. Garden Rake">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Category</label>
+          <select id="hrToolCategory" class="ad-select" style="width:100%;"></select>
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Image URL</label>
+          <input id="hrToolImageUrl" class="ad-input" type="text" placeholder="https://...">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Upload Tool Photo</label>
+          <input id="hrToolImageFile" class="ad-input" type="file" accept="image/*">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Preview</label>
+          <img id="hrToolImagePreview" alt="Tool preview" style="max-width:140px;max-height:100px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);display:none;background:#fff;padding:4px;">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">WikiHow URL</label>
+          <input id="hrToolWikiHowUrl" class="ad-input" type="url" placeholder="https://www.wikihow.com/...">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Description</label>
+          <textarea id="hrToolDescription" class="ad-input" placeholder="Optional notes about this tool." style="min-height:72px;resize:vertical;"></textarea>
+        </div>
+        <div class="ad-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label class="ad-label">Available Quantity *</label>
+            <input id="hrToolQtyAvailable" class="ad-input" type="number" min="0" value="1">
+          </div>
+          <div>
+            <label class="ad-label">Total Quantity *</label>
+            <input id="hrToolQtyTotal" class="ad-input" type="number" min="1" value="1">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="hrToolSaveBtn" class="ad-btn ad-btn--solid" onclick="addHereRaminTool()">Add Tool</button>
+          <button class="ad-btn" type="button" onclick="resetHereRaminToolForm()">Clear Form</button>
+        </div>
+      </div>
+
+      <div class="ad-card ad-card--table">
+        <div class="ad-prog-table-head hr-tools-head">
+          <span>Tool</span>
+          <span>Category</span>
+          <span>Available</span>
+          <span>Total</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+        <div id="hereRaminToolsList" class="ad-prog-table-body hr-scroll-list"></div>
+      </div>
+
+      <div class="ad-card ad-card--table" style="margin-top:18px;">
+        <div class="ad-prog-table-head hr-receipts-head">
+          <span>Borrower</span>
+          <span>Tool</span>
+          <span>Qty</span>
+          <span>Status</span>
+          <span>Return Date</span>
+          <span>Actions</span>
+        </div>
+        <div style="padding:10px 14px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:flex-end;">
+          <button class="ad-btn ad-btn--reject" type="button" onclick="clearHereRaminBorrowers()">Clear Borrowers</button>
+        </div>
+        <div id="hereRaminReceiptsList" class="ad-prog-table-body hr-scroll-list"></div>
+      </div>
     </div>
 
     <!-- ══ MORE TABS (hidden, kept for admin.js compatibility) ══ -->

@@ -271,13 +271,17 @@
 
 .admin-actions {
     margin-top: 14px;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 10px;
+    width: 100%;
 }
 
 .admin-btn {
     margin: 0;
+    width: 100%;
+    justify-content: center;
+    text-align: center;
 }
 
 .admin-btn.approve {
@@ -290,6 +294,10 @@
 
 .admin-btn.neutral {
     background: #5a6f4d;
+}
+
+.admin-btn.danger {
+    background: #6a1f1f;
 }
 
 .admin-note {

@@ -290,6 +290,49 @@ body { background: var(--cream); margin: 0; }
 
 .ad-prog-table-body { padding: 4px 0; }
 
+.hr-tools-head {
+  grid-template-columns: 1.5fr 1.1fr 0.7fr 0.7fr 0.9fr 1.4fr;
+}
+
+.hr-receipts-head {
+  grid-template-columns: 1.2fr 1fr 0.55fr 1fr 1fr 1.9fr;
+}
+
+.hr-scroll-list {
+  max-height: 420px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
+.hr-scroll-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.hr-scroll-list::-webkit-scrollbar-track {
+  background: rgba(84,107,65,0.08);
+  border-radius: 10px;
+}
+
+.hr-scroll-list::-webkit-scrollbar-thumb {
+  background: rgba(84,107,65,0.24);
+  border-radius: 10px;
+}
+
+.hr-tools-row {
+  display: grid !important;
+  grid-template-columns: 1.5fr 1.1fr 0.7fr 0.7fr 0.9fr 1.4fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.hr-receipts-row {
+  display: grid !important;
+  grid-template-columns: 1.2fr 1fr 0.55fr 1fr 1fr 1.9fr;
+  align-items: center;
+  gap: 10px;
+}
+
 /* admin.js renders .task-item inside programList */
 .task-item {
   display: grid;

@@ -86,7 +86,9 @@ import firebaseConfig from "./firebaseConfig.js";
         if (useFirestore) {
             try {
                 const snapshot = await getDocs(collection(db, BORROW_REQUESTS_COLLECTION));
-                const firestoreRecords = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+                const firestoreRecords = snapshot.docs
+                    .map((entry) => ({ id: entry.id, ...entry.data() }))
+                    .filter((record) => record.deleted !== true);
                 if (firestoreRecords.length > 0) {
                     loadedRecords = firestoreRecords;
                     saveBorrowHistory(loadedRecords);
@@ -117,11 +119,13 @@ import firebaseConfig from "./firebaseConfig.js";
             }
         }
 
-        borrowRecords = loadedRecords.map((record, index) => ({
-            id: record.id || `borrow-local-${index}`,
-            status: record.status || "in_use",
-            ...record
-        }));
+        borrowRecords = loadedRecords
+            .filter((record) => record.deleted !== true)
+            .map((record, index) => ({
+                id: record.id || `borrow-local-${index}`,
+                status: record.status || "in_use",
+                ...record
+            }));
         renderRecords();
     }
 
@@ -148,6 +152,22 @@ import firebaseConfig from "./firebaseConfig.js";
         });
     }
 
+    function resolveReceiptImage(imageValue) {
+        const fallback = "../../assets/images/shovel.png";
+        const raw = String(imageValue || "").trim();
+        if (!raw) return fallback;
+        if (raw.startsWith("data:")) return raw;
+        if (/^https?:\/\//i.test(raw)) return raw;
+
+        const cleaned = raw.replace(/^\.\//, "");
+        if (cleaned.startsWith("../../") || cleaned.startsWith("../")) return cleaned;
+        if (cleaned.startsWith("assets/images/")) return `../../${cleaned}`;
+        if (!cleaned.includes("/")) return `../../assets/images/${cleaned}`;
+
+        const baseName = cleaned.replace(/^.*[\\/]/, "");
+        return `../../assets/images/${baseName}`;
+    }
+
     function statusInfo(status) {
         if (status === "return_pending") return { label: "PENDING", note: "User requested a return. Review and approve/reject.", className: "pending" };
         if (status === "return_approved") return { label: "APPROVED", note: "Return approved. User can now borrow again.", className: "approved" };
@@ -171,7 +191,7 @@ import firebaseConfig from "./firebaseConfig.js";
                     </header>
                     <div class="admin-card-body">
                         <div class="receipt-thumb admin-thumb">
-                            <img src="${record.tool?.image || "../../assets/images/shovel.png"}" alt="${record.tool?.name || "Tool"}">
+                            <img src="${resolveReceiptImage(record.tool?.image)}" alt="${record.tool?.name || "Tool"}">
                         </div>
                         <div class="admin-meta">
                             <h3>${record.tool?.name || "Tool"}</h3>
@@ -180,9 +200,11 @@ import firebaseConfig from "./firebaseConfig.js";
                         </div>
                     </div>
                     <div class="admin-actions">
+                        <button type="button" class="status-action admin-btn neutral" data-state-id="${record.id}" data-next-state="in_use">Mark In Use</button>
                         <button type="button" class="status-action admin-btn neutral" data-state-id="${record.id}" data-next-state="return_pending">Mark Pending</button>
                         <button type="button" class="status-action admin-btn approve" data-state-id="${record.id}" data-next-state="return_approved">Approve Return</button>
                         <button type="button" class="status-action admin-btn reject" data-state-id="${record.id}" data-next-state="return_rejected">Reject Return</button>
+                        <button type="button" class="status-action admin-btn danger" data-delete-id="${record.id}">Delete Record</button>
                     </div>
                     <p class="admin-note">${state.note}</p>
                 </article>
@@ -191,6 +213,26 @@ import firebaseConfig from "./firebaseConfig.js";
     }
 
     adminReceiptsList.addEventListener("click", async (event) => {
+        const deleteButton = event.target.closest("[data-delete-id]");
+        if (deleteButton) {
+            const recordIdToDelete = deleteButton.getAttribute("data-delete-id");
+            if (!recordIdToDelete) return;
+            if (!window.confirm("Delete this receipt record? This cannot be undone.")) return;
+
+            borrowRecords = borrowRecords.filter((record) => record.id !== recordIdToDelete);
+            saveBorrowHistory(borrowRecords);
+            renderRecords();
+
+            if (useFirestore) {
+                try {
+                    await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordIdToDelete), { deleted: true, deletedAt: new Date().toISOString() }, { merge: true });
+                } catch (error) {
+                    console.warn("Could not mark receipt as deleted in Firestore.", error);
+                }
+            }
+            return;
+        }
+
         const button = event.target.closest("[data-state-id][data-next-state]");
         if (!button) {
             return;

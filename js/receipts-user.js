@@ -52,6 +52,22 @@ import firebaseConfig from "./firebaseConfig.js";
         return record.status || "in_use";
     }
 
+    function resolveReceiptImage(imageValue) {
+        const fallback = "../../assets/images/shovel.png";
+        const raw = String(imageValue || "").trim();
+        if (!raw) return fallback;
+        if (raw.startsWith("data:")) return raw;
+        if (/^https?:\/\//i.test(raw)) return raw;
+
+        const cleaned = raw.replace(/^\.\//, "");
+        if (cleaned.startsWith("../../") || cleaned.startsWith("../")) return cleaned;
+        if (cleaned.startsWith("assets/images/")) return `../../${cleaned}`;
+        if (!cleaned.includes("/")) return `../../assets/images/${cleaned}`;
+
+        const baseName = cleaned.replace(/^.*[\\/]/, "");
+        return `../../assets/images/${baseName}`;
+    }
+
     function getTabPanelHtml(record) {
         const status = getStatus(record);
         if (activeTab === "borrowing") {
@@ -101,7 +117,7 @@ import firebaseConfig from "./firebaseConfig.js";
             <article class="receipt-item">
                 <div class="receipt-tool">
                     <div class="receipt-thumb">
-                        <img src="${record.tool?.image || "../../assets/images/shovel.png"}" alt="${record.tool?.name || "Tool"}">
+                        <img src="${resolveReceiptImage(record.tool?.image)}" alt="${record.tool?.name || "Tool"}">
                     </div>
                     <div class="receipt-meta">
                         <h2>${(record.tool?.name || "Tool").toUpperCase()}</h2>
@@ -155,7 +171,9 @@ import firebaseConfig from "./firebaseConfig.js";
         if (useFirestore) {
             try {
                 const snapshot = await getDocs(collection(db, BORROW_REQUESTS_COLLECTION));
-                const firestoreRecords = snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+                const firestoreRecords = snapshot.docs
+                    .map((entry) => ({ id: entry.id, ...entry.data() }))
+                    .filter((record) => record.deleted !== true);
                 if (firestoreRecords.length > 0) {
                     loadedRecords = firestoreRecords;
                     saveBorrowHistory(loadedRecords);
@@ -186,11 +204,13 @@ import firebaseConfig from "./firebaseConfig.js";
             }
         }
 
-        borrowRecords = loadedRecords.map((record, index) => ({
-            id: record.id || `borrow-local-${index}`,
-            status: record.status || "in_use",
-            ...record
-        }));
+        borrowRecords = loadedRecords
+            .filter((record) => record.deleted !== true)
+            .map((record, index) => ({
+                id: record.id || `borrow-local-${index}`,
+                status: record.status || "in_use",
+                ...record
+            }));
         renderRecords();
     }
 

@@ -1,5 +1,5 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "../../js/firebaseConfig.js";
 
 (function() {
@@ -14,6 +14,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     const db = getFirestore(app);
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     const imageFolder = "assets/images/";
+    let toolsUnsubscribe = null;
 
     const defaultGroupedTools = [
         {
@@ -158,8 +159,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             return imageNameOrPath;
         }
         if (imageNameOrPath.startsWith("http://") || imageNameOrPath.startsWith("https://")) {
-            const baseName = imageNameOrPath.replace(/^.*[\\/]/, "");
-            return `${imageFolder}${baseName}`;
+            return imageNameOrPath;
         }
         const normalized = imageNameOrPath.replace(/^\.\//, "");
         if (normalized.startsWith("assets/images/")) {
@@ -313,6 +313,25 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         }
     }
 
+    function applyFirestoreToolsToSelect(firestoreTools) {
+        if (!Array.isArray(firestoreTools) || firestoreTools.length === 0) {
+            return;
+        }
+
+        const selectedBefore = toolSelect.value;
+        rebuildToolsFromFlatArray(firestoreTools);
+        populateTools();
+
+        const nextSelected = getAllTools().some((item) => item.name === selectedBefore)
+            ? selectedBefore
+            : getAllTools()[0]?.name;
+        if (nextSelected) {
+            toolSelect.value = nextSelected;
+            setTool(nextSelected);
+        }
+        applyToolFromQueryParam();
+    }
+
     async function hydrateToolsFromFirestore() {
         if (!useFirestore) {
             return;
@@ -327,24 +346,29 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 
             const refreshedSnapshot = await getDocs(toolsCollectionRef);
             const firestoreTools = refreshedSnapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
-            if (firestoreTools.length === 0) {
-                return;
-            }
-
-            const selectedBefore = toolSelect.value;
-            rebuildToolsFromFlatArray(firestoreTools);
-            populateTools();
-
-            const nextSelected = getAllTools().some((item) => item.name === selectedBefore)
-                ? selectedBefore
-                : getAllTools()[0]?.name;
-            if (nextSelected) {
-                toolSelect.value = nextSelected;
-                setTool(nextSelected);
-            }
-            applyToolFromQueryParam();
+            applyFirestoreToolsToSelect(firestoreTools);
         } catch (error) {
             console.warn("Could not pull tools from Firestore. Keeping local preview data.", error);
+        }
+    }
+
+    function watchToolsFromFirestore() {
+        if (!useFirestore || toolsUnsubscribe) {
+            return;
+        }
+        try {
+            toolsUnsubscribe = onSnapshot(
+                collection(db, TOOLS_COLLECTION),
+                (snapshot) => {
+                    const firestoreTools = snapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
+                    applyFirestoreToolsToSelect(firestoreTools);
+                },
+                (error) => {
+                    console.warn("Could not watch HERE-RAMIN tools updates.", error);
+                }
+            );
+        } catch (error) {
+            console.warn("Failed to initialize HERE-RAMIN tools watcher.", error);
         }
     }
 
@@ -352,6 +376,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     setTool(toolSelect.value);
     applyToolFromQueryParam();
     hydrateToolsFromFirestore();
+    watchToolsFromFirestore();
 
     toolSelect.addEventListener("change", () => {
         setTool(toolSelect.value);

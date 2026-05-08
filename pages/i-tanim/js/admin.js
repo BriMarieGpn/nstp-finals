@@ -8,6 +8,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
 const adminStateDoc = doc(db, 'admin', 'state');
+const HERERAMIN_TOOLS_COLLECTION = 'tools';
 let hasResolvedAuth = false;
 let authReadyPromise = new Promise((resolve) => {
   const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -86,7 +87,7 @@ function getCachedRole(uid) {
 
 function renderAdminShell() {
     const fns = [updateDashboard, updateAnalytics, updateVolunteers, loadRestrictionsUI,
-                 updateSkills, updateBadges, updateCertifications, updateNotifications];
+                 updateSkills, updateBadges, updateCertifications, updateNotifications, updateHereRaminTools, updateHereRaminReceipts, updateHereRaminAnalytics];
     fns.forEach(fn => { try { fn(); } catch(e) { console.warn('renderAdminShell:', fn.name, e); } });
     // Fetch live programs from Firestore on load
     fetchAndRenderPrograms().catch(() => {});
@@ -109,6 +110,8 @@ let restrictions = JSON.parse(localStorage.getItem('itanimRestrictions') || '{"m
 let badgeThresholds = JSON.parse(localStorage.getItem('itanimBadges') || '{"bronze":10,"silver":25,"gold":50,"platinum":100}');
 let notifications = JSON.parse(localStorage.getItem('itanimNotifications') || '[]');
 const programsKey = "itanimPrograms";
+let hereRaminTools = [];
+let hereRaminToolsUnsubscribe = null;
 
 function refreshLocalAdminCache() {
     try {
@@ -506,11 +509,12 @@ function updateTab(tabName) {
     try {
         switch(tabName) {
             case 'dashboard': updateDashboard(); break;
-            case 'analytics': updateAnalytics(); break;
+            case 'analytics': updateAnalytics(); updateHereRaminAnalytics(); break;
             case 'volunteers': updateVolunteers(); break;
             case 'restrictions': updateRestrictions(); break;
             case 'skills': updateSkills(); break;
             case 'programs': updatePrograms(); break;
+            case 'hereramin': updateHereRaminTools(); updateHereRaminReceipts(); break;
             case 'badges': updateBadges(); break;
             case 'certifications': updateCertifications(); break;
             case 'notifications': updateNotifications(); break;
@@ -518,6 +522,413 @@ function updateTab(tabName) {
             case 'settings': updateRestrictions(); updateSkills(); updateNotifications(); break;
         }
     } catch(e) { console.warn('updateTab error:', tabName, e); }
+}
+
+const HERE_RAMIN_CATEGORIES = [
+    'Soil Preparation',
+    'Planting & Propagation',
+    'Watering & Irrigation',
+    'Pruning & Maintenance',
+    'Harvesting',
+    'Pest Control',
+    'Protective & Safety',
+    'General Tools'
+];
+const BORROW_REQUESTS_COLLECTION = 'borrow_requests';
+let hereRaminBorrowRecords = [];
+let hereRaminReceiptsUnsubscribe = null;
+let hereRaminEditingToolId = null;
+let hereRaminUploadedImageDataUrl = '';
+
+function slugifyToolName(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+}
+
+function normalizeToolDoc(toolId, data) {
+    const toolName = String(data.tool_name || data.name || toolId || 'Tool').trim();
+    const qtyAvailable = Number(data.quantity_available ?? data.quantity ?? data.quantity_total ?? 0);
+    const qtyTotal = Number(data.quantity_total ?? qtyAvailable);
+    const statusText = String(data.status_ || data.status || '').toLowerCase().trim();
+    const hasExplicitAvailable = typeof data.available === 'boolean';
+    const available = hasExplicitAvailable ? data.available : (qtyAvailable > 0 && statusText !== 'unavailable' && statusText !== 'borrowed');
+
+    return {
+        id: toolId,
+        tool_name: toolName,
+        category: data.category || 'General Tools',
+        image_url: data.image_url || data.image || '',
+        wikihow_url: data.wikihow_url || '',
+        description: data.description || '',
+        quantity_available: Math.max(0, Number.isFinite(qtyAvailable) ? qtyAvailable : 0),
+        quantity_total: Math.max(0, Number.isFinite(qtyTotal) ? qtyTotal : 0),
+        available,
+        status_: available ? 'Available' : 'Unavailable'
+    };
+}
+
+function normalizeBorrowStatus(status) {
+    return String(status || 'in_use').toLowerCase().trim();
+}
+
+function normalizeBorrowRecord(record) {
+    return {
+        id: record.id,
+        status: normalizeBorrowStatus(record.status),
+        borrower: record.borrower || {},
+        tool: record.tool || {},
+        schedule: record.schedule || {},
+        createdAt: record.createdAt || new Date(0).toISOString(),
+        archived: Boolean(record.archived),
+        deleted: Boolean(record.deleted)
+    };
+}
+
+function resetHereRaminToolForm() {
+    const nameInput = document.getElementById('hrToolName');
+    const categoryInput = document.getElementById('hrToolCategory');
+    const imageInput = document.getElementById('hrToolImageUrl');
+    const wikiHowInput = document.getElementById('hrToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrToolDescription');
+    const qtyAvailableInput = document.getElementById('hrToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrToolQtyTotal');
+    const imageFileInput = document.getElementById('hrToolImageFile');
+    const imagePreview = document.getElementById('hrToolImagePreview');
+    const saveBtn = document.getElementById('hrToolSaveBtn');
+
+    hereRaminEditingToolId = null;
+    hereRaminUploadedImageDataUrl = '';
+    if (nameInput) nameInput.value = '';
+    if (categoryInput) categoryInput.value = HERE_RAMIN_CATEGORIES[0];
+    if (imageInput) imageInput.value = '';
+    if (wikiHowInput) wikiHowInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    if (qtyAvailableInput) qtyAvailableInput.value = '1';
+    if (qtyTotalInput) qtyTotalInput.value = '1';
+    if (imageFileInput) imageFileInput.value = '';
+    if (imagePreview) {
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+    }
+    if (saveBtn) saveBtn.textContent = 'Add Tool';
+}
+
+async function readImageAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read image file'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderHereRaminCategoryOptions() {
+    const categorySelect = document.getElementById('hrToolCategory');
+    if (!categorySelect) return;
+    const current = categorySelect.value;
+    categorySelect.innerHTML = HERE_RAMIN_CATEGORIES.map((category) => `<option value="${category}">${category}</option>`).join('');
+    if (current && HERE_RAMIN_CATEGORIES.includes(current)) {
+        categorySelect.value = current;
+    } else {
+        categorySelect.value = HERE_RAMIN_CATEGORIES[0];
+    }
+}
+
+function updateHereRaminTools() {
+    renderHereRaminCategoryOptions();
+
+    const list = document.getElementById('hereRaminToolsList');
+    if (!list) return;
+
+    if (!hereRaminTools.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No HERE-RAMIN tools found.</div>';
+        return;
+    }
+
+    list.innerHTML = hereRaminTools.map((tool) => `
+        <div class="ad-task-row hr-tools-row">
+            <span style="font-weight:600;">${tool.tool_name}</span>
+            <span>${tool.category || 'General Tools'}</span>
+            <span>${tool.quantity_available ?? 0}</span>
+            <span>${tool.quantity_total ?? 0}</span>
+            <span>${tool.available ? 'Available' : 'Unavailable'}</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="edit-btn" onclick="editHereRaminTool('${tool.id}')">Edit</button>
+                <button class="archive-btn" onclick="toggleHereRaminToolAvailability('${tool.id}')">${tool.available ? 'Disable' : 'Enable'}</button>
+                <button class="delete-btn" onclick="deleteHereRaminTool('${tool.id}')">Delete</button>
+            </span>
+        </div>
+    `).join('');
+}
+
+function updateHereRaminReceipts() {
+    const list = document.getElementById('hereRaminReceiptsList');
+    if (!list) return;
+
+    if (!hereRaminBorrowRecords.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No HERE-RAMIN receipt requests yet.</div>';
+        return;
+    }
+
+    const rows = [...hereRaminBorrowRecords]
+        .filter((record) => !record.deleted && !record.archived)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (!rows.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No active borrower requests.</div>';
+        return;
+    }
+    list.innerHTML = rows.map((record) => `
+        <div class="ad-task-row hr-receipts-row">
+            <span>${record.borrower?.name || 'Unknown'}</span>
+            <span>${record.tool?.name || 'Tool'}</span>
+            <span>${record.tool?.quantity || 1}</span>
+            <span>${record.status.replace(/_/g, ' ')}</span>
+            <span>${record.schedule?.returnDate || '-'}</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="archive-btn" onclick="updateHereRaminReceiptStatus('${record.id}','in_use')">In Use</button>
+                <button class="archive-btn" onclick="updateHereRaminReceiptStatus('${record.id}','return_pending')">Pending</button>
+                <button class="approve-btn" onclick="updateHereRaminReceiptStatus('${record.id}','return_approved')">Approve</button>
+                <button class="reject-btn" onclick="updateHereRaminReceiptStatus('${record.id}','return_rejected')">Reject</button>
+                <button class="archive-btn" onclick="archiveHereRaminBorrower('${record.id}')">Archive</button>
+                <button class="delete-btn" onclick="deleteHereRaminBorrower('${record.id}')">Delete</button>
+            </span>
+        </div>
+    `).join('');
+}
+
+function updateHereRaminAnalytics() {
+    const total = hereRaminBorrowRecords.length;
+    const pending = hereRaminBorrowRecords.filter((record) => record.status === 'return_pending').length;
+    const approved = hereRaminBorrowRecords.filter((record) => record.status === 'return_approved').length;
+    const borrowedCountByTool = {};
+    hereRaminBorrowRecords.forEach((record) => {
+        const toolName = String(record.tool?.name || 'Unknown Tool').trim() || 'Unknown Tool';
+        borrowedCountByTool[toolName] = (borrowedCountByTool[toolName] || 0) + 1;
+    });
+    const mostBorrowed = Object.entries(borrowedCountByTool)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    const totalEl = document.getElementById('hrTotalRequests');
+    const pendingEl = document.getElementById('hrPendingReturns');
+    const approvedEl = document.getElementById('hrApprovedReturns');
+    const topBorrowedEl = document.getElementById('hrTopBorrowedTools');
+
+    if (totalEl) totalEl.textContent = String(total);
+    if (pendingEl) pendingEl.textContent = String(pending);
+    if (approvedEl) approvedEl.textContent = String(approved);
+    if (topBorrowedEl) {
+        topBorrowedEl.innerHTML = mostBorrowed.length
+            ? mostBorrowed.map(([tool, count], index) => `<div style="margin-bottom:4px;">${index + 1}. ${tool} - ${count} borrow${count > 1 ? 's' : ''}</div>`).join('')
+            : 'No borrow activity yet.';
+    }
+}
+
+function listenToHereRaminTools() {
+    if (hereRaminToolsUnsubscribe) return;
+
+    hereRaminToolsUnsubscribe = onSnapshot(
+        collection(db, HERERAMIN_TOOLS_COLLECTION),
+        (snapshot) => {
+            hereRaminTools = snapshot.docs.map((entry) => normalizeToolDoc(entry.id, entry.data()));
+            hereRaminTools.sort((a, b) => a.tool_name.localeCompare(b.tool_name));
+            updateHereRaminTools();
+        },
+        (error) => {
+            console.warn('Could not watch HERE-RAMIN tools', error);
+            updateHereRaminTools();
+        }
+    );
+}
+
+function listenToHereRaminReceipts() {
+    if (hereRaminReceiptsUnsubscribe) return;
+
+    hereRaminReceiptsUnsubscribe = onSnapshot(
+        collection(db, BORROW_REQUESTS_COLLECTION),
+        (snapshot) => {
+            hereRaminBorrowRecords = snapshot.docs.map((entry) => normalizeBorrowRecord({ id: entry.id, ...entry.data() }));
+            updateHereRaminReceipts();
+            updateHereRaminAnalytics();
+        },
+        (error) => {
+            console.warn('Could not watch HERE-RAMIN receipts', error);
+            updateHereRaminReceipts();
+            updateHereRaminAnalytics();
+        }
+    );
+}
+
+async function addHereRaminTool() {
+    const nameInput = document.getElementById('hrToolName');
+    const categoryInput = document.getElementById('hrToolCategory');
+    const imageInput = document.getElementById('hrToolImageUrl');
+    const wikiHowInput = document.getElementById('hrToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrToolDescription');
+    const qtyAvailableInput = document.getElementById('hrToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrToolQtyTotal');
+
+    const toolName = (nameInput?.value || '').trim();
+    const category = (categoryInput?.value || '').trim() || 'General Tools';
+    const imageUrl = (imageInput?.value || '').trim();
+    const wikiHowUrl = (wikiHowInput?.value || '').trim();
+    const description = (descriptionInput?.value || '').trim();
+    const qtyAvailable = Number(qtyAvailableInput?.value || 0);
+    const qtyTotal = Number(qtyTotalInput?.value || 0);
+
+    if (!toolName) {
+        alert('Tool name is required.');
+        return;
+    }
+    if (!Number.isFinite(qtyAvailable) || !Number.isFinite(qtyTotal) || qtyAvailable < 0 || qtyTotal <= 0 || qtyAvailable > qtyTotal) {
+        alert('Please enter valid quantities (available must be between 0 and total).');
+        return;
+    }
+
+    const docId = hereRaminEditingToolId || slugifyToolName(toolName) || `tool-${Date.now()}`;
+    const payload = {
+        tool_name: toolName,
+        category,
+        image_url: hereRaminUploadedImageDataUrl || imageUrl,
+        wikihow_url: wikiHowUrl,
+        description,
+        quantity_available: qtyAvailable,
+        quantity_total: qtyTotal,
+        available: qtyAvailable > 0,
+        status_: qtyAvailable > 0 ? 'Available' : 'Unavailable',
+        updated_at: new Date().toISOString()
+    };
+
+    try {
+        await setDoc(doc(db, HERERAMIN_TOOLS_COLLECTION, docId), payload, { merge: true });
+        logAction(hereRaminEditingToolId ? 'hereramin_tool_edit' : 'hereramin_tool_add', `${hereRaminEditingToolId ? 'Edited' : 'Added'} HERE-RAMIN tool: "${toolName}"`, { toolId: docId, category });
+        resetHereRaminToolForm();
+    } catch (error) {
+        console.error('Failed to add HERE-RAMIN tool', error);
+        alert('Failed to add tool: ' + (error.message || error));
+    }
+}
+
+async function editHereRaminTool(toolId) {
+    const tool = hereRaminTools.find((entry) => entry.id === toolId);
+    if (!tool) return;
+    const nameInput = document.getElementById('hrToolName');
+    const categoryInput = document.getElementById('hrToolCategory');
+    const imageInput = document.getElementById('hrToolImageUrl');
+    const wikiHowInput = document.getElementById('hrToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrToolDescription');
+    const qtyAvailableInput = document.getElementById('hrToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrToolQtyTotal');
+    const imagePreview = document.getElementById('hrToolImagePreview');
+    const saveBtn = document.getElementById('hrToolSaveBtn');
+
+    hereRaminEditingToolId = toolId;
+    hereRaminUploadedImageDataUrl = '';
+    if (nameInput) nameInput.value = tool.tool_name || '';
+    if (categoryInput) categoryInput.value = tool.category || 'General Tools';
+    if (imageInput) imageInput.value = tool.image_url || '';
+    if (wikiHowInput) wikiHowInput.value = tool.wikihow_url || '';
+    if (descriptionInput) descriptionInput.value = tool.description || '';
+    if (qtyAvailableInput) qtyAvailableInput.value = String(tool.quantity_available ?? 0);
+    if (qtyTotalInput) qtyTotalInput.value = String(tool.quantity_total ?? 1);
+    if (imagePreview && tool.image_url) {
+        imagePreview.src = tool.image_url;
+        imagePreview.style.display = 'block';
+    }
+    if (saveBtn) saveBtn.textContent = 'Update Tool';
+}
+
+async function toggleHereRaminToolAvailability(toolId) {
+    const tool = hereRaminTools.find((entry) => entry.id === toolId);
+    if (!tool) return;
+    const nextAvailable = !tool.available;
+    const nextQtyAvailable = nextAvailable ? Math.max(1, tool.quantity_available || 1) : 0;
+    try {
+        await setDoc(doc(db, HERERAMIN_TOOLS_COLLECTION, toolId), {
+            available: nextAvailable,
+            quantity_available: nextQtyAvailable,
+            status_: nextAvailable ? 'Available' : 'Unavailable',
+            updated_at: new Date().toISOString()
+        }, { merge: true });
+        logAction('hereramin_tool_toggle', `Updated HERE-RAMIN tool availability: "${tool.tool_name}" -> ${nextAvailable ? 'available' : 'unavailable'}`, { toolId });
+    } catch (error) {
+        console.error('Failed to update HERE-RAMIN tool availability', error);
+        alert('Failed to update availability: ' + (error.message || error));
+    }
+}
+
+async function deleteHereRaminTool(toolId) {
+    const tool = hereRaminTools.find((entry) => entry.id === toolId);
+    if (!tool) return;
+    if (!confirm(`Delete "${tool.tool_name}" from HERE-RAMIN tools?`)) return;
+    try {
+        await deleteDoc(doc(db, HERERAMIN_TOOLS_COLLECTION, toolId));
+        logAction('hereramin_tool_delete', `Deleted HERE-RAMIN tool: "${tool.tool_name}"`, { toolId });
+    } catch (error) {
+        console.error('Failed to delete HERE-RAMIN tool', error);
+        alert('Failed to delete tool: ' + (error.message || error));
+    }
+}
+
+async function updateHereRaminReceiptStatus(recordId, nextState) {
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordId), {
+            status: nextState,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        logAction('hereramin_receipt_status', `Updated HERE-RAMIN receipt ${recordId} -> ${nextState}`, { recordId, nextState });
+    } catch (error) {
+        console.error('Failed to update HERE-RAMIN receipt status', error);
+        alert('Failed to update receipt status: ' + (error.message || error));
+    }
+}
+
+async function archiveHereRaminBorrower(recordId) {
+    if (!confirm('Archive this borrower record?')) return;
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordId), {
+            archived: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (error) {
+        console.error('Failed to archive borrower record', error);
+        alert('Failed to archive borrower record: ' + (error.message || error));
+    }
+}
+
+async function deleteHereRaminBorrower(recordId) {
+    if (!confirm('Delete this borrower record?')) return;
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordId), {
+            deleted: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (error) {
+        console.error('Failed to delete borrower record', error);
+        alert('Failed to delete borrower record: ' + (error.message || error));
+    }
+}
+
+async function clearHereRaminBorrowers() {
+    const activeRows = hereRaminBorrowRecords.filter((record) => !record.deleted && !record.archived);
+    if (!activeRows.length) {
+        alert('No active borrowers to clear.');
+        return;
+    }
+    if (!confirm(`Archive ${activeRows.length} borrower record(s)?`)) return;
+
+    try {
+        await Promise.all(activeRows.map((record) => setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), {
+            archived: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true })));
+    } catch (error) {
+        console.error('Failed to clear borrower records', error);
+        alert('Failed to clear borrowers: ' + (error.message || error));
+    }
 }
 
 // Dashboard
@@ -2407,6 +2818,36 @@ document.addEventListener('DOMContentLoaded', () => {
             revealApp();
         }
     }, 2000);
+    renderHereRaminCategoryOptions();
+    const hrImageFileInput = document.getElementById('hrToolImageFile');
+    const hrImagePreview = document.getElementById('hrToolImagePreview');
+    const hrImageUrlInput = document.getElementById('hrToolImageUrl');
+    if (hrImageFileInput) {
+        hrImageFileInput.addEventListener('change', async (event) => {
+            const file = event.target.files && event.target.files[0];
+            if (!file) {
+                hereRaminUploadedImageDataUrl = '';
+                if (hrImagePreview) {
+                    hrImagePreview.src = '';
+                    hrImagePreview.style.display = 'none';
+                }
+                return;
+            }
+            try {
+                hereRaminUploadedImageDataUrl = await readImageAsDataUrl(file);
+                if (hrImagePreview) {
+                    hrImagePreview.src = hereRaminUploadedImageDataUrl;
+                    hrImagePreview.style.display = 'block';
+                }
+                if (hrImageUrlInput) hrImageUrlInput.value = '';
+            } catch (error) {
+                console.warn('Could not load image file for HERE-RAMIN tool', error);
+                alert('Could not read the selected image file.');
+            }
+        });
+    }
+    listenToHereRaminTools();
+    listenToHereRaminReceipts();
     loadAdminSession();
 });
 
@@ -2457,6 +2898,15 @@ window.restoreProgram = restoreProgram;
 window.deleteProgram = deleteProgram;
 window.approveProgram = approveProgram;
 window.rejectProgram = rejectProgram;
+window.addHereRaminTool = addHereRaminTool;
+window.editHereRaminTool = editHereRaminTool;
+window.deleteHereRaminTool = deleteHereRaminTool;
+window.toggleHereRaminToolAvailability = toggleHereRaminToolAvailability;
+window.updateHereRaminReceiptStatus = updateHereRaminReceiptStatus;
+window.archiveHereRaminBorrower = archiveHereRaminBorrower;
+window.deleteHereRaminBorrower = deleteHereRaminBorrower;
+window.clearHereRaminBorrowers = clearHereRaminBorrowers;
+window.resetHereRaminToolForm = resetHereRaminToolForm;
 
 window.debugAuthState = () => {
     console.log("=== ADMIN AUTH DEBUG ===");
