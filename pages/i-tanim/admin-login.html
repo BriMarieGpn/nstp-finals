@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/style.css">
   <style>
-    /* ── Admin login exclusive page ── */
     body.page-admin-login {
       min-height: 100vh;
       background: var(--primary);
@@ -171,7 +170,7 @@
     .al-hint strong { font-weight: 700; }
   </style>
 </head>
-<body class="page-admin-login">
+<body class="page-admin-login auth-pending auth-pending">
 
   <!-- Leaf bg -->
   <div class="al-leaf-bg" aria-hidden="true">
@@ -195,7 +194,7 @@
     </div>
 
     <h1 class="al-title">Admin Portal</h1>
-    <p class="al-subtitle">Restricted access — authorized personnel only</p>
+    <p class="al-subtitle">Restricted access â€” authorized personnel only</p>
 
     <!-- Error message -->
     <div class="al-error" id="alError">Invalid credentials. Admin access only.</div>
@@ -215,7 +214,7 @@
 
   <!-- Back to home -->
   <a href="index.html" class="al-back">
-    ← Back to homepage
+    â† Back to homepage
   </a>
 
   <script type="module">
@@ -294,5 +293,14 @@
       el.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); })
     );
   </script>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.remove('auth-pending');
+  });
+</script>
 </body>
 </html>
+
+

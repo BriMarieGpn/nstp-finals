@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body>
+<body class="auth-pending auth-pending">
 
     <!-- AUTH NAVBAR -->
     <nav class="auth-navbar">
@@ -100,7 +100,7 @@
         Quezon City, Metro Manila
       </p>
 
-      <p>© 2026 SBCS-1B. All rights reserved</p>
+      <p>Â© 2026 SBCS-1B. All rights reserved</p>
     </div>
 
     <div>
@@ -258,6 +258,13 @@ document.getElementById("reg-btn").onclick = async () => {
 </script>
 
 <script type="module" src="../../js/navbar-auth.js"></script>
+</div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.remove('auth-pending');
+  });
+</script>
 </body>
 </html>
+

@@ -11,7 +11,24 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
-<body class="itanim-page pageLogin">
+<body class="itanim-page pageLogin auth-pending">
+
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session</div>
+<div id="appContent">
 
 <!-- UNIFIED NAVBAR -->
 <nav class="landing-navbar">
@@ -148,6 +165,14 @@
 
   </div>
 </footer>
+
+</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.remove('auth-pending');
+    });
+  </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";

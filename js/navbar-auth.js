@@ -9,9 +9,28 @@ const db = getFirestore(app);
 
 let authReady = false;
 let isLoggedInState = false;
+let hasResolvedAuth = false;
 
 function normalizeRole(role) {
     return String(role || "user").toLowerCase().trim();
+}
+
+function revealApp() {
+    if (hasResolvedAuth) return;
+    hasResolvedAuth = true;
+    document.body.classList.remove('auth-pending');
+    // Also directly hide the gate so CSS transitions can't block it
+    const gate = document.getElementById('authLoadingGate');
+    if (gate) { 
+        gate.style.opacity = '0'; 
+        gate.style.visibility = 'hidden'; 
+        gate.style.pointerEvents = 'none'; 
+    }
+    const content = document.getElementById('appContent');
+    if (content) { 
+        content.style.opacity = '1'; 
+        content.style.pointerEvents = ''; 
+    }
 }
 
 async function getProfile(user) {
@@ -259,6 +278,14 @@ if (document.readyState === 'loading') {
     updateMainPageStats();
 }
 
+// Hard fallback: if auth gate is still showing after 3s, reveal anyway
+setTimeout(() => {
+    if (document.body.classList.contains('auth-pending')) {
+        console.warn('[navbar-auth] Auth gate fallback triggered after 3s');
+        revealApp();
+    }
+}, 3000);
+
 function setupAuth() {
     onAuthStateChanged(auth, async (user) => {
         authReady = true;
@@ -272,6 +299,9 @@ function setupAuth() {
         if (!user && isProtectedCurrentPage()) {
             window.location.href = resolveLoginUrl();
         }
+
+        // Reveal app after auth is resolved
+        revealApp();
     });
 }
 
