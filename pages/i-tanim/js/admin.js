@@ -268,6 +268,7 @@ async function initFirestoreAdminState() {
                 const data = volunteerDoc.data();
                 firestoreUsers.push({
                     id: volunteerDoc.id,
+                    volunteerID: data.volunteerID || data.volunteerId || '',
                     name: data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.email || 'Volunteer',
                     email: data.email || '',
                     age: data.age || '',
@@ -594,9 +595,15 @@ function updateVolunteers() {
 
     const list = document.getElementById('volunteerList');
     const statusFilter = document.getElementById('volunteerStatusFilter')?.value || 'approved';
+    const programFilterValue = document.getElementById('volunteerProgramFilter')?.value || '';
     const filteredUsers = statusFilter === 'all'
         ? users
         : users.filter((u) => normalizeStatus(u.status) === statusFilter);
+    const filteredByProgram = programFilterValue
+        ? filteredUsers.filter((u) => isVolunteerInProgram(u, programFilterValue))
+        : filteredUsers;
+    const selectedProgram = programs.find((p) => p.id === programFilterValue);
+    const programNameLabel = selectedProgram ? ` for ${selectedProgram.name || selectedProgram.title || 'Selected Program'}` : '';
 
     // Pending validation section — volunteers who submitted tasks for admin review
     const pendingValidationItems = [];
@@ -627,8 +634,8 @@ function updateVolunteers() {
     list.innerHTML = pendingValidationHTML + `
         <div class="volunteer-section">
             <div class="volunteer-card">
-                <strong>${statusFilter === 'pending' ? 'Pending Volunteers' : `Volunteers (${statusFilter})`}</strong>
-                ${filteredUsers.map(u => `
+                <strong>${statusFilter === 'pending' ? 'Pending Volunteers' : `Volunteers (${statusFilter})`}${programNameLabel}</strong>
+                ${filteredByProgram.length > 0 ? filteredByProgram.map(u => `
                     <div class="volunteer-item">
                         <div>
                             <strong>${u.name}</strong><br>
@@ -646,7 +653,7 @@ function updateVolunteers() {
                             ` : ''}
                         </div>
                     </div>
-                `).join('')}
+                `).join('') : `<div>No Participants in this view yet for ${statusFilter}${programNameLabel}</div>`}
             </div>
         </div>
     `;
@@ -670,9 +677,10 @@ function updateVolunteerProgramFilter() {
     filter.innerHTML = programs.map(program => `
         <option value="${program.id}">${program.name || program.title || 'Untitled Program'}</option>
     `).join('');
-    if (!filter.value && programs.length > 0) {
-        filter.value = programs[0].id;
+    if (!filter.value || !programs.some(p => p.id === filter.value)) {
+        filter.value = programs.length > 0 ? programs[0].id : '';
     }
+    updateVolunteerProgramParticipants();
 }
 
 function updateAttendanceProgramOptions() {
@@ -726,6 +734,15 @@ function getPendingParticipantsForProgram(programId) {
     );
 }
 
+function isVolunteerInProgram(user, programId) {
+    const program = programs.find(p => p.id === programId) || {};
+    const joined = Array.isArray(program.joined) ? program.joined : [];
+    const pending = Array.isArray(program.pendingJoins) ? program.pendingJoins : [];
+    return joined.includes(user.id)
+        || pending.includes(user.id)
+        || (Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId));
+}
+
 function isFinishedForProgram(user, programId) {
     return Array.isArray(user.completedPrograms) && user.completedPrograms.includes(programId);
 }
@@ -734,14 +751,19 @@ function updateVolunteerProgramParticipants() {
     refreshLocalAdminCache();
 
     const filter = document.getElementById('volunteerProgramFilter');
-    const joinStatusFilter = 'all';
+    const statusFilter = document.getElementById('volunteerStatusFilter')?.value || 'all';
     const participantContainer = document.getElementById('programParticipantList');
     if (!filter || !participantContainer) return;
 
     const programId = filter.value;
+    const joinStatusFilter = 'all';
     const program = programs.find(p => p.id === programId) || {};
-    const official = getOfficialParticipantsForProgram(programId);
-    const pending = getPendingParticipantsForProgram(programId);
+    const official = getOfficialParticipantsForProgram(programId).filter((u) =>
+        statusFilter === 'all' || normalizeStatus(u.status) === statusFilter
+    );
+    const pending = getPendingParticipantsForProgram(programId).filter((u) =>
+        statusFilter === 'all' || normalizeStatus(u.status) === statusFilter
+    );
 
     const finishedOfficial = official.filter((u) => isFinishedForProgram(u, programId));
     const notFinishedOfficial = official.filter((u) => !isFinishedForProgram(u, programId));
@@ -790,6 +812,7 @@ function updateVolunteerProgramParticipants() {
 }
 
 function onVolunteerProgramFilterChange() {
+    updateVolunteers();
     updateVolunteerProgramParticipants();
     updateAttendanceProgramOptions();
 }
@@ -800,14 +823,24 @@ function onVolunteerStatusFilterChange() {
 }
 
 window.forceSyncData = () => {
-    const activeTab = getCurrentActiveTab();
-    try {
-        users = JSON.parse(localStorage.getItem('itanimUsers') || '[]');
-        programs = JSON.parse(localStorage.getItem('itanimPrograms') || '[]');
-    } catch {
-        users = [];
-        programs = [];
-    }
+    const cacheKeys = [
+        'itanimUsers',
+        'itanimPrograms',
+        'itanimCerts',
+        'itanimSkills',
+        'itanimRestrictions',
+        'itanimBadges',
+        'itanimNotifications'
+    ];
+    cacheKeys.forEach((key) => localStorage.removeItem(key));
+    users = [];
+    programs = [];
+    certifications = [];
+    skills = [];
+    restrictions = { minAge: 18, validBarangays: 'All' };
+    badgeThresholds = { bronze: 10, silver: 25, gold: 50, platinum: 100 };
+    notifications = [];
+
     updateDashboard();
     updateAnalytics();
     updatePrograms();
@@ -815,8 +848,14 @@ window.forceSyncData = () => {
     updateVolunteerProgramFilter();
     updateVolunteerProgramParticipants();
     updateAttendanceProgramOptions();
-    showTab(activeTab);
-    alert('Manual sync complete.');
+
+    if (typeof fetchAndRenderPrograms === 'function') {
+        fetchAndRenderPrograms();
+    }
+
+    // Force a clean UI load after clearing cached state.
+    alert('Local admin cache cleared. Reloading the page to fetch fresh Firestore data.');
+    window.location.reload();
 };
 
 async function approveJoinRequest(programId, userId) {
@@ -900,14 +939,27 @@ async function startQrScanner() {
         if (status) status.textContent = 'Scanning for QR code...';
 
         qrScannerTimer = window.setInterval(() => {
-            scanQrFrame();
+            scanQrFrame().catch((err) => console.warn('QR scan frame error', err));
         }, 300);
     } catch (err) {
-        console.warn('QR scanner camera access failed', err);
-        if (status) {
-            status.textContent = 'Camera access denied or unavailable. Please allow camera permission.';
+        console.warn('QR scanner camera access failed with environment camera', err);
+        // Try fallback without facingMode
+        try {
+            qrScannerStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = qrScannerStream;
+            await video.play();
+            if (status) status.textContent = 'Scanning for QR code (fallback camera)...';
+
+            qrScannerTimer = window.setInterval(() => {
+                scanQrFrame().catch((err) => console.warn('QR scan frame error', err));
+            }, 300);
+        } catch (fallbackErr) {
+            console.warn('QR scanner camera access failed completely', fallbackErr);
+            if (status) {
+                status.textContent = 'Camera access denied or unavailable. Please allow camera permission.';
+            }
+            alert('Cannot open camera. Please allow access or use the registry ID field instead.');
         }
-        alert('Cannot open camera. Please allow access or use the registry ID field instead.');
     }
 }
 
@@ -926,15 +978,52 @@ function stopQrScanner() {
     }
 }
 
-function scanQrFrame() {
+async function decodeQrFromFrame(imageData, width, height) {
+    console.log('Decoding QR from frame, jsQR defined:', typeof jsQR);
+    if (typeof jsQR !== 'undefined') {
+        const result = jsQR(imageData.data, width, height);
+        console.log('jsQR result:', result);
+        return result;
+    }
+
+    if ('BarcodeDetector' in window) {
+        try {
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+            ctx.putImageData(imageData, 0, 0);
+            const bitmap = await createImageBitmap(canvas);
+            const results = await detector.detect(bitmap);
+            if (results && results.length) {
+                console.log('BarcodeDetector result:', results[0].rawValue);
+                return { data: results[0].rawValue };
+            }
+        } catch (err) {
+            console.warn('BarcodeDetector QR fallback failed', err);
+        }
+    }
+
+    return null;
+}
+
+async function scanQrFrame() {
     const video = document.getElementById('qrScannerVideo');
     const canvas = document.getElementById('qrScannerCanvas');
     const status = document.getElementById('qrScannerStatus');
-    if (!video || !canvas || !status || typeof jsQR === 'undefined') return;
+    if (!video || !canvas || !status) return;
     if (video.readyState !== HTMLMediaElement.HAVE_ENOUGH_DATA) {
+        console.log('Video not ready for scanning');
+        return;
+    }
+    if (!video.videoWidth || !video.videoHeight) {
+        console.log('Video dimensions not available');
         return;
     }
 
+    console.log('Scanning QR frame...');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d');
@@ -942,9 +1031,10 @@ function scanQrFrame() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    const code = await decodeQrFromFrame(imageData, imageData.width, imageData.height);
 
     if (code && code.data) {
+        console.log('QR code detected:', code.data);
         const rawId = String(code.data || '').trim();
         const volunteerInput = document.getElementById('qrVolunteerIdInput');
         if (volunteerInput) {
@@ -952,6 +1042,8 @@ function scanQrFrame() {
         }
         if (status) status.textContent = `QR captured: ${rawId}. Click Assign to complete.`;
         stopQrScanner();
+    } else {
+        console.log('No QR code found in frame');
     }
 }
 
@@ -967,9 +1059,26 @@ async function assignVolunteerByQr() {
     }
 
     const program = programs.find((p) => p.id === programId);
-    const user = users.find((u) => u.volunteerID === volunteerId || u.id === volunteerId);
+    const lookupId = volunteerId.toLowerCase();
+    const user = users.find((u) => {
+        const volunteerIdValue = String(u.volunteerID || '').trim().toLowerCase();
+        const userIdValue = String(u.id || '').trim().toLowerCase();
+        const fallbackVolunteerIdValue = `grw-${String(u.id || '').substring(0, 5).toLowerCase()}`;
+        const emailValue = String(u.email || '').trim().toLowerCase();
+        return volunteerIdValue === lookupId
+            || userIdValue === lookupId
+            || fallbackVolunteerIdValue === lookupId
+            || emailValue === lookupId;
+    });
     if (!program || !user) {
-        alert('Program or volunteer not found. Check the registry ID and selected program.');
+        console.warn('[assignVolunteerByQr] lookup failed', {
+            programId,
+            volunteerId,
+            usersCount: users.length,
+            programsCount: programs.length,
+            sampleUsers: users.slice(0, 5).map((u) => ({ id: u.id, volunteerID: u.volunteerID, email: u.email }))
+        });
+        alert('Program or volunteer not found. Check the registry ID/email and selected program.');
         return;
     }
     if (normalizeStatus(user.status) !== 'approved') {
@@ -1083,11 +1192,57 @@ async function markVolunteerCompleted(programId, userId) {
         user.email
     );
 
+    // Ask admin whether to issue certification immediately
+    const grantCert = confirm(`Do you want to issue a completion certificate for ${user.name} now?\n\nOK = Yes, issue certification now.\nCancel = No, leave the user able to request certification later.`);
+    if (grantCert) {
+        await issueApprovedCertificationForCompletion(user, program);
+    }
+
     updateVolunteerProgramParticipants();
     updateVolunteers();
     updateDashboard();
     updateAnalytics();
     alert(`${user.name} has been marked finished for ${program.name || program.title}. Hours updated.`);
+}
+
+async function issueApprovedCertificationForCompletion(user, program) {
+    if (!user || !program) return;
+
+    const existingCert = certifications.find((c) => c.userId === user.id && c.programId === program.id);
+    const now = new Date();
+    const timestamp = now.toISOString();
+    const approvedCert = existingCert || {
+        id: `cert-${Date.now()}`,
+        userId: user.id,
+        userEmail: user.email || '',
+        programId: program.id,
+        programTitle: program.name || program.title || '',
+        status: 'approved',
+        reason: `Approved by admin upon completion of ${program.name || program.title}.`,
+        proofDetails: `Admin verified completion and issued certificate on ${now.toLocaleDateString()}.`,
+        requestedAt: timestamp,
+        hoursAtRequest: Number(user.hours || 0),
+        completedProgramsAtRequest: Array.isArray(user.completedPrograms) ? user.completedPrograms.length : 0,
+        badgeAtRequest: user.badge || 'None'
+    };
+
+    approvedCert.status = 'approved';
+    approvedCert.issuedDate = timestamp.slice(0, 10);
+    approvedCert.approvedAt = timestamp;
+    approvedCert.updatedAt = timestamp;
+    approvedCert.validUntil = `${now.getFullYear() + 1}-12-31`;
+    approvedCert.certificateType = user?.badge && user.badge !== 'None' ? 'with_badge' : 'without_badge';
+    approvedCert.name = approvedCert.name || 'Volunteer Certification';
+    approvedCert.description = approvedCert.description || `Approved certification for ${user?.name || approvedCert.userEmail || 'volunteer'}`;
+    approvedCert.adminNote = approvedCert.adminNote || `Approved after completion verification (${approvedCert.hoursAtRequest} hrs, ${approvedCert.completedProgramsAtRequest} completed).`;
+
+    if (!existingCert) {
+        certifications.unshift(approvedCert);
+    }
+
+    saveCerts();
+    sendNotification(`Your certificate for "${program.name || program.title}" has been issued!`, 'certification', user.email);
+    alert(`Certificate issued for ${user.name}. The user will see it once the dashboard refreshes.`);
 }
 
 window.markVolunteerCompleted = markVolunteerCompleted;
@@ -1479,13 +1634,20 @@ async function saveProgram() {
     // Pessimistic UI — disable button immediately
     if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Syncing with Cloud...'; }
 
+    const existingProgram = editId ? programs.find(p => p.id === editId) : null;
     const newAttachments = await getAttachmentsFromInput();
-    const imageUrl = newAttachments.length > 0 ? newAttachments[0].dataUrl : '';
+    const attachments = newAttachments.length > 0
+        ? newAttachments
+        : existingProgram?.attachments || [];
+    const imageUrl = attachments.length > 0
+        ? attachments[0].dataUrl
+        : (existingProgram?.image || '');
 
     const programData = {
         name, title: name, desc, hours, requirement,
-        maxVolunteers: maxVol, status: 'active',
-        joined: [], pendingJoins: [], assigned: [],
+        maxVolunteers: maxVol, status: existingProgram?.status || 'active',
+        joined: existingProgram?.joined || [], pendingJoins: existingProgram?.pendingJoins || [], assigned: existingProgram?.assigned || [],
+        attachments,
         image: imageUrl,
         updatedAt: new Date().toISOString()
     };
@@ -1951,11 +2113,35 @@ function initAdminAttachmentPreview() {
         if (attachmentInput) {
             attachmentInput.addEventListener('change', async () => {
                 try {
-                    const atts = await getAttachmentsFromInput();
+                    const atts = await getAttachmentsFromInput('taskAttachments');
                     renderTaskAttachmentPreview(atts);
                 } catch (err) {
                     console.warn(err);
                     renderTaskAttachmentPreview([]);
+                }
+            });
+        }
+        const programInput = document.getElementById('programAttachments');
+        if (programInput) {
+            programInput.addEventListener('change', async () => {
+                try {
+                    const atts = await getAttachmentsFromInput('programAttachments');
+                    renderProgramAttachmentPreview(atts, 'programAttachmentPreview');
+                } catch (err) {
+                    console.warn(err);
+                    renderProgramAttachmentPreview([], 'programAttachmentPreview');
+                }
+            });
+        }
+        const newProgramInput = document.getElementById('newProgAttachments');
+        if (newProgramInput) {
+            newProgramInput.addEventListener('change', async () => {
+                try {
+                    const atts = await getAttachmentsFromInput('newProgAttachments');
+                    renderProgramAttachmentPreview(atts, 'newProgramAttachmentPreview');
+                } catch (err) {
+                    console.warn(err);
+                    renderProgramAttachmentPreview([], 'newProgramAttachmentPreview');
                 }
             });
         }
@@ -1989,11 +2175,16 @@ window.submitNewProgram = async function() {
     if (btn) { btn.disabled = true; btn.textContent = 'Syncing with Cloud...'; }
 
     try {
+        const attachments = await getAttachmentsFromInput('newProgAttachments');
+        const imageUrl = attachments.length > 0 ? attachments[0].dataUrl : '';
+
         await addDoc(collection(db, 'programs'), {
             name, title: name, desc, hours,
             requirement: req, maxVolunteers: maxVol,
             status: 'active', joined: [], pendingJoins: [], assigned: [],
-            image: '', createdAt: new Date().toISOString()
+            attachments,
+            image: imageUrl,
+            createdAt: new Date().toISOString()
         });
         logAction('program_add', `Created program: "${name}" (${hours} hours)`, { hours });
 
@@ -2003,6 +2194,7 @@ window.submitNewProgram = async function() {
         document.getElementById('newProgHours').value = '';
         document.getElementById('newProgMax').value   = '';
         document.getElementById('newProgReq').value   = 'None';
+        clearAttachmentInput('newProgAttachments', 'newProgramAttachmentPreview');
         document.getElementById('addProgramForm').style.display = 'none';
         const toggleBtn = document.getElementById('toggleAddProgramForm');
         if (toggleBtn) toggleBtn.textContent = '+ Add New Program';
@@ -2167,6 +2359,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (logFilter) {
         logFilter.addEventListener('change', renderLogs);
+    }
+
+    const attachmentInput = document.getElementById('programAttachments');
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', async () => {
+            const attachments = await getAttachmentsFromInput();
+            renderProgramAttachmentPreview(attachments);
+        });
+    }
+
+    const statusFilter = document.getElementById('volunteerStatusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', updateVolunteers);
+    }
+
+    const programFilter = document.getElementById('volunteerProgramFilter');
+    if (programFilter) {
+        programFilter.addEventListener('change', updateVolunteerProgramParticipants);
     }
 });
 

@@ -13,6 +13,7 @@ let currentUserId = null;
 let currentUserProfile = null;
 let hasResolvedAuth = false;
 let listenersInitialized = false;
+let userProfileListenerUnsubscribe = null;
 
 const ROLE_CACHE_KEY = 'growsauyouRoleCache';
 const PROFILE_CACHE_KEY = 'growsauyouProfileCache';
@@ -131,8 +132,7 @@ async function fetchCurrentUserProfile(uid, email) {
                         const adminData = adminStateDoc.data();
                         const adminUser = Array.isArray(adminData.users) ? adminData.users.find(u => u.id === uid || u.email === email) : null;
                         if (adminUser) {
-                            profile.status = adminUser.status || profile.status || 'pending';
-                            profile.role = adminUser.role || profile.role || 'user';
+                            profile = mergeAdminUserState(profile, adminUser);
                         }
                     }
                 } catch (err) {
@@ -158,6 +158,9 @@ async function fetchCurrentUserProfile(uid, email) {
                 name: 'Volunteer',
                 email: email || '',
                 enrolledPrograms: [],
+                completedPrograms: [],
+                pendingValidation: [],
+                absentPrograms: [],
                 hours: 0,
                 badges: [],
                 certifications: [],
@@ -172,11 +175,11 @@ async function fetchCurrentUserProfile(uid, email) {
 }
 
 async function listenForUserProfileChanges(uid) {
-    if (!useFirestore) return;
+    if (!useFirestore || userProfileListenerUnsubscribe) return;
     
     try {
         const userDocRef = doc(db, 'volunteers', uid);
-        onSnapshot(userDocRef, async (docSnapshot) => {
+        userProfileListenerUnsubscribe = onSnapshot(userDocRef, async (docSnapshot) => {
             if (docSnapshot.exists()) {
                 const updatedProfile = docSnapshot.data();
                 updatedProfile.id = docSnapshot.id;
@@ -194,8 +197,7 @@ async function listenForUserProfileChanges(uid) {
                         const adminData = adminStateDoc.data();
                         const adminUser = Array.isArray(adminData.users) ? adminData.users.find(u => u.id === docSnapshot.id || u.email === updatedProfile.email) : null;
                         if (adminUser) {
-                            updatedProfile.status = adminUser.status || updatedProfile.status || 'pending';
-                            updatedProfile.role = adminUser.role || updatedProfile.role || 'user';
+                            updatedProfile = mergeAdminUserState(updatedProfile, adminUser);
                         }
                     }
                 } catch (err) {
@@ -230,6 +232,21 @@ function normalizeProgram(program) {
         joined: Array.isArray(program.joined) ? program.joined : [],
         assigned: Array.isArray(program.assigned) ? program.assigned : []
     };
+}
+
+function mergeAdminUserState(profile, adminUser) {
+    if (!profile || !adminUser) return profile;
+    profile.enrolledPrograms = Array.isArray(adminUser.enrolledPrograms) ? adminUser.enrolledPrograms : Array.isArray(profile.enrolledPrograms) ? profile.enrolledPrograms : [];
+    profile.completedPrograms = Array.isArray(adminUser.completedPrograms) ? adminUser.completedPrograms : Array.isArray(profile.completedPrograms) ? profile.completedPrograms : [];
+    profile.pendingValidation = Array.isArray(adminUser.pendingValidation) ? adminUser.pendingValidation : Array.isArray(profile.pendingValidation) ? profile.pendingValidation : [];
+    profile.absentPrograms = Array.isArray(adminUser.absentPrograms) ? adminUser.absentPrograms : Array.isArray(profile.absentPrograms) ? profile.absentPrograms : [];
+    profile.hours = Number(profile.hours || adminUser.hours || 0);
+    profile.badges = Array.isArray(profile.badges) ? profile.badges : (profile.badge ? [profile.badge] : []);
+    profile.certifications = Array.isArray(profile.certifications) ? profile.certifications : [];
+    profile.skills = Array.isArray(profile.skills) ? profile.skills : [];
+    profile.status = adminUser.status || profile.status || 'pending';
+    profile.role = adminUser.role || profile.role || 'user';
+    return profile;
 }
 
 function getUserBadgeCount(user) {
@@ -281,6 +298,9 @@ function getCurrentUser() {
         name: 'Volunteer',
         email: '',
         enrolledPrograms: [],
+        completedPrograms: [],
+        pendingValidation: [],
+        absentPrograms: [],
         hours: 0,
         badges: [],
         certifications: [],
@@ -320,11 +340,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
                 loadUserDashboard();
+                if (useFirestore) {
+                    listenForUserProfileChanges(user.uid);
+                }
                 revealApp();
             }
 
             currentUserProfile = await fetchCurrentUserProfile(user.uid, user.email);
             cacheUserProfile(currentUserProfile);
+
+            if (useFirestore) {
+                listenForUserProfileChanges(user.uid);
+            }
 
             if (normalizeRole(currentUserProfile.role) === 'admin' || isAdminEmail(user.email)) {
                 redirectOnce('admin.html');
@@ -477,19 +504,19 @@ function loadUserDashboard() {
         const qrModalDownload = document.getElementById('qrModalDownload');
         if (!qrImage) return;
 
-        const qrText = user.volunteerID || user.id || 'UNKNOWN-ID';
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrText)}`;
+        const registryId = user.volunteerID || ('GRW-' + String(user.id || '').substring(0, 5).toUpperCase());
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(registryId)}`;
 
         qrImage.src = qrUrl;
-        qrImage.alt = `QR code for ${qrText}`;
+        qrImage.alt = `QR code for ${registryId}`;
 
         if (qrModalImage) {
             qrModalImage.src = qrUrl;
-            qrModalImage.alt = `QR code for ${qrText}`;
+            qrModalImage.alt = `QR code for ${registryId}`;
         }
         if (qrModalDownload) {
             qrModalDownload.href = qrUrl;
-            qrModalDownload.setAttribute('download', `${qrText}.png`);
+            qrModalDownload.setAttribute('download', `${registryId}.png`);
         }
     }
 

@@ -128,35 +128,6 @@
     <div class="ad-tab" id="ad-tab-volunteers">
 
       <h1 class="ad-page-title">Volunteer Management</h1>
-
-      <!-- Pending validation queue (from domain logic) -->
-      <div id="volunteerList"></div>
-
-      <!-- Program participant section -->
-      <div class="ad-card" style="margin-bottom:16px;">
-        <div class="ad-form-row">
-          <label class="ad-label">Filter by Program:</label>
-          <select id="volunteerProgramFilter" class="ad-select" onchange="onVolunteerProgramFilterChange()"></select>
-        </div>
-        <div id="programParticipantList"></div>
-      </div>
-
-      <!-- Attendance actions -->
-      <div class="ad-card" style="margin-bottom:16px;">
-        <span class="ad-card__label">Attendance / Completion Actions</span>
-        <div class="ad-form-row">
-          <label class="ad-label">Program:</label>
-          <select id="attendanceProgramSelect" class="ad-select" onchange="updateAttendanceVolunteerOptions()"></select>
-        </div>
-        <div class="ad-form-row">
-          <label class="ad-label">Volunteer:</label>
-          <select id="attendanceVolunteerSelect" class="ad-select"></select>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
-          <button class="ad-btn ad-btn--approve" onclick="markVolunteerFinishedFromSelection()">Mark as Finished</button>
-          <button class="ad-btn ad-btn--reject" onclick="markVolunteerAbsentFromSelection()">Mark as Absent</button>
-        </div>
-      </div>
       <div class="ad-card" style="margin-bottom:16px;">
         <span class="ad-card__label">Assign Volunteer by QR / Registry ID</span>
         <div class="ad-form-row">
@@ -183,6 +154,23 @@
         </div>
         <p style="margin-top:10px;color:#4b5a35;opacity:0.8;">Use the volunteer registry ID printed on their QR code. This assigns them directly to the selected program.</p>
       </div>
+      
+      <!-- Attendance actions -->
+      <div class="ad-card" style="margin-bottom:16px;">
+        <span class="ad-card__label">Attendance / Completion Actions</span>
+        <div class="ad-form-row">
+          <label class="ad-label">Program:</label>
+          <select id="attendanceProgramSelect" class="ad-select" onchange="updateAttendanceVolunteerOptions()"></select>
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Volunteer:</label>
+          <select id="attendanceVolunteerSelect" class="ad-select"></select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button class="ad-btn ad-btn--approve" onclick="markVolunteerFinishedFromSelection()">Mark as Finished</button>
+          <button class="ad-btn ad-btn--reject" onclick="markVolunteerAbsentFromSelection()">Mark as Absent</button>
+        </div>
+      </div>
 
       <!-- Status filter -->
       <div class="ad-form-row" style="margin-bottom:12px;">
@@ -193,6 +181,17 @@
           <option value="rejected">Rejected</option>
           <option value="all">All</option>
         </select>
+      </div>
+
+      <!-- Program participant section -->
+      <div class="ad-card" style="margin-bottom:16px;">
+        <div class="ad-form-row">
+          <label class="ad-label">Filter by Program:</label>
+          <select id="volunteerProgramFilter" class="ad-select" onchange="onVolunteerProgramFilterChange()"></select>
+        </div>
+        <!-- Pending validation queue (from domain logic) -->
+        <div id="volunteerList"></div>
+        <div id="programParticipantList"></div>
       </div>
 
     </div>
@@ -273,7 +272,7 @@
     <!-- ══ PROGRAMS / TASK MANAGEMENT ══ -->
     <div class="ad-tab" id="ad-tab-programs">
 
-      <h1 class="ad-page-title">Task Management</h1>
+      <h1 class="ad-page-title">PROGRAMS Management</h1>
 
       <!-- Search only — creation moved to Settings -->
       <div class="ad-card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
@@ -438,6 +437,12 @@
               </select>
             </div>
           </div>
+          <div style="margin-bottom:16px;">
+            <label class="ad-label" style="margin-bottom:4px;display:block;">Program Photo</label>
+            <input type="file" id="newProgAttachments" accept="image/*" class="ad-input" style="width:100%;padding:10px 14px;" multiple>
+            <small style="display:block;margin-top:6px;color:rgba(84,107,65,0.75);font-size:0.85rem;">Upload one or more images for this program. The first image is used as the program photo.</small>
+            <div id="newProgramAttachmentPreview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-top:12px;"></div>
+          </div>
           <div id="addProgramError" style="display:none;color:#c0392b;font-size:0.83rem;font-weight:600;margin-bottom:10px;"></div>
           <button class="ad-btn ad-btn--solid" id="addProgramSubmitBtn" onclick="submitNewProgram()" style="min-width:180px;">Save Program</button>
         </div>
@@ -578,7 +583,8 @@
     </select>
     <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Max Volunteers</label>
     <input id="programMaxVolunteers" type="number" placeholder="Max Volunteers" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
-    <input id="programAttachments" type="file" accept="image/png, image/jpeg" multiple style="width:100%;margin-bottom:10px;">
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Program Image</label>
+    <input id="programAttachments" type="file" accept="image/*" multiple style="width:100%;margin-bottom:10px;">
     <div id="programAttachmentPreview" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;"></div>
     <div style="display:flex;justify-content:space-between;gap:10px;">
       <button onclick="closeProgramModal()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Cancel</button>
@@ -730,27 +736,80 @@ function drawBar(canvasId, labels, values) {
 function drawGrowthLine(canvasId, labels, data) {
   var c = document.getElementById(canvasId); if (!c) return;
   var ctx = c.getContext('2d');
-  var W = c.offsetWidth || 400, H = 160;
+  var W = c.offsetWidth || 420, H = 180;
   c.width = W; c.height = H;
   ctx.clearRect(0,0,W,H);
+  if (!Array.isArray(labels) || !labels.length || !Array.isArray(data) || !data.length) {
+    ctx.fillStyle = '#666';
+    ctx.font = '13px Montserrat,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No growth data available', W / 2, H / 2);
+    return;
+  }
   var max = Math.max.apply(null, data.concat([1]));
-  var pad = {top:12,right:16,bottom:32,left:36};
-  var cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
-  var step = cW/(data.length-1||1);
-  /* grid */
-  ctx.strokeStyle='rgba(84,107,65,0.1)'; ctx.lineWidth=1;
-  for(var g=0;g<=5;g++){var gy=pad.top+cH-(g/5)*cH; ctx.beginPath();ctx.moveTo(pad.left,gy);ctx.lineTo(pad.left+cW,gy);ctx.stroke();}
-  /* line */
-  ctx.strokeStyle='#546B41'; ctx.lineWidth=2.5; ctx.lineJoin='round';
+  var pad = {top:18,right:18,bottom:36,left:38};
+  var cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  var step = cW / Math.max(data.length - 1, 1);
+
+  ctx.strokeStyle = 'rgba(84,107,65,0.12)'; ctx.lineWidth = 1;
+  for (var g = 0; g <= 4; g++) {
+    var gy = pad.top + cH - (g / 4) * cH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, gy);
+    ctx.lineTo(pad.left + cW, gy);
+    ctx.stroke();
+  }
+
   ctx.beginPath();
-  data.forEach(function(v,i){var x=pad.left+i*step,y=pad.top+cH-(v/max)*cH; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#546B41';
   ctx.stroke();
-  /* dots */
-  ctx.fillStyle='#546B41';
-  data.forEach(function(v,i){var x=pad.left+i*step,y=pad.top+cH-(v/max)*cH; ctx.beginPath();ctx.arc(x,y,3.5,0,Math.PI*2);ctx.fill();});
-  /* x labels */
-  ctx.fillStyle='rgba(84,107,65,0.6)'; ctx.font='8px Montserrat,sans-serif'; ctx.textAlign='center';
-  labels.forEach(function(l,i){ctx.fillText(l,pad.left+i*step,H-6);});
+
+  ctx.beginPath();
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + cW, pad.top + cH);
+  ctx.lineTo(pad.left, pad.top + cH);
+  ctx.closePath();
+  var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, 'rgba(84,107,65,0.22)');
+  grad.addColorStop(1, 'rgba(84,107,65,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.fillStyle = '#546B41';
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = 'rgba(84,107,65,0.8)';
+  ctx.font = '10px Montserrat,sans-serif';
+  ctx.textAlign = 'center';
+  labels.forEach(function(l, i) {
+    var x = pad.left + i * step;
+    ctx.fillText(l, x, H - 12);
+  });
+
+  ctx.fillStyle = 'rgba(84,107,65,0.75)';
+  ctx.font = '10px Montserrat,sans-serif';
+  ctx.textAlign = 'right';
+  for (var g = 0; g <= 4; g++) {
+    var value = Math.round(max * (g / 4));
+    var y = pad.top + cH - (g / 4) * cH;
+    ctx.fillText(value, pad.left - 8, y + 4);
+  }
 }
 
 window.refreshAnalyticsCharts = function(users, programs) {
@@ -788,17 +847,24 @@ window.refreshAnalyticsCharts = function(users, programs) {
         +'<span class="ad-bdg-name">'+e[0]+'</span></div>';
     }).join('');
 
-    /* Growth line — cumulative by month */
-    var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    var counts=new Array(12).fill(0);
+    /* Growth line — monthly new volunteers for the last 6 months */
+    var monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var countsByMonth={};
     users.forEach(function(u){
       if(!u.createdAt) return;
       var d=new Date(u.createdAt); if(isNaN(d)) return;
-      var m=d.getMonth(); counts[m]++;
+      var key=d.getFullYear()+'-'+(d.getMonth()+1);
+      countsByMonth[key]=(countsByMonth[key]||0)+1;
     });
-    var cumulative=[];var sum=0;
-    counts.forEach(function(c){sum+=c;cumulative.push(sum);});
-    drawGrowthLine('growthChart', months, cumulative);
+    var now=new Date();
+    var labels=[]; var counts=[];
+    for(var i=5;i>=0;i--) {
+      var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+      var key=d.getFullYear()+'-'+(d.getMonth()+1);
+      labels.push(monthNames[d.getMonth()]);
+      counts.push(countsByMonth[key]||0);
+    }
+    drawGrowthLine('growthChart', labels, counts);
   }, 80);
 };
 
@@ -872,6 +938,7 @@ window.showTab = function(name) {
 };
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script type="module" src="js/admin.js"></script>
 
 <script type="module">
