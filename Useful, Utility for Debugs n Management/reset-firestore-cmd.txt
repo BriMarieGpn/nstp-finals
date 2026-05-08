@@ -1,0 +1,2 @@
+cd "c:\Users\rhejie carl\Downloads\GrowsauyouV12\nstp-finals-GrowsauyouV12"
+powershell -ExecutionPolicy Bypass -File reset-firestore.ps1 -Force
