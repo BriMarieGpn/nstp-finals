@@ -1,0 +1,11 @@
+# Firebase Deployment Commands
+# Copy and paste these commands to deploy your GrowSauYOU app
+
+cd "c:\Users\rhejie carl\Downloads\nstp-finals-20260427T040545Z-3-001\nstp-finals"
+firebase deploy
+
+# Alternative: Deploy only hosting
+# firebase deploy --only hosting
+
+# Alternative: Deploy only firestore rules
+# firebase deploy --only firestore:rules

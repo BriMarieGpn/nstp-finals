@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowsauYOU | Home</title>
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/index-redesign.css">
+<link rel="stylesheet" href="../../css/footer.css">
+</head>
+
+<body class="home auth-pending redesigned-home">
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session</div>
+<div id="appContent">
+
+<!-- Hidden stubs required by index.js -->
+<div id="tempUserSwitcher" style="display:none;">
+  <select id="roleSwitcher"><option value="visitor">Visitor</option><option value="user">User</option><option value="admin">Admin</option></select>
+  <p id="userLabel"></p>
+  <div id="adminDebugPanel" style="display:none;"></div>
+</div>
+<nav class="navbar" id="mainNav">
+  <div class="nav-inner">
+    <!-- Logo -->
+    <a href="../../../index.html" class="nav-logo">
+      <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+      <span class="nav-logo__text">GrowSauYOU</span>
+    </a>
+    <!-- Nav links + auth buttons -->
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="../../../index.html">Home</a>
+        <a href="./index.html" class="active">I-Tanim</a>
+        <a href="../../hereramin/index.html">Here-Ramin</a>
+        <a href="../greencommunity/main/index.html">Green Community</a>
+        <a id="userDashboardLink" href="user.html" style="display:none;">Dashboard</a>
+        <a id="adminLink" href="admin.html" style="display:none;">Admin Panel</a>
+      </div>
+      <div class="nav-auth">
+        <a id="navLoginLink" class="nav-btn nav-btn--ghost" href="login.html">Login</a>
+        <a id="navRegisterLink" class="nav-btn nav-btn--solid" href="signup.html">Register</a>
+        <a id="navLogoutLink" class="nav-btn nav-btn--ghost" href="#" style="display:none;">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- Hero centered layout-->
+<section class="hero">
+
+  <div class="leaf-bg" aria-hidden="true">
+    <svg class="lb-left" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+    <svg class="lb-right" viewBox="0 0 300 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M60 380 Q-40 200 80 40 Q200 -60 260 100 Q320 260 60 380Z" fill="#546B41"/>
+      <path d="M80 360 Q20 220 100 80" stroke="#99AD7A" stroke-width="8" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="hero-logo">
+    <span class="hero-logo__text">Grow</span>
+    <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="hero-logo__icon" aria-hidden="true">
+    <span class="hero-logo__text">auYOU</span>
+  </div>
+
+  <div class="hero-cta">
+    <a id="pageRegisterBtn" class="hero-btn hero-btn--solid" href="signup.html">Register</a>
+    <a id="pageLoginBtn" class="hero-btn hero-btn--ghost" href="login.html">Log In</a>
+  </div>
+
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="activeProgramsCount">3</span>
+      <span class="hero-stat-label">Active Programs</span>
+    </div>
+    <div class="hero-stat-divider" aria-hidden="true"></div>
+    <div class="hero-stat">
+      <span class="hero-stat-value" id="volunteerCount"></span>
+      <span class="hero-stat-label">Community Volunteers</span>
+    </div>
+  </div>
+
+</section>
+
+<div class="container" style="position:relative;z-index:1;">
+
+  <section class="page-intro" style="display:none;">
+    <div>
+      <span class="pill">Discover</span>
+      <h1>Find community volunteer programs with GrowsauYOU</h1>
+      <p></p>
+      <div class="action-row">
+        <a id="pageRegisterBtn2" class="btn" href="signup.html">Register</a>
+        <a id="pageLoginBtn2" class="btn ghostBtn" href="login.html">Login</a>
+      </div>
+    </div>
+    <div class="status-cards"></div>
+  </section>
+    <div class="home-card home-card--programs">
+      <div class="home-card__header">
+        <h3>Available Programs</h3>
+        <button id="addProgramBtn" class="add-program-btn" style="display:none;">+ Add</button>
+      </div>
+      <div id="publicProgramList"></div>
+    </div>
+</div>
+
+<div id="programDetailModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(84,107,65,0.75);
+    backdrop-filter: blur(10px);
+    justify-content:center;
+    align-items:center;
+    z-index:100000;
+">
+  <div style="
+      background:rgba(84,107,65,0.96);
+      padding:20px;
+      border-radius:18px;
+      width:min(420px,92%);
+      border:1px solid rgba(255,248,236,0.22);
+      position:relative;
+  ">
+    <button onclick="closeDetailModal()" style="position:absolute; top:14px; right:14px; width:32px; height:32px; border:1px solid rgba(255,248,236,0.22); border-radius:50%; background:rgba(255,248,236,0.12); color:#FFF8EC; cursor:pointer; font-size:18px;">×</button>
+    <img id="detailImage" src="https://via.placeholder.com/500x280?text=Program+Image" style="width:100%; height:180px; object-fit:cover; border-radius:14px; margin-bottom:16px; border:1px solid rgba(255,248,236,0.18);">
+    <h3 id="detailTitle" style="margin:0 0 10px 0; color:white;">Program Title</h3>
+    <p id="detailDesc" style="opacity:0.85; margin:0 0 14px 0; color:white;">Program description appears here</p>
+    <p style="margin:0 0 8px 0; color:white;"><strong>Hours:</strong> <span id="detailHours"></span></p>
+    <p style="margin:0 0 8px 0; color:white;"><strong>Requirement:</strong> <span id="detailRequirement"></span></p>
+    <p style="margin:0 0 16px 0; color:white;"><strong>Joined:</strong> <span id="detailJoined"></span></p>
+    <div id="detailAction" style="display:flex; gap:10px; margin-bottom:12px;"></div>
+    <div id="adminControls" style="display:none; gap:10px; display:flex;">
+      <button onclick="editSelectedProgram()" style="flex:1; padding:10px; border:1px solid rgba(255,248,236,0.22); border-radius:8px; background:rgba(153,173,122,0.30); color:#FFF8EC; cursor:pointer; font-weight:bold;">Edit</button>
+      <button onclick="deleteSelectedProgram()" style="flex:1; padding:10px; border:1px solid rgba(255,248,236,0.22); border-radius:8px; background:rgba(220,204,172,0.30); color:#FFF8EC; cursor:pointer; font-weight:bold;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="programModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(84,107,65,0.6);
+    backdrop-filter: blur(6px);
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+">
+  <div style="
+      background:rgba(84,107,65,0.95);
+      padding:20px;
+      border-radius:16px;
+      width:300px;
+      border:1px solid rgba(255,248,236,0.22);
+  ">
+    <h3>Add Program</h3>
+    <input id="programTitle" placeholder="Program title">
+    <input id="programHours" type="number" placeholder="Hours">
+    <select id="programRequirement" style="width:100%; margin:10px 0; padding:10px; border-radius:12px; border:1px solid rgba(255,248,236,0.22); background:rgba(255,255,255,0.12); color:#FFF8EC;">
+      <option value="None">Requirement: None</option>
+      <option value="Bronze">Requirement: Bronze</option>
+      <option value="Silver">Requirement: Silver</option>
+      <option value="Gold">Requirement: Gold</option>
+      <option value="Platinum">Requirement: Platinum</option>
+    </select>
+    <input id="programImage" type="file" accept="image/png, image/jpeg">
+    <img id="programImagePreview" alt="Selected image preview" style="display:none; width:100%; height:140px; object-fit:cover; border-radius:12px; margin:10px 0; border:1px solid rgba(255,248,236,0.18);">
+    <textarea id="programDesc" placeholder="Description"></textarea>
+    <div style="display:flex; justify-content:space-between; margin-top:15px;">
+      <button onclick="closeModal()" style="padding:8px 12px;">Cancel</button>
+      <button onclick="submitProgram()" style="padding:8px 12px;">Add</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="../../aboutus.html">Barangay</a>
+      <a href="../../aboutus.html">Community</a>
+      <a href="../../aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="../../contactus.html">7 - 3694 - 382</a>
+      <a href="../../contactus.html">7 - 3699 - 156</a>
+      <a href="../../contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script type="module" src="js/index.js"></script>
+</div>
+</body>
+</html>
+
