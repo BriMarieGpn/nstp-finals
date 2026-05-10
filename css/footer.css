@@ -1,0 +1,76 @@
+/* =========================
+   UNIFIED FOOTER
+========================= */
+.site-footer{
+    background:#81985a;
+    color:white;
+    padding:42px 70px;
+}
+
+.footer-grid{
+    max-width:1200px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr 1fr;
+    gap:40px;
+    align-items:start;
+}
+
+.footer-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-size:1.5rem;
+    font-weight:700;
+    margin-bottom:18px;
+}
+
+.footer-brand img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+}
+
+.site-footer h4{
+    font-size:1rem;
+    margin-bottom:14px;
+    font-weight:700;
+}
+
+.site-footer a,
+.site-footer a:visited,
+.site-footer a:active{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin-bottom:8px;
+}
+
+.site-footer a:hover{
+    color:#F7F5EF;
+    text-decoration:underline;
+}
+
+.footer-socials{
+    display:flex;
+    gap:18px;
+    font-size:2rem;
+}
+
+@media(max-width:960px){
+    .footer-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:600px){
+    .footer-grid{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+
+    .footer-brand,
+    .footer-socials{
+        justify-content:center;
+    }
+}

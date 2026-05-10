@@ -1,0 +1,308 @@
+/* =========================
+   SIGNUP REDESIGN
+========================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:
+        url("../assets/images/landing-background.png") center/cover no-repeat,
+        #f7f5ef;
+    color:var(--green-dark);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+.auth-navbar{
+    height:72px;
+    background:#8AA05C;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 34px;
+}
+
+.auth-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-decoration:none;
+    color:#fff;
+    font-size:2rem;
+    font-weight:700;
+}
+
+.auth-brand img{
+    width:46px;
+    height:46px;
+    object-fit:contain;
+}
+
+.auth-nav-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#fff;
+    font-size:1.2rem;
+}
+
+.auth-nav-right a{
+    color:#fff;
+    font-weight:700;
+    text-decoration:none;
+}
+
+/* =========================
+   MAIN WRAPPER
+========================= */
+.signup-wrapper{
+    max-width:1400px;
+    margin:auto;
+    padding:70px 40px;
+    display:grid;
+    grid-template-columns:1fr 1.35fr;
+    gap:70px;
+    align-items:center;
+    min-height:calc(100vh - 72px);
+}
+
+/* =========================
+   LEFT BRANDING
+========================= */
+.signup-brand{
+    text-align:center;
+    position:relative;
+}
+
+.signup-brand::before,
+.signup-brand::after{
+    content:"";
+    position:absolute;
+    border-radius:50%;
+    background:rgba(138,160,92,0.10);
+    z-index:-1;
+}
+
+.signup-brand::before{
+    width:160px;
+    height:160px;
+    top:60px;
+    left:20px;
+}
+
+.signup-brand::after{
+    width:220px;
+    height:220px;
+    bottom:40px;
+    right:50px;
+}
+
+.signup-brand img{
+    width:360px;
+    max-width:100%;
+    margin-bottom:20px;
+}
+
+.signup-brand p{
+    font-size:2.3rem;
+    font-style:italic;
+    color:#546B41;
+}
+
+/* =========================
+   FORM CARD
+========================= */
+.signup-card{
+    background:#EEF2E8;
+    border:1px solid #D7DDD0;
+    border-radius:20px;
+    padding:42px;
+    position:relative;
+    overflow:hidden;
+}
+
+.signup-card::before{
+    content:"";
+    position:absolute;
+    width:340px;
+    height:340px;
+    border-radius:50%;
+    background:rgba(138,160,92,0.08);
+    right:-80px;
+    top:70px;
+}
+
+.signup-card h1{
+    font-size:3.2rem;
+    font-weight:800;
+    margin-bottom:6px;
+    position:relative;
+    z-index:1;
+    color:#607052;
+}
+
+.signup-subtitle{
+    font-size:1.15rem;
+    margin-bottom:24px;
+    position:relative;
+    z-index:1;
+    color:#607052;
+}
+
+/* =========================
+   FORM
+========================= */
+.form-row{
+    margin-bottom:18px;
+    position:relative;
+    z-index:1;
+}
+
+.two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:18px;
+    border-radius:14px;
+    border:2px solid #A9B898;
+    background:#C9D4B4;
+    font-size:1rem;
+    color:#546B41;
+    outline:none;
+}
+
+input::placeholder,
+textarea::placeholder{
+    color:#6B7A59;
+}
+
+textarea{
+    resize:none;
+    min-height:120px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.register-btn{
+    width:300px;
+    height:58px;
+    margin:28px auto 0;
+    display:block;
+    border:3px solid #A9B898;
+    border-radius:14px;
+    background:transparent;
+    color:#546B41;
+    font-size:1.2rem;
+    font-weight:800;
+    cursor:pointer;
+    transition:.25s ease;
+}
+
+.register-btn:hover{
+    background:#546B41;
+    color:#fff;
+}
+
+/* =========================
+   FOOTER
+========================= */
+.signup-footer{
+    background:#8AA05C;
+    color:#fff;
+    padding:42px 60px;
+    display:grid;
+    grid-template-columns:2fr 1fr 1.2fr 1fr;
+    gap:40px;
+}
+
+.footer-logo-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+}
+
+.footer-logo-wrap img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+}
+
+.footer-logo-wrap span{
+    font-size:1.8rem;
+    font-weight:700;
+}
+
+.footer-col h4{
+    font-size:1rem;
+    margin-bottom:14px;
+    font-weight:700;
+}
+
+.footer-col p,
+.footer-col small{
+    display:block;
+    margin:6px 0;
+    line-height:1.5;
+}
+
+.footer-socials{
+    display:flex;
+    gap:18px;
+    font-size:2rem;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media(max-width:1100px){
+    .signup-wrapper{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+
+    .two-col{
+        grid-template-columns:1fr;
+    }
+
+    .signup-footer{
+        grid-template-columns:1fr;
+        text-align:center;
+    }
+
+    .footer-logo-wrap,
+    .footer-socials{
+        justify-content:center;
+    }
+}
+
+.site-footer a,
+.site-footer a:visited,
+.site-footer a:active {
+    color: white;
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: #F7F5EF;
+    text-decoration: underline;
+}

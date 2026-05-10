@@ -1,0 +1,90 @@
+[debug] [2026-04-28T20:30:00.000Z] ----------------------------------------------------------------------
+[debug] [2026-04-28T20:30:00.005Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\rhejie carl\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve --port 3000
+[debug] [2026-04-28T20:30:00.006Z] CLI Version:   15.14.0
+[debug] [2026-04-28T20:30:00.006Z] Platform:      win32
+[debug] [2026-04-28T20:30:00.006Z] Node Version:  v24.14.1
+[debug] [2026-04-28T20:30:00.007Z] Time:          Wed Apr 29 2026 04:30:00 GMT+0800 (Philippine Standard Time)
+[debug] [2026-04-28T20:30:00.007Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-28T20:30:04.650Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-28T20:30:04.651Z] > authorizing via signed-in user (rzesto0@gmail.com)
+[debug] [2026-04-28T20:30:04.651Z] [iam] checking project growsauyou for permissions ["firebase.projects.get"]
+[debug] [2026-04-28T20:30:04.653Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:04.653Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:04.654Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions [none]
+[debug] [2026-04-28T20:30:04.655Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions  x-goog-user-project=growsauyou
+[debug] [2026-04-28T20:30:04.655Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-04-28T20:30:05.658Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions 200
+[debug] [2026-04-28T20:30:05.659Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-04-28T20:30:05.661Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:05.661Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:05.661Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou [none]
+[debug] [2026-04-28T20:30:05.883Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou 200
+[debug] [2026-04-28T20:30:05.883Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou {"projectNumber":"668294542285","projectId":"growsauyou","lifecycleState":"ACTIVE","name":"GrowsauYOU","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-04-15T04:34:40.627Z"}
+[info] 
+[info] === Serving from 'C:\Users\rhejie carl\Downloads\nstp-finals-20260427T040545Z-3-001\nstp-finals'...
+[info] 
+[debug] [2026-04-28T20:30:05.887Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:05.887Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:05.887Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites 
+[debug] [2026-04-28T20:30:07.035Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites 200
+[debug] [2026-04-28T20:30:07.035Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites {"sites":[{"name":"projects/growsauyou/sites/growsauyou","defaultUrl":"https://growsauyou.web.app","appId":"1:668294542285:web:5f07bc1f8747a12d3d4a84","type":"DEFAULT_SITE"}]}
+[debug] [2026-04-28T20:30:07.036Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:07.036Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:07.036Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config [none]
+[debug] [2026-04-28T20:30:08.307Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config 200
+[debug] [2026-04-28T20:30:08.308Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config {"projectId":"growsauyou","appId":"1:668294542285:web:5f07bc1f8747a12d3d4a84","storageBucket":"growsauyou.firebasestorage.app","apiKey":"AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w","authDomain":"growsauyou.firebaseapp.com","messagingSenderId":"668294542285","measurementId":"G-8XMRP43PRP","projectNumber":"668294542285","version":"2"}
+[debug] [2026-04-28T20:30:08.320Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:08.321Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:08.321Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou [none]
+[debug] [2026-04-28T20:30:08.875Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou 200
+[debug] [2026-04-28T20:30:08.876Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou {"projectId":"growsauyou","projectNumber":"668294542285","displayName":"GrowsauYOU","name":"projects/growsauyou","resources":{"hostingSite":"growsauyou"},"state":"ACTIVE","etag":"1_278700e4-d5ea-4e9b-be74-998bb5215e1f"}
+[info] +  hosting[growsauyou]: Local server: http://localhost:3000 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:3000\u001b[22m\u001b[24m"}}
+[debug] [2026-04-28T20:30:10.170Z] ----------------------------------------------------------------------
+[debug] [2026-04-28T20:30:10.175Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\rhejie carl\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js serve --port 3000 --only hosting
+[debug] [2026-04-28T20:30:10.176Z] CLI Version:   15.14.0
+[debug] [2026-04-28T20:30:10.176Z] Platform:      win32
+[debug] [2026-04-28T20:30:10.176Z] Node Version:  v24.14.1
+[debug] [2026-04-28T20:30:10.177Z] Time:          Wed Apr 29 2026 04:30:10 GMT+0800 (Philippine Standard Time)
+[debug] [2026-04-28T20:30:10.177Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-28T20:30:13.034Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-28T20:30:13.034Z] > authorizing via signed-in user (rzesto0@gmail.com)
+[debug] [2026-04-28T20:30:13.035Z] [iam] checking project growsauyou for permissions ["firebase.projects.get"]
+[debug] [2026-04-28T20:30:13.037Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:13.037Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:13.038Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions [none]
+[debug] [2026-04-28T20:30:13.038Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions  x-goog-user-project=growsauyou
+[debug] [2026-04-28T20:30:13.039Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-04-28T20:30:14.087Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions 200
+[debug] [2026-04-28T20:30:14.088Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2026-04-28T20:30:14.089Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:14.089Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:14.089Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou [none]
+[debug] [2026-04-28T20:30:14.351Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou 200
+[debug] [2026-04-28T20:30:14.351Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/growsauyou {"projectNumber":"668294542285","projectId":"growsauyou","lifecycleState":"ACTIVE","name":"GrowsauYOU","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2026-04-15T04:34:40.627Z"}
+[debug] [2026-04-28T20:30:14.354Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:14.354Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:14.355Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites 
+[debug] [2026-04-28T20:30:15.445Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites 200
+[debug] [2026-04-28T20:30:15.445Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/growsauyou/sites {"sites":[{"name":"projects/growsauyou/sites/growsauyou","defaultUrl":"https://growsauyou.web.app","appId":"1:668294542285:web:5f07bc1f8747a12d3d4a84","type":"DEFAULT_SITE"}]}
+[debug] [2026-04-28T20:30:15.446Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:15.446Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:15.446Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config [none]
+[debug] [2026-04-28T20:30:16.561Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config 200
+[debug] [2026-04-28T20:30:16.562Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou/webApps/1:668294542285:web:5f07bc1f8747a12d3d4a84/config {"projectId":"growsauyou","appId":"1:668294542285:web:5f07bc1f8747a12d3d4a84","storageBucket":"growsauyou.firebasestorage.app","apiKey":"AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w","authDomain":"growsauyou.firebaseapp.com","messagingSenderId":"668294542285","measurementId":"G-8XMRP43PRP","projectNumber":"668294542285","version":"2"}
+[debug] [2026-04-28T20:30:16.579Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:16.579Z] Checked if tokens are valid: true, expires at: 1777411112114
+[debug] [2026-04-28T20:30:16.581Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou [none]
+[debug] [2026-04-28T20:30:17.123Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou 200
+[debug] [2026-04-28T20:30:17.123Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/growsauyou {"projectId":"growsauyou","projectNumber":"668294542285","displayName":"GrowsauYOU","name":"projects/growsauyou","resources":{"hostingSite":"growsauyou"},"state":"ACTIVE","etag":"1_278700e4-d5ea-4e9b-be74-998bb5215e1f"}
+[info] +  hosting[growsauyou]: Local server: http://localhost:3001 {"metadata":{"emulator":{"name":"hosting"},"message":"Local server: \u001b[4m\u001b[1mhttp://localhost:3001\u001b[22m\u001b[24m"}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:49 +0000] "GET / HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:49 +0000] \"GET / HTTP/1.1\" 200 - \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:49 +0000] "GET /css/i-tanim/common.css HTTP/1.1" 200 - "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:49 +0000] \"GET /css/i-tanim/common.css HTTP/1.1\" 200 - \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:49 +0000] "GET /css/styles.css HTTP/1.1" 200 - "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:49 +0000] \"GET /css/styles.css HTTP/1.1\" 200 - \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:49 +0000] "GET /css/i-tanim/home.css HTTP/1.1" 200 - "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:49 +0000] \"GET /css/i-tanim/home.css HTTP/1.1\" 200 - \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:49 +0000] "GET /js/navbar-auth.js HTTP/1.1" 200 - "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:49 +0000] \"GET /js/navbar-auth.js HTTP/1.1\" 200 - \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:50 +0000] "GET /js/firebaseConfig.js HTTP/1.1" 200 367 "http://localhost:3001/js/navbar-auth.js" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:50 +0000] \"GET /js/firebaseConfig.js HTTP/1.1\" 200 367 \"http://localhost:3001/js/navbar-auth.js\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:50 +0000] "GET /favicon.ico HTTP/1.1" 404 150 "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:50 +0000] \"GET /favicon.ico HTTP/1.1\" 404 150 \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:53 +0000] "GET /pages/i-tanim/login.html HTTP/1.1" 200 - "http://localhost:3001/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:53 +0000] \"GET /pages/i-tanim/login.html HTTP/1.1\" 200 - \"http://localhost:3001/\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}
+[info] i  hosting: ::1 - - [28/Apr/2026:20:30:53 +0000] "GET /css/i-tanim/style.css HTTP/1.1" 200 - "http://localhost:3001/pages/i-tanim/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" {"metadata":{"emulator":{"name":"hosting"},"message":"::1 - - [28/Apr/2026:20:30:53 +0000] \"GET /css/i-tanim/style.css HTTP/1.1\" 200 - \"http://localhost:3001/pages/i-tanim/login.html\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36\""}}

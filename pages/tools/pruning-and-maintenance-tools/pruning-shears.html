@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tool Info | Pruning Shears</title>
+
+    <link rel="stylesheet" href="../../../css/landing.css">
+    <link rel="stylesheet" href="../../../css/footer.css">
+    <link rel="stylesheet" href="../../../css/each-tool.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body data-initial-tool="Pruning Shears">
+
+<nav class="landing-navbar">
+    <div class="landing-nav-left">
+        <a href="../../../index.html" class="brand">
+            <img src="../../../assets/images/main-logo.png" alt="GrowSauYou Logo">
+            <span>GrowSauYou</span>
+        </a>
+
+        <div class="landing-links">
+            <a href="../../../index.html">Home</a>
+            <a href="../../../pages/i-tanim/index.html">I-Tanim</a>
+            <a href="../../../pages/overview.html">Here-Ramin</a>
+            <a href="../../../pages/greencommunity/main/index.html">Green Community</a>
+        </div>
+    </div>
+
+    <div class="nav-right"></div>
+</nav>
+
+<section class="tool-hero">
+    <div class="hero-overlay"></div>
+    <div class="tool-hero-content">
+        <h1>Welcome to<br>Here-ramin!</h1>
+        <p>
+            Where Barangay Sauyo comes together to borrow tools,
+            learn urban farming, and grow food — and friendships — together.
+        </p>
+    </div>
+</section>
+
+<section class="tool-detail-shell">
+    <div class="tool-detail-card">
+
+        <div class="tool-main-layout">
+            <div class="tool-info-side">
+                <h3>Tool Name:</h3>
+                <h1 id="toolTitle">Trowel</h1>
+
+                <h3>Description:</h3>
+                <p id="toolDescription">
+                    A small hand tool used for digging small holes,
+                    planting, transplanting, and loosening soil.
+                </p>
+            </div>
+
+            <div class="tool-preview-side">
+                <img id="toolImage"
+                     src="../../../assets/images/trowel.png"
+                     alt="Trowel">
+
+                <div class="tool-buttons">
+                    <a href="../../../hereramin/index.html" class="tool-btn">
+                        <i class="fas fa-seedling"></i> Here-ramin
+                    </a>
+
+                    <button class="tool-btn" id="wikiHowBtn" type="button">
+                        <i class="fas fa-play"></i> WikiHOW?
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="bottom-layout">
+
+            <div class="recommended-section">
+                <h2>Recommended Tools</h2>
+
+                <div class="recommend-grid">
+                    
+                    <button class="recommend-item" data-tool="Pruning Shears">
+                        <img src="../../../assets/images/pruning-shears.png">
+                        <div><span>Tool Name:</span><strong>Pruning Shears</strong></div>
+                    </button>
+
+                    <button class="recommend-item" data-tool="Garden Scissors">
+                        <img src="../../../assets/images/garden-scissors.png">
+                        <div><span>Tool Name:</span><strong>Garden Scissors</strong></div>
+                    </button>
+
+                    <button class="recommend-item active" data-tool="Trimmer">
+                        <img src="../../../assets/images/hedge-trimmers.png">
+                        <div><span>Tool Name:</span><strong>Hedge Trimmer</strong></div>
+                    </button>
+                </div>
+            </div>
+
+             <div class="category-sidecards">
+                <a href="../../categories/watering-and-irrigation-tools.html" class="mini-category-card">
+                    <img src="../../../assets/images/watering-can.png">
+                    <span>Watering & Irrigation Tools</span>
+                </a>
+
+                <a href="../../categories/harvesting-tools.html" class="mini-category-card">
+                    <img src="../../../assets/images/harvest-baskets.png">
+                    <span>Harvesting Tools</span>
+                </a>
+            </div>
+
+        
+
+        </div>
+
+    </div>
+</section>
+
+<!-- INTERNAL TUTORIAL MODAL -->
+<div id="wikiModal" class="wiki-modal">
+    <div class="wiki-modal-content">
+        <button class="wiki-close" id="wikiClose">&times;</button>
+
+        <h2 id="tutorialTitle">How to Use Trowel</h2>
+
+        <div class="tutorial-body">
+            <div class="tutorial-text" id="tutorialText"></div>
+
+            <div class="tutorial-video-wrap">
+                <iframe
+                    id="tutorialVideo"
+                    src=""
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../../assets/images/main-logo.png" alt="GrowSauYOU Logo">        <span>GrowSauYOU</span>
+      </div>
+
+      <p> 
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+        <a href="../../../aboutus.html">Barangay</a>
+        <a href="../../../aboutus.html">Community</a>
+        <a href="../../../aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+        <a href="../../../contactus.html">7 - 3694 - 382</a>
+        <a href="../../../contactus.html">7 - 3699 - 156</a>
+        <a href="../../../contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div></footer>
+
+<script>
+(() => {
+    const toolData = {
+        'Garden Scissors': {
+            title: 'Garden Scissors',
+            description: 'Lightweight scissors designed for precision snipping of herbs, flowers, and thin indoor plant stems.',
+            image: '../../../assets/images/garden-scissors.png',
+            tutorial: `
+                <ol>
+                    <li>Hold the scissors comfortably with your thumb and fingers.</li>
+                    <li>Identify the "node" or the specific stem you wish to trim.</li>
+                    <li>Make a clean, quick snip to avoid crushing the plant tissue.</li>
+                    <li>Clean the blades after use to prevent sap buildup and rust.</li>
+                </ol>
+            `,
+            video: 'https://www.youtube.com/embed/P-1_mDOn9_Y'
+        },
+
+        'Trimmer': {
+            title: 'Trimmer',
+            description: 'A tool (manual or powered) used for shaping hedges, edging lawns, and tidying up overgrown greenery.',
+            image: '../../../assets/images/trimmer.png',
+            tutorial: `
+                <ol>
+                    <li>Ensure you are wearing safety gear (gloves and eye protection).</li>
+                    <li>Hold the trimmer with both hands for maximum stability.</li>
+                    <li>Use long, sweeping motions to maintain an even level across hedges.</li>
+                    <li>For lawn edging, tilt the trimmer to create a clean vertical line along paths.</li>
+                </ol>
+            `,
+            video: 'https://www.youtube.com/embed/mK98V_7H_u8'
+        },
+
+        'Pruning Shears': {
+            title: 'Pruning Shears',
+            description: 'Heavy-duty hand shears, also known as secateurs, designed to cut through tough, woody branches and thick stems.',
+            image: '../../../assets/images/pruning-shears.png',
+            tutorial: `
+                <ol>
+                    <li>Choose the branch you want to remove, usually dead or crossing wood.</li>
+                    <li>Place the branch deep within the "jaw" of the shears for maximum leverage.</li>
+                    <li>Squeeze the handles firmly to make a clean cut at a 45-degree angle.</li>
+                    <li>Lock the safety catch immediately after use before putting them away.</li>
+                </ol>
+            `,
+            video: 'https://www.youtube.com/embed/3u_KIdZbeAg'
+        }
+    };
+
+    let currentTool = 'Trimmer';
+
+    const toolTitle = document.getElementById('toolTitle');
+    const toolDescription = document.getElementById('toolDescription');
+    const toolImage = document.getElementById('toolImage');
+
+    const tutorialTitle = document.getElementById('tutorialTitle');
+    const tutorialText = document.getElementById('tutorialText');
+    const tutorialVideo = document.getElementById('tutorialVideo');
+
+    const recommendButtons = document.querySelectorAll('.recommend-item');
+
+    function setTool(toolName){
+        const tool = toolData[toolName];
+        if(!tool) return;
+
+        currentTool = toolName;
+
+        toolTitle.textContent = tool.title;
+        toolDescription.textContent = tool.description;
+        toolImage.src = tool.image;
+        toolImage.alt = tool.title;
+
+        tutorialTitle.textContent = `How to Use ${tool.title}`;
+        tutorialText.innerHTML = tool.tutorial;
+        tutorialVideo.src = tool.video;
+
+        recommendButtons.forEach(btn=>{
+            // Ensure the data-tool attribute in your HTML matches these keys exactly
+            btn.classList.toggle('active', btn.dataset.tool === toolName);
+        });
+    }
+
+    recommendButtons.forEach(btn=>{
+        btn.addEventListener('click', ()=>setTool(btn.dataset.tool));
+    });
+
+    const wikiBtn = document.getElementById('wikiHowBtn');
+    const wikiModal = document.getElementById('wikiModal');
+    const wikiClose = document.getElementById('wikiClose');
+
+    if(wikiBtn) {
+        wikiBtn.addEventListener('click', ()=>{
+            wikiModal.classList.add('active');
+        });
+    }
+
+    if(wikiClose) {
+        wikiClose.addEventListener('click', ()=>{
+            wikiModal.classList.remove('active');
+            tutorialVideo.src = tutorialVideo.src;
+        });
+    }
+
+    if(wikiModal) {
+        wikiModal.addEventListener('click', (e)=>{
+            if(e.target === wikiModal){
+                wikiModal.classList.remove('active');
+                tutorialVideo.src = tutorialVideo.src;
+            }
+        });
+    }
+
+    // Default starting tool for this set
+    setTool('Pruning Shears');
+})();
+</script>
+
+<script type="module" src="../../../js/navbar-auth.js"></script>
+
+</body>
+</html>

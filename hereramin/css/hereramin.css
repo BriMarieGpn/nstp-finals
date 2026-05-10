@@ -1,0 +1,188 @@
+:root {
+    /* YOUR ORIGINAL COLORS - KEEPING THESE */
+    --hr-surface: #ffffff;
+    --hr-panel: #546b41;
+    --hr-panel-2: #99ad7a;
+    --hr-bg: #fff8ec;
+    --hr-text: #2b3d24;
+}
+
+/* --- GATEWAY OVERLAY --- */
+/* --- UPDATED GATEWAY STYLES --- */
+.gateway-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(43, 61, 36, 0.9); /* Darker version of your green */
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gateway-card {
+    background: var(--hr-panel);
+    width: 90%;
+    max-width: 500px; /* Slimmed down for a single choice */
+    padding: 40px;
+    border-radius: 22px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.gateway-title {
+    color: var(--hr-bg);
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 25px;
+    text-align: center; /* Centered title for a single-choice UI */
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.gateway-options-single {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.gateway-box-large {
+    background: var(--hr-bg);
+    border: none;
+    border-radius: 18px;
+    width: 100%;
+    padding: 40px 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gateway-box-large:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+}
+
+.gateway-box-large .box-icon {
+    font-size: 80px;
+    color: var(--hr-panel);
+}
+
+.gateway-box-large .label {
+    background: var(--hr-panel);
+    color: var(--hr-bg);
+    font-weight: 800;
+    font-size: 1.4rem;
+    text-transform: lowercase;
+    padding: 8px 30px;
+    border-radius: 12px;
+}
+
+.gateway-hidden {
+    display: none !important;
+}
+/* --- EXISTING LAYOUT --- */
+.borrow-page-shell {
+    width: min(95%, 1300px);
+    margin: 40px auto;
+}
+
+.borrow-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 30px;
+}
+
+.borrow-tool-panel {
+    background: var(--hr-panel);
+    border-radius: 20px;
+    padding: 25px;
+    color: white;
+    height: fit-content;
+}
+
+.borrow-tool-image-wrap {
+    background: white;
+    border-radius: 15px;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.borrow-tool-image-wrap img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.borrow-input, textarea, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.qty-btn {
+    width: 35px;
+    height: 35px;
+    background: var(--hr-panel-2);
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.borrow-form-panel {
+    background: #fdfdfd;
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.borrow-form-grid {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 15px;
+    align-items: center;
+}
+
+.id-preview {
+    width: 100%;
+    max-width: 300px;
+    height: 180px;
+    border: 2px dashed #999;
+    margin-bottom: 10px;
+}
+
+.signature-area canvas {
+    border: 1px solid #333;
+    background: white;
+    width: 100%;
+    height: 150px;
+}
+
+.submit-action {
+    background: var(--hr-panel);
+    color: white;
+    padding: 12px 40px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}

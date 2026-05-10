@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowsauYOU | Home</title>
+
+<!-- REPLACE ONLY THE <head> CSS LINKS WITH THIS -->
+
+<link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="../../css/footer.css">
+<link rel="stylesheet" href="css/index-redesign.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<body class="home auth-pending redesigned-home">
+
+<style>
+#appContent{
+  opacity:1;
+  transition:opacity 220ms ease;
+}
+
+body.auth-pending #appContent{
+  opacity:0;
+  pointer-events:none;
+}
+
+#authLoadingGate{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff8ec;
+  color:#546b41;
+  z-index:9999;
+  font-weight:700;
+  letter-spacing:.2px;
+  opacity:1;
+  visibility:visible;
+  transition:opacity 220ms ease, visibility 220ms ease;
+}
+
+body:not(.auth-pending) #authLoadingGate{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+</style>
+
+<div id="authLoadingGate">
+  Checking session
+</div>
+
+<div id="appContent">
+
+<!-- REQUIRED STUBS -->
+<div id="tempUserSwitcher" style="display:none;">
+  <select id="roleSwitcher">
+    <option value="visitor">Visitor</option>
+    <option value="user">User</option>
+    <option value="admin">Admin</option>
+  </select>
+
+  <p id="userLabel"></p>
+
+  <div id="adminDebugPanel" style="display:none;"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="mainNav">
+
+  <div class="nav-inner">
+
+    <a href="../../../index.html" class="nav-logo">
+      <img
+        src="assets/SYSTEM-WIDE LOGO.png"
+        alt=""
+        class="brand-logo-img"
+        aria-hidden="true"
+      >
+
+      <span class="nav-logo__text">
+        GrowSauYOU
+      </span>
+    </a>
+
+    <div class="nav-right">
+
+      <div class="nav-links">
+        <a href="../../../index.html">Home</a>
+
+        <a href="./index.html" class="active">
+          I-Tanim
+        </a>
+
+        <a href="../../hereramin/index.html">
+          Here-Ramin
+        </a>
+
+        <a href="../greencommunity/main/index.html">
+          Green Community
+        </a>
+
+        <a
+          id="userDashboardLink"
+          href="user.html"
+          style="display:none;"
+        >
+          Dashboard
+        </a>
+
+        <a
+          id="adminLink"
+          href="admin.html"
+          style="display:none;"
+        >
+          Admin Panel
+        </a>
+      </div>
+
+      <div class="nav-auth">
+
+        <a
+          id="navLoginLink"
+          class="nav-btn nav-btn--ghost"
+          href="login.html"
+        >
+          Login
+        </a>
+
+        <a
+          id="navRegisterLink"
+          class="nav-btn nav-btn--solid"
+          href="signup.html"
+        >
+          Register
+        </a>
+
+        <a
+          id="navLogoutLink"
+          class="nav-btn nav-btn--ghost"
+          href="#"
+          style="display:none;"
+        >
+          Logout
+        </a>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</nav>
+
+<!-- HERO -->
+<section class="hero redesigned-hero">
+
+  <!-- BACKGROUND -->
+  <div class="hero-bg-pattern"></div>
+
+  <!-- LOGO -->
+  <div class="hero-logo-wrap">
+
+    <div class="hero-logo">
+
+      <span class="hero-logo__text">
+        Grow
+      </span>
+
+      <img
+        src="assets/SYSTEM-WIDE LOGO.png"
+        alt=""
+        class="hero-logo__icon"
+        aria-hidden="true"
+      >
+
+      <span class="hero-logo__text">
+        auYOU
+      </span>
+
+    </div>
+
+    <p class="hero-tagline">
+      Growth starts with you
+    </p>
+
+  </div>
+
+  <!-- DESCRIPTION -->
+  <p class="hero-description">
+    Join our community initiative to build a greener,
+    stronger, and more resilient barangay together.
+    Your hands can shape the future of our neighborhood.
+  </p>
+
+  <!-- CTA -->
+  <div class="hero-cta">
+
+    <a
+      id="pageRegisterBtn"
+      class="hero-btn hero-btn--solid"
+      href="signup.html"
+    >
+      Register
+    </a>
+
+    <a
+      id="pageLoginBtn"
+      class="hero-btn hero-btn--ghost"
+      href="login.html"
+    >
+      Log In
+    </a>
+
+  </div>
+
+  <!-- STATS -->
+  <div class="hero-stats">
+
+    <div class="hero-stat">
+
+      <span class="hero-stat-value">
+        10
+      </span>
+
+      <span class="hero-stat-label">
+        Active Programs
+      </span>
+
+    </div>
+
+    <div
+      class="hero-stat-divider"
+      aria-hidden="true"
+    ></div>
+
+    <div class="hero-stat">
+
+      <span
+        class="hero-stat-value"
+        id="volunteerCount"
+      >
+        34
+      </span>
+
+      <span class="hero-stat-label">
+        Community Volunteers
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+<!-- PROGRAMS -->
+<div class="container programs-container">
+
+  <!-- HIDDEN SECTION FOR JS -->
+  <section
+    class="page-intro"
+    style="display:none;"
+  >
+
+    <div>
+
+      <span class="pill">
+        Discover
+      </span>
+
+      <h1>
+        Find community volunteer programs
+        with GrowsauYOU
+      </h1>
+
+      <p></p>
+
+      <div class="action-row">
+
+        <a
+          id="pageRegisterBtn2"
+          class="btn"
+          href="signup.html"
+        >
+          Register
+        </a>
+
+        <a
+          id="pageLoginBtn2"
+          class="btn ghostBtn"
+          href="login.html"
+        >
+          Login
+        </a>
+
+      </div>
+
+    </div>
+
+    <div class="status-cards"></div>
+
+  </section>
+
+  <!-- AVAILABLE PROGRAMS -->
+  <div class="home-card home-card--programs">
+
+    <div class="home-card__header">
+
+      <h3>
+        AVAILABLE PROGRAMS
+      </h3>
+
+      <button
+        id="addProgramBtn"
+        class="add-program-btn"
+        style="display:none;"
+      >
+        + Add
+      </button>
+
+    </div>
+
+    <div id="publicProgramList"></div>
+
+  </div>
+
+</div>
+
+<!-- PROGRAM DETAIL MODAL -->
+<div id="programDetailModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(84,107,65,0.75);
+backdrop-filter:blur(10px);
+justify-content:center;
+align-items:center;
+z-index:100000;
+">
+
+<div style="
+background:rgba(84,107,65,0.96);
+padding:20px;
+border-radius:18px;
+width:min(420px,92%);
+border:1px solid rgba(255,248,236,0.22);
+position:relative;
+">
+
+<button onclick="closeDetailModal()" style="
+position:absolute;
+top:14px;
+right:14px;
+width:32px;
+height:32px;
+border:none;
+border-radius:50%;
+background:rgba(255,248,236,0.12);
+color:#FFF8EC;
+cursor:pointer;
+font-size:18px;
+">
+×
+</button>
+
+<img
+id="detailImage"
+src="https://via.placeholder.com/500x280?text=Program+Image"
+style="
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:14px;
+margin-bottom:16px;
+"
+>
+
+<h3
+id="detailTitle"
+style="margin:0 0 10px;color:white;"
+>
+Program Title
+</h3>
+
+<p
+id="detailDesc"
+style="opacity:.85;margin:0 0 14px;color:white;"
+>
+Program description appears here
+</p>
+
+<p style="margin:0 0 8px;color:white;">
+<strong>Hours:</strong>
+<span id="detailHours"></span>
+</p>
+
+<p style="margin:0 0 8px;color:white;">
+<strong>Requirement:</strong>
+<span id="detailRequirement"></span>
+</p>
+
+<p style="margin:0 0 16px;color:white;">
+<strong>Joined:</strong>
+<span id="detailJoined"></span>
+</p>
+
+<div
+id="detailAction"
+style="display:flex;gap:10px;margin-bottom:12px;"
+></div>
+
+<div
+id="adminControls"
+style="display:none;gap:10px;"
+>
+
+<button onclick="editSelectedProgram()" style="
+flex:1;
+padding:10px;
+border:none;
+border-radius:8px;
+background:#99AD7A;
+color:white;
+cursor:pointer;
+font-weight:bold;
+">
+Edit
+</button>
+
+<button onclick="deleteSelectedProgram()" style="
+flex:1;
+padding:10px;
+border:none;
+border-radius:8px;
+background:#DCCCAC;
+color:#546B41;
+cursor:pointer;
+font-weight:bold;
+">
+Delete
+</button>
+
+</div>
+
+</div>
+</div>
+
+<!-- ADD PROGRAM MODAL -->
+<div id="programModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(84,107,65,0.6);
+backdrop-filter:blur(6px);
+justify-content:center;
+align-items:center;
+z-index:99999;
+">
+
+<div style="
+background:rgba(84,107,65,0.95);
+padding:20px;
+border-radius:16px;
+width:300px;
+border:1px solid rgba(255,248,236,0.22);
+">
+
+<h3>Add Program</h3>
+
+<input id="programTitle" placeholder="Program title">
+
+<input
+id="programHours"
+type="number"
+placeholder="Hours"
+>
+
+<select
+id="programRequirement"
+style="
+width:100%;
+margin:10px 0;
+padding:10px;
+border-radius:12px;
+"
+>
+<option value="None">Requirement: None</option>
+<option value="Bronze">Requirement: Bronze</option>
+<option value="Silver">Requirement: Silver</option>
+<option value="Gold">Requirement: Gold</option>
+<option value="Platinum">Requirement: Platinum</option>
+</select>
+
+<input
+id="programImage"
+type="file"
+accept="image/png, image/jpeg"
+>
+
+<img
+id="programImagePreview"
+alt="Selected image preview"
+style="
+display:none;
+width:100%;
+height:140px;
+object-fit:cover;
+border-radius:12px;
+margin:10px 0;
+"
+>
+
+<textarea
+id="programDesc"
+placeholder="Description"
+></textarea>
+
+<div style="
+display:flex;
+justify-content:space-between;
+margin-top:15px;
+">
+
+<button onclick="closeModal()">
+Cancel
+</button>
+
+<button onclick="submitProgram()">
+Add
+</button>
+
+</div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+
+<div class="footer-grid">
+
+<div>
+
+<div class="footer-brand">
+
+<img
+src="../../../assets/images/main-logo.png"
+alt="GrowSauYOU Logo"
+>
+
+<span>GrowSauYOU</span>
+
+</div>
+
+<p>
+56 Old Sauyo Rd, Sauyo, Novaliches,
+<br>
+Quezon City, Metro Manila
+</p>
+
+<p>
+© 2026 SBCS-1B. All rights reserved
+</p>
+
+</div>
+
+<div>
+
+<h4>ABOUT US</h4>
+
+<a href="../../../aboutus.html">
+Barangay
+</a>
+
+<a href="../../../aboutus.html">
+Community
+</a>
+
+<a href="../../../aboutus.html">
+Developers
+</a>
+
+</div>
+
+<div>
+
+<h4>CONTACT US</h4>
+
+<a href="../../../contactus.html">
+7 - 3694 - 382
+</a>
+
+<a href="../../../contactus.html">
+7 - 3699 - 156
+</a>
+
+<a href="../../../contactus.html">
+barangaysauyo2013@gmail.com
+</a>
+
+</div>
+
+<div>
+
+<h4>FOLLOW US</h4>
+
+<div class="footer-socials">
+<i class="fab fa-instagram"></i>
+<i class="fab fa-facebook-f"></i>
+</div>
+
+</div>
+
+</div>
+
+</footer>
+
+<!-- ADMIN FOOTER -->
+<footer class="admin-footer-link">
+
+Are you an admin?
+
+<a
+href="admin-login.html"
+class="admin-footer-link__a"
+>
+Click here to log in
+</a>
+
+</footer>
+
+<!-- REQUIRED STUBS -->
+<div style="display:none;" aria-hidden="true">
+
+<div id="carousel">
+  <div class="slide"></div>
+  <div class="slide"></div>
+  <div class="slide"></div>
+  <div class="slide"></div>
+</div>
+
+<div id="dots"></div>
+
+</div>
+
+<script type="module" src="js/index.js"></script>
+
+</div>
+</body>
+</html>
