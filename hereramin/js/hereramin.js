@@ -3,6 +3,245 @@ import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "http
 import firebaseConfig from "../../js/firebaseConfig.js";
 
 (function() {
+    // ═══════════════════════════════════════════════════════════════
+    // ORGANIZATION VERIFICATION GATEWAY (ported from older version)
+    // ═══════════════════════════════════════════════════════════════
+    
+    // Check if this is the borrow page (has the borrow form) or org verification page
+    const isBorrowPage = document.getElementById("borrowForm") !== null;
+    const isOrgVerificationPage = document.getElementById("orgVerifyForm") !== null;
+    
+    // If neither form exists, this script is running on a page that doesn't need it
+    if (!isBorrowPage && !isOrgVerificationPage) {
+        return;
+    }
+    
+    // Organization verification gateway (only on borrow page)
+    if (isBorrowPage) {
+        const gateway = document.getElementById("borrowGateway");
+        const optOrg = document.getElementById("optOrganization");
+        
+        // If gateway exists, set up the organization flow
+        if (gateway && optOrg) {
+            // Show gateway after a short delay (once auth is resolved)
+            setTimeout(() => {
+                if (gateway) {
+                    gateway.style.display = "flex";
+                }
+            }, 500);
+            
+            optOrg.addEventListener("click", () => {
+                // Save current borrow draft to sessionStorage before redirecting
+                const toolSelect = document.getElementById("toolSelect");
+                const toolImage = document.getElementById("toolImage");
+                const quantityText = document.getElementById("quantity");
+                const borrowDate = document.getElementById("borrowDate");
+                const returnDate = document.getElementById("returnDate");
+                
+                const draft = {
+                    toolName: toolSelect?.value || "",
+                    toolImage: toolImage?.src || "",
+                    quantity: parseInt(quantityText?.textContent || "1"),
+                    borrowDate: borrowDate?.value || "",
+                    returnDate: returnDate?.value || "",
+                    available: getSelectedTool()?.available ?? true
+                };
+                sessionStorage.setItem("growsauyou-borrow-draft", JSON.stringify(draft));
+                
+                // Redirect to organization verification
+                window.location.href = "org-verification.html";
+            });
+        }
+    }
+    
+    // If this is the org verification page, handle the org verification form
+    if (isOrgVerificationPage) {
+        // Restore borrow draft from sessionStorage
+        const stored = JSON.parse(sessionStorage.getItem("growsauyou-borrow-draft") || "{}");
+        
+        const orgToolName = document.getElementById("orgToolName");
+        const orgToolImage = document.getElementById("orgToolImage");
+        const orgQtyDisplay = document.getElementById("orgQtyDisplay");
+        const orgBorrowDate = document.getElementById("orgBorrowDate");
+        const orgReturnDate = document.getElementById("orgReturnDate");
+        const orgAvailBadge = document.getElementById("orgAvailBadge");
+        
+        if (stored.toolName && orgToolName) orgToolName.textContent = stored.toolName;
+        if (stored.toolImage && orgToolImage) orgToolImage.src = stored.toolImage;
+        if (stored.quantity && orgQtyDisplay) orgQtyDisplay.textContent = stored.quantity;
+        if (stored.borrowDate && orgBorrowDate) orgBorrowDate.value = stored.borrowDate;
+        if (stored.returnDate && orgReturnDate) orgReturnDate.value = stored.returnDate;
+        
+        if (stored.available === false && orgAvailBadge) {
+            orgAvailBadge.textContent = "Unavailable";
+            orgAvailBadge.className = "availability-badge unavailable";
+        }
+        
+        // Dynamic ID uploads for org verification
+        let idCounter = 0;
+        
+        function addIdSlot() {
+            idCounter++;
+            const n = idCounter;
+            const list = document.getElementById("idMultiList");
+            if (!list) return;
+            
+            const entry = document.createElement("div");
+            entry.className = "id-entry";
+            entry.id = "idEntry_" + n;
+            
+            entry.innerHTML = `
+                <div class="id-thumb" id="idThumb_${n}">
+                    <span style="padding:4px;">ID Preview</span>
+                </div>
+                <button type="button" class="id-add-btn" onclick="window.triggerOrgId(${n})">
+                    <i class="fas fa-camera" style="margin-right:6px;"></i>+ Add Image
+                </button>
+                <input type="file" id="idFile_${n}" accept="image/*" style="display:none;" onchange="window.previewOrgId(this,${n})">
+                ${n > 1 ? `<button type="button" class="id-remove-btn" onclick="window.removeOrgId(${n})" title="Remove"><i class="fas fa-times"></i></button>` : ''}
+            `;
+            list.appendChild(entry);
+        }
+        
+        window.triggerOrgId = function(n) {
+            const input = document.getElementById("idFile_" + n);
+            if (input) input.click();
+        };
+        
+        window.previewOrgId = function(input, n) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const box = document.getElementById("idThumb_" + n);
+                if (box) box.innerHTML = `<img src="${e.target.result}" alt="ID ${n}">`;
+            };
+            reader.readAsDataURL(file);
+        };
+        
+        window.removeOrgId = function(n) {
+            const el = document.getElementById("idEntry_" + n);
+            if (el) el.remove();
+        };
+        
+        const addAnotherIdBtn = document.getElementById("addAnotherIdBtn");
+        if (addAnotherIdBtn) {
+            addAnotherIdBtn.addEventListener("click", addIdSlot);
+            addIdSlot(); // Init first slot
+        }
+        
+        // Letter file upload
+        const letterFileInput = document.getElementById("letterFileInput");
+        if (letterFileInput) {
+            letterFileInput.addEventListener("change", function() {
+                const name = this.files && this.files[0] ? this.files[0].name : "No file chosen";
+                const nameEl = document.getElementById("letterFileName");
+                if (nameEl) nameEl.textContent = name;
+            });
+        }
+        
+        // Signature pad for org verification
+        const orgCanvas = document.getElementById("orgSignaturePad");
+        if (orgCanvas) {
+            const orgCtx = orgCanvas.getContext("2d");
+            let orgDrawing = false;
+            
+            function resizeOrgCanvas() {
+                const ratio = window.devicePixelRatio || 1;
+                const rect = orgCanvas.getBoundingClientRect();
+                orgCanvas.width = rect.width * ratio;
+                orgCanvas.height = 150 * ratio;
+                orgCtx.scale(ratio, ratio);
+                orgCtx.lineWidth = 2;
+                orgCtx.strokeStyle = "#2b3d24";
+                orgCtx.lineCap = "round";
+                orgCtx.lineJoin = "round";
+            }
+            resizeOrgCanvas();
+            window.addEventListener("resize", resizeOrgCanvas);
+            
+            function getOrgPos(e) {
+                const r = orgCanvas.getBoundingClientRect();
+                const ratio = window.devicePixelRatio || 1;
+                const src = e.touches ? e.touches[0] : e;
+                return {
+                    x: (src.clientX - r.left) * (orgCanvas.width / r.width / ratio),
+                    y: (src.clientY - r.top) * (orgCanvas.height / r.height / ratio)
+                };
+            }
+            
+            orgCanvas.addEventListener("mousedown", e => { orgDrawing = true; orgCtx.beginPath(); orgCtx.moveTo(getOrgPos(e).x, getOrgPos(e).y); });
+            orgCanvas.addEventListener("mousemove", e => { if (!orgDrawing) return; orgCtx.lineTo(getOrgPos(e).x, getOrgPos(e).y); orgCtx.stroke(); });
+            orgCanvas.addEventListener("mouseup", () => orgDrawing = false);
+            orgCanvas.addEventListener("mouseleave", () => orgDrawing = false);
+            orgCanvas.addEventListener("touchstart", e => { e.preventDefault(); orgDrawing = true; orgCtx.beginPath(); orgCtx.moveTo(getOrgPos(e).x, getOrgPos(e).y); }, { passive: false });
+            orgCanvas.addEventListener("touchmove", e => { e.preventDefault(); if (!orgDrawing) return; orgCtx.lineTo(getOrgPos(e).x, getOrgPos(e).y); orgCtx.stroke(); }, { passive: false });
+            orgCanvas.addEventListener("touchend", () => orgDrawing = false);
+            
+            const clearOrgSig = document.getElementById("clearOrgSig");
+            if (clearOrgSig) {
+                clearOrgSig.addEventListener("click", () => {
+                    orgCtx.clearRect(0, 0, orgCanvas.width, orgCanvas.height);
+                });
+            }
+        }
+        
+        // Org form submission
+        const orgSubmitBtn = document.getElementById("orgSubmitBtn");
+        if (orgSubmitBtn) {
+            orgSubmitBtn.addEventListener("click", function() {
+                const orgName = document.getElementById("orgName")?.value?.trim() || "";
+                const orgHead = document.getElementById("orgHead")?.value?.trim() || "";
+                
+                if (!orgName || !orgHead) {
+                    alert("Please fill in all required fields.");
+                    return;
+                }
+                
+                // Collect org data and merge with borrow draft
+                const orgData = {
+                    ...stored,
+                    orgName,
+                    orgHead,
+                    borrowDate: document.getElementById("orgBorrowDate")?.value || "",
+                    returnDate: document.getElementById("orgReturnDate")?.value || "",
+                    submittedAt: new Date().toISOString(),
+                    status: "pending",
+                    borrowType: "organization"
+                };
+                sessionStorage.setItem("growsauyou-org-submission", JSON.stringify(orgData));
+                
+                // Show pending state
+                const orgFormPage = document.getElementById("orgFormPage");
+                const pendingPage = document.getElementById("pendingPage");
+                if (orgFormPage) orgFormPage.classList.add("hidden");
+                if (pendingPage) pendingPage.classList.add("active");
+                
+                const ref = "GSY-ORG-" + Date.now().toString().slice(-8).toUpperCase();
+                const refText = document.getElementById("pendingRefText");
+                if (refText) refText.textContent = "Reference No: " + ref;
+                
+                // Scroll to top of panel
+                if (pendingPage) pendingPage.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+        }
+        
+        // Back button
+        const orgBackBtn = document.getElementById("orgBackBtn");
+        if (orgBackBtn) {
+            orgBackBtn.addEventListener("click", () => {
+                window.location.href = "index.html";
+            });
+        }
+        
+        // Done - org verification page handled
+        return;
+    }
+    
+    // ═══════════════════════════════════════════════════════════════
+    // EXISTING BORROW FORM LOGIC (newer version's main functionality)
+    // ═══════════════════════════════════════════════════════════════
+    
     const RECEIPT_STATE_KEY = "growsauyou-receipt-state";
     const BORROW_RECORD_KEY = "growsauyou-borrow-record";
     const BORROW_HISTORY_KEY = "growsauyou-borrow-history";
@@ -512,6 +751,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         const record = {
             id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             status: "in_use",
+            borrowType: "individual",
             borrower: {
                 name: borrowerName.value.trim(),
                 address: borrowerAddress.value.trim(),

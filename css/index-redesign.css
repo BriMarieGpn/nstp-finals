@@ -1,0 +1,526 @@
+/* =========================================
+   INDEX REDESIGN
+========================================= */
+
+body.redesigned-home{
+    margin:0;
+    padding:0;
+
+    background:
+    #F6F3EA
+    url('../assets/images/itanimHOME-background.png')
+    center top / cover no-repeat fixed;
+
+    font-family:'Montserrat', sans-serif;
+
+    overflow-x:hidden;
+}
+
+/* =========================================
+   NAVBAR
+========================================= */
+
+.navbar{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:72px;
+
+    background:#879C58;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    z-index:999999;
+
+    border:none;
+    backdrop-filter:none;
+}
+
+.nav-inner{
+    width:100%;
+    max-width:1400px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 34px;
+}
+
+.nav-logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+    text-decoration:none;
+}
+
+.brand-logo-img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+}
+
+.nav-logo__text{
+    color:white;
+    font-size:1.9rem;
+    font-family:'Archivo Black', sans-serif;
+}
+
+.nav-right{
+    display:flex;
+    align-items:center;
+    gap:34px;
+}
+
+.nav-links{
+    display:flex;
+    align-items:center;
+    gap:28px;
+}
+
+.nav-links a{
+    color:white;
+    text-decoration:none;
+    font-size:1rem;
+    font-weight:600;
+}
+
+.nav-links a.active{
+    font-weight:800;
+}
+
+.nav-auth{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.nav-btn{
+    padding:10px 24px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    font-size:.95rem;
+    font-weight:700;
+
+    transition:.2s ease;
+}
+
+.nav-btn--ghost{
+    border:2px solid rgba(255,255,255,.7);
+    color:white;
+    background:transparent;
+}
+
+.nav-btn--solid{
+    background:white;
+    color:#546B41;
+}
+
+.nav-btn:hover{
+    transform:translateY(-2px);
+}
+
+/* =========================================
+   HERO
+========================================= */
+
+.redesigned-hero{
+    position:relative;
+
+    padding-top:150px;
+    padding-bottom:70px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    text-align:center;
+}
+
+.hero-bg-pattern{
+    position:absolute;
+    inset:0;
+
+    background:
+    url("../assets/images/landing-background.png")
+    center/cover no-repeat;
+
+    opacity:.08;
+
+    pointer-events:none;
+}
+
+.hero-logo-wrap{
+    position:relative;
+    z-index:2;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.hero-logo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.hero-logo__text{
+    font-family:'Archivo Black', sans-serif;
+    font-size:9rem;
+    line-height:1;
+    color:#546B41;
+}
+
+.hero-logo__icon{
+    height:10rem;
+    width:auto;
+
+    margin:0 -8px;
+}
+
+.hero-tagline{
+    margin-top:-12px;
+
+    color:#6C7D59;
+
+    font-size:2rem;
+    font-style:italic;
+}
+
+.hero-description{
+    position:relative;
+    z-index:2;
+
+    max-width:950px;
+
+    margin-top:24px;
+    margin-bottom:38px;
+
+    color:#6A7A59;
+
+    font-size:1.3rem;
+    line-height:1.6;
+}
+
+/* =========================================
+   CTA BUTTONS
+========================================= */
+
+.hero-cta{
+    display:flex;
+    gap:16px;
+
+    margin-bottom:42px;
+
+    position:relative;
+    z-index:2;
+}
+
+.hero-btn{
+    padding:14px 34px;
+
+    border-radius:999px;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    transition:.2s ease;
+}
+
+.hero-btn--solid{
+    background:#546B41;
+    color:white;
+}
+
+.hero-btn--ghost{
+    border:2px solid #546B41;
+    color:#546B41;
+}
+
+.hero-btn:hover{
+    transform:translateY(-2px);
+}
+
+/* =========================================
+   STATS
+========================================= */
+
+.hero-stats{
+    position:relative;
+    z-index:2;
+
+    width:620px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:28px;
+
+    overflow:hidden;
+
+    background:
+    linear-gradient(
+        90deg,
+        #6E874B 0%,
+        #C5D2A6 100%
+    );
+
+    box-shadow:
+    0 18px 35px rgba(0,0,0,.14);
+}
+
+.hero-stat{
+    flex:1;
+
+    padding:36px 20px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.hero-stat-value{
+    color:white;
+
+    font-size:4rem;
+    line-height:1;
+
+    font-family:'Archivo Black', sans-serif;
+}
+
+.hero-stat-label{
+    margin-top:10px;
+
+    color:white;
+
+    font-size:1rem;
+    text-align:center;
+}
+
+.hero-stat-divider{
+    width:1px;
+    height:120px;
+
+    background:rgba(84,107,65,.35);
+}
+
+/* =========================================
+   PROGRAM SECTION
+========================================= */
+
+.programs-container{
+    max-width:1150px;
+
+    margin:auto;
+
+    padding-bottom:90px;
+}
+
+.home-card--programs{
+    background:
+    linear-gradient(
+        90deg,
+        #6E874B 0%,
+        #C5D2A6 100%
+    );
+
+    border-radius:34px;
+
+    padding:22px;
+
+    box-shadow:
+    0 18px 35px rgba(0,0,0,.14);
+}
+
+.home-card__header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    margin-bottom:18px;
+}
+
+.home-card__header h3{
+    color:white;
+
+    font-size:2rem;
+    font-family:'Archivo Black', sans-serif;
+
+    margin:0;
+}
+
+#publicProgramList{
+    background:#F6F3EA;
+
+    border-radius:26px;
+
+    border:4px solid #98AB71;
+
+    padding:18px;
+
+    display:grid;
+    gap:18px;
+}
+
+/* =========================================
+   PROGRAM CARD
+========================================= */
+
+.program-item{
+    background:transparent;
+
+    border:4px solid #98AB71;
+
+    border-radius:24px;
+
+    padding:16px;
+
+    cursor:pointer;
+
+    transition:.2s ease;
+}
+
+.program-item:hover{
+    transform:translateY(-2px);
+}
+
+.program-item img{
+    width:100%;
+    height:260px;
+
+    object-fit:cover;
+
+    border-radius:18px;
+
+    margin-bottom:16px;
+}
+
+.program-item b{
+    display:block;
+
+    font-size:1.5rem;
+
+    color:#183D0D;
+
+    margin-bottom:6px;
+}
+
+.program-item small,
+.program-item p,
+.program-item span{
+    color:#4E6843;
+    font-size:1rem;
+}
+
+/* =========================================
+   ADMIN FOOTER
+========================================= */
+
+.admin-footer-link{
+    text-align:center;
+
+    padding:30px 20px 45px;
+
+    color:#546B41;
+
+    font-size:.95rem;
+}
+
+.admin-footer-link__a{
+    color:#546B41;
+    font-weight:700;
+    text-decoration:none;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media(max-width:1000px){
+
+    .hero-logo__text{
+        font-size:6rem;
+    }
+
+    .hero-logo__icon{
+        height:7rem;
+    }
+
+    .hero-stats{
+        width:92%;
+    }
+
+    .programs-container{
+        width:95%;
+    }
+}
+
+@media(max-width:760px){
+
+    .nav-links{
+        display:none;
+    }
+
+    .hero-logo{
+        flex-wrap:wrap;
+    }
+
+    .hero-logo__text{
+        font-size:4rem;
+    }
+
+    .hero-logo__icon{
+        height:5rem;
+    }
+
+    .hero-tagline{
+        font-size:1.3rem;
+        margin-top:6px;
+    }
+
+    .hero-description{
+        padding:0 20px;
+        font-size:1rem;
+    }
+
+    .hero-stats{
+        flex-direction:column;
+    }
+
+    .hero-stat-divider{
+        width:100%;
+        height:1px;
+    }
+
+    .hero-stat-value{
+        font-size:3rem;
+    }
+
+    .home-card__header h3{
+        font-size:1.4rem;
+    }
+
+    .program-item img{
+        height:180px;
+    }
+
+    .nav-inner{
+        padding:0 18px;
+    }
+
+    .nav-logo__text{
+        font-size:1.3rem;
+    }
+}

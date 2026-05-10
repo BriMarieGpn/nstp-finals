@@ -27,6 +27,93 @@
 </style>
 
 <div id="authLoadingGate">Checking session</div>
+
+<!-- Organization Verification Gateway Overlay -->
+<div id="borrowGateway" class="gateway-overlay" style="display:none;">
+    <div class="gateway-card">
+        <h3 class="gateway-title">BORROW AS AN:</h3>
+        <div class="gateway-options-single">
+            <button type="button" class="gateway-box-large" id="optOrganization">
+                <div class="box-icon">
+                    <i class="fas fa-users-rectangle"></i>
+                </div>
+                <span class="label">organization</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Gateway Overlay Styles */
+.gateway-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 248, 236, 0.95);
+    z-index: 9998;
+}
+
+.gateway-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(84, 107, 65, 0.15);
+    text-align: center;
+    max-width: 400px;
+}
+
+.gateway-title {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.3rem;
+    color: #1F2D17;
+    margin: 0 0 24px;
+    letter-spacing: 0.05em;
+}
+
+.gateway-options-single {
+    display: flex;
+    justify-content: center;
+}
+
+.gateway-box-large {
+    background: linear-gradient(135deg, #546B41 0%, #6D944A 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 32px 48px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    min-width: 180px;
+}
+
+.gateway-box-large:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(84, 107, 65, 0.3);
+}
+
+.gateway-box-large:active {
+    transform: translateY(-2px);
+}
+
+.box-icon {
+    font-size: 2.5rem;
+}
+
+.label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+</style>
+
 <div id="appContent">
 
 <!-- NAVBAR -->
