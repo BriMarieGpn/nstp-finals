@@ -238,6 +238,10 @@ body {
     font-size: 1.3rem;
     margin: 15px 0 5px;
     color: #333;
+    min-height: 3.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .org-card p {

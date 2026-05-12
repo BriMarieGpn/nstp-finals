@@ -4,11 +4,6 @@
    user.css — GrowsauYOU volunteer dashboard
    ══════════════════════════════════════════ */
 
-body {
-  background: var(--cream);
-  margin: 0;
-}
-
 /* ── Topbar ── */
 .topbar {
   display: flex;
@@ -1045,177 +1040,431 @@ body {
 .status-badge--inprogress  { background: color-mix(in srgb, var(--secondary) 40%, var(--sand)); color: var(--primary); }
 .status-badge--pending     { background: #f0ad4e; color: #7a5800; }
 
-/* I-Tanim dashboard background */
-body.itanim-user {
-  min-height: 100vh;
-  background: linear-gradient(rgba(255,248,236,0.84), rgba(255,248,236,0.84)), url("../../../assets/images/itanim-background.png") center/cover no-repeat fixed;
-  background-attachment: fixed;
+/* ═══════════════════════════════════════════
+   FINAL ITANIM DASHBOARD REDESIGN
+   ═══════════════════════════════════════════ */
+
+/* NAVBAR */
+.main-navbar{
+    width:100%;
+    height:82px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 48px;
+
+    background:#81985a;
+
+    position:sticky;
+    top:0;
+    z-index:999;
+
+    box-shadow:0 2px 12px rgba(0,0,0,0.08);
 }
 
-body.itanim-user .ud-shell {
-  background: transparent;
+.navbar-left{
+    display:flex;
+    align-items:center;
 }
 
-body.itanim-user .topbar {
-  background: rgba(169, 192, 134, 0.95);
-  border-bottom: 1px solid rgba(255,255,255,0.22);
+.navbar-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+
+    text-decoration:none;
+    color:white;
+
+    font-family:'Product Sans','Montserrat',sans-serif;
+    font-size:1.9rem;
+    font-weight:700;
+
+    letter-spacing:-0.02em;
 }
 
-body.itanim-user .ud-main {
-  background: transparent;
-  padding: 32px 32px 48px;
-  max-width: 1080px;
+.navbar-brand img{
+    width:44px;
+    height:44px;
+    object-fit:contain;
 }
 
-body.itanim-user .ud-card,
-body.itanim-user .ud-card--overview,
-body.itanim-user .ud-card--stat,
-body.itanim-user .ud-card--progress,
-body.itanim-user .ud-task-table,
-body.itanim-user .ud-recent-list {
-  background: rgba(239, 246, 220, 0.95);
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 22px 50px rgba(84,107,65,0.14);
-  border: 1px solid rgba(84,107,65,0.14);
+.navbar-center{
+    margin-left:42px;
+
+    display:flex;
+    align-items:center;
+    gap:34px;
+
+    margin-right:auto;
 }
 
-body.itanim-user .ud-card--stat,
-body.itanim-user .ud-card--badge,
-body.itanim-user .ud-card--progress,
-body.itanim-user .ud-task-table,
-body.itanim-user .ud-recent-list {
-  background: rgba(255,255,255,0.9);
+.navbar-center a{
+    color:white;
+    text-decoration:none;
+
+    font-family:'Product Sans','Montserrat',sans-serif;
+    font-size:1.08rem;
+    font-weight:500;
+
+    letter-spacing:-0.01em;
+
+    transition:opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-body.itanim-user .ud-page-title,
-body.itanim-user .ud-card__name,
-body.itanim-user .ud-card__status,
-body.itanim-user .ud-card__label,
-body.itanim-user .ud-stat-big,
-body.itanim-user .ud-status-pill {
-  color: var(--primary);
+.navbar-center a:hover{
+    opacity:0.82;
+    transform:translateY(-1px);
 }
 
-body.itanim-user .ud-card__sub,
-body.itanim-user .ud-lb-hours {
-  color: #425a2e;
+.navbar-center .active{
+    font-weight:700;
 }
 
-body.itanim-user .ud-badge-medal {
-  font-size: 3rem;
+.logout-btn{
+    color:white;
+    text-decoration:none;
+
+    font-family:'Product Sans','Montserrat',sans-serif;
+    font-size:1rem;
+    font-weight:500;
+
+    padding:11px 26px;
+
+    border:2px solid rgba(255,255,255,0.45);
+    border-radius:999px;
+
+    transition:all 0.25s ease;
 }
 
-body.itanim-user .ud-progress-bar-wrap {
-  background: rgba(255,255,255,0.95);
-  border-color: rgba(84,107,65,0.24);
+.logout-btn:hover{
+    background:rgba(255,255,255,0.12);
+    border-color:rgba(255,255,255,0.65);
 }
 
-body.itanim-user .ud-chart-canvas {
-  background: rgba(255,255,255,0.85);
-  box-shadow: inset 0 0 0 1px rgba(84,107,65,0.08);
-  border-radius: 18px;
+/* DASHBOARD LAYOUT */
+.ud-shell{
+    display:flex;
+    gap:28px;
+
+    width:100%;
+    max-width:1450px;
+
+    margin:auto;
+    padding:34px 28px 60px;
+
+    align-items:flex-start;
 }
 
-body.itanim-user .ud-recent-list {
-  background: rgba(255,255,255,0.9);
-  border-radius: 20px;
-  padding: 18px;
+/* SIDEBAR */
+.ud-sidebar{
+    width:92px;
+    min-width:92px;
+
+    background:rgba(255,255,255,0.22);
+
+    backdrop-filter:blur(12px);
+
+    border-radius:26px;
+
+    padding:20px 0;
+
+    border:1px solid rgba(255,255,255,0.28);
+
+    position:sticky;
+    top:105px;
+
+    height:fit-content;
 }
 
-body.itanim-user .ud-recent-item {
-  border-bottom: 1px solid rgba(84,107,65,0.12);
-  padding: 14px 0;
+.ud-sidenav{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:14px;
 }
 
-body.itanim-user .ud-welcome-label {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--primary);
+.ud-sidenav__item{
+    width:58px;
+    height:58px;
+
+    border-radius:18px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#546B41;
+
+    background:rgba(255,255,255,0.28);
+
+    transition:0.2s ease;
 }
 
-body.itanim-user .ud-sidebar {
-  width: 88px;
-  background: var(--secondary);
+.ud-sidenav__item svg{
+    width:26px;
+    height:26px;
 }
 
-body.itanim-user .ud-sidenav__item {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.18);
+.ud-sidenav__item:hover{
+    background:#BFD59A;
 }
 
-body.itanim-user .ud-sidenav__item svg {
-  width: 24px;
-  height: 24px;
+.ud-sidenav__item--active{
+    background:#8EA765;
+    color:white;
+
+    box-shadow:0 10px 24px rgba(84,107,65,0.22);
 }
 
-body.itanim-user .ud-sidenav__item:hover {
-  background: rgba(255,255,255,0.32);
+/* MAIN */
+.ud-main{
+    flex:1;
+    width:100%;
+    max-width:1180px;
+
+    margin:auto;
+
+    padding:0;
 }
 
-body.itanim-user .ud-sidenav__item--active {
-  background: var(--primary);
-  box-shadow: 0 12px 24px rgba(84,107,65,0.26);
+/* TITLES */
+.ud-page-title{
+    font-size:4rem;
+    line-height:1;
+    margin-top:6px;
+    margin-bottom:28px;
+
+    color:#2E5E1A;
 }
-body.itanim-user .ud-main {
-  padding: 32px 32px 48px;
-  max-width: 1080px;
+
+.ud-welcome-label{
+    font-size:1.1rem;
+    text-transform:none;
+    letter-spacing:0;
+
+    color:#355B24;
 }
-body.itanim-user .ud-page-title {
-  font-size: clamp(2rem, 3.5vw, 3rem);
-  letter-spacing: 0.02em;
-  color: var(--primary);
+
+.ud-welcome-label strong{
+    font-weight:900;
 }
-body.itanim-user .ud-card {
-  background: rgba(239, 246, 220, 0.95);
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 22px 50px rgba(84,107,65,0.14);
-  border: 1px solid rgba(84,107,65,0.14);
+
+/* CARDS */
+.ud-card{
+    background:rgba(224,239,191,0.82);
+
+    border-radius:28px;
+
+    border:2px solid rgba(84,107,65,0.16);
+
+    box-shadow:
+    0 14px 34px rgba(84,107,65,0.12);
+
+    padding:24px;
 }
-body.itanim-user .ud-card__label {
-  letter-spacing: 0.12em;
-  color: #425a2e;
+
+/* ROWS */
+.ud-row{
+    gap:22px;
+    margin-bottom:22px;
 }
-body.itanim-user .ud-card__name,
-body.itanim-user .ud-card__status,
-body.itanim-user .ud-card__sub,
-body.itanim-user .ud-stat-big,
-body.itanim-user .ud-status-pill {
-  color: var(--primary);
+
+.ud-row--2col{
+    grid-template-columns:1.6fr 1fr;
 }
-body.itanim-user .ud-card--stat,
-body.itanim-user .ud-card--badge,
-body.itanim-user .ud-card--progress,
-body.itanim-user .ud-task-table,
-body.itanim-user .ud-recent-list {
-  background: rgba(255,255,255,0.86);
+
+.ud-row--3col{
+    grid-template-columns:repeat(3,1fr);
 }
-body.itanim-user .ud-badge-medal {
-  font-size: 3rem;
+
+/* STATS */
+.ud-stat-big{
+    font-size:4rem;
+    color:#4B6B34;
 }
-body.itanim-user .ud-progress-bar-wrap {
-  background: rgba(255,255,255,0.95);
-  border-color: rgba(84,107,65,0.24);
+
+.ud-card__status{
+    color:#355B24;
 }
-body.itanim-user .ud-chart-canvas {
-  background: rgba(255,255,255,0.85);
-  box-shadow: inset 0 0 0 1px rgba(84,107,65,0.08);
-  border-radius: 18px;
+
+/* PROGRESS */
+.ud-progress-bar-wrap{
+    height:34px;
+    border-radius:999px;
+    background:white;
 }
-body.itanim-user .ud-recent-list {
-  background: rgba(255,255,255,0.9);
-  border-radius: 20px;
-  padding: 18px;
+
+.ud-progress-bar{
+    background:linear-gradient(
+        90deg,
+        #7BA34B,
+        #A8C97B
+    );
 }
-body.itanim-user .ud-recent-item {
-  border-bottom: 1px solid rgba(84,107,65,0.12);
-  padding: 14px 0;
+
+/* CHART */
+.ud-chart-canvas{
+    background:white;
+    border-radius:18px;
 }
-body.itanim-user .ud-welcome-label {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--primary);
+
+/* FOR YOU */
+.ud-foryou-card{
+    background:rgba(224,239,191,0.92);
+
+    border-radius:24px;
+
+    overflow:hidden;
+
+    border:1px solid rgba(84,107,65,0.14);
+}
+
+.ud-foryou-img{
+    height:140px;
+}
+
+/* LEADERBOARD */
+.ud-leaderboard{
+    background:rgba(224,239,191,0.92);
+}
+
+/* CERT ROWS */
+.ud-cert-row{
+    background:rgba(224,239,191,0.92);
+
+    border-radius:24px;
+
+    padding:18px 22px;
+}
+
+/* TABLE */
+.ud-card--table{
+    background:rgba(224,239,191,0.92);
+}
+
+.ud-table-head{
+    background:#B8CC8D;
+
+    padding:18px 24px;
+
+    font-size:1rem;
+}
+
+/* FOOTER MATCH */
+.site-footer{
+    margin-top:40px;
+}
+
+/* RESPONSIVE */
+@media(max-width:1100px){
+
+    .navbar-center{
+        gap:22px;
+    }
+
+    .ud-row--3col{
+        grid-template-columns:1fr;
+    }
+
+    .ud-row--2col{
+        grid-template-columns:1fr;
+    }
+
+    .ud-row--foryou{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:820px){
+
+    .main-navbar{
+        flex-wrap:wrap;
+        height:auto;
+        padding:16px;
+        gap:16px;
+    }
+
+    .navbar-center{
+        width:100%;
+        justify-content:center;
+        flex-wrap:wrap;
+    }
+
+    .ud-shell{
+        flex-direction:column;
+    }
+
+    .ud-sidebar{
+        width:100%;
+        position:relative;
+        top:0;
+    }
+
+    .ud-sidenav{
+        flex-direction:row;
+        justify-content:center;
+    }
+
+    .ud-page-title{
+        font-size:2.7rem;
+    }
+}
+
+/* ════════════════════════════════════════
+   FINAL WORKING BACKGROUND FIX
+════════════════════════════════════════ */
+
+html,
+body{
+    min-height:100%;
+}
+
+/* MAIN PAGE */
+body.itanim-user{
+    position:relative;
+
+    background:#f5f3ed !important;
+
+    overflow-x:hidden;
+}
+
+/* BACKGROUND LOGO */
+body.itanim-user::before{
+    content:"";
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:0;
+
+    pointer-events:none;
+
+    background-image:
+    url("../../../assets/images/main-logo.png");
+
+    background-repeat:no-repeat;
+
+    background-position:center center;
+
+    background-size:950px;
+
+    opacity:0.06;
+}
+
+/* CONTENT ABOVE BACKGROUND */
+.main-navbar,
+.ud-shell,
+.site-footer{
+    position:relative;
+    z-index:2;
+}
+
+/* REMOVE COVERING BACKGROUNDS */
+.ud-shell,
+.ud-main{
+    background:transparent !important;
 }
