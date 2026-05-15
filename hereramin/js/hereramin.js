@@ -16,43 +16,6 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         return;
     }
     
-    // Organization verification gateway (only on borrow page)
-    if (isBorrowPage) {
-        const gateway = document.getElementById("borrowGateway");
-        const optOrg = document.getElementById("optOrganization");
-        
-        // If gateway exists, set up the organization flow
-        if (gateway && optOrg) {
-            // Show gateway after a short delay (once auth is resolved)
-            setTimeout(() => {
-                if (gateway) {
-                    gateway.style.display = "flex";
-                }
-            }, 500);
-            
-            optOrg.addEventListener("click", () => {
-                // Save current borrow draft to sessionStorage before redirecting
-                const toolSelect = document.getElementById("toolSelect");
-                const toolImage = document.getElementById("toolImage");
-                const quantityText = document.getElementById("quantity");
-                const borrowDate = document.getElementById("borrowDate");
-                const returnDate = document.getElementById("returnDate");
-                
-                const draft = {
-                    toolName: toolSelect?.value || "",
-                    toolImage: toolImage?.src || "",
-                    quantity: parseInt(quantityText?.textContent || "1"),
-                    borrowDate: borrowDate?.value || "",
-                    returnDate: returnDate?.value || "",
-                    available: getSelectedTool()?.available ?? true
-                };
-                sessionStorage.setItem("growsauyou-borrow-draft", JSON.stringify(draft));
-                
-                // Redirect to organization verification
-                window.location.href = "org-verification.html";
-            });
-        }
-    }
     
     // If this is the org verification page, handle the org verification form
     if (isOrgVerificationPage) {
@@ -217,7 +180,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                         returnDate: document.getElementById("orgReturnDate")?.value || ""
                     },
                     submittedAt: new Date().toISOString(),
-                    purpose: document.getElementById("borrowPurpose")?.value?.trim() || '',
+                    purpose: stored.purpose || document.getElementById("borrowPurpose")?.value?.trim() || '',
                     organization: {
                         name: orgName,
                         head: orgHead
@@ -234,8 +197,16 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                             await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
                         } catch (fallbackError) {
                             console.error('Fallback Firestore save failed for organization borrow request.', fallbackError);
+                            const localPending = JSON.parse(localStorage.getItem('growsauyou-org-requests') || '[]');
+                            localPending.push(record);
+                            localStorage.setItem('growsauyou-org-requests', JSON.stringify(localPending));
                         }
                     }
+                } else {
+                    const localPending = JSON.parse(localStorage.getItem('growsauyou-org-requests') || '[]');
+                    localPending.push(record);
+                    localStorage.setItem('growsauyou-org-requests', JSON.stringify(localPending));
+                    console.warn('Firestore disabled, saved organization request locally.');
                 }
 
                 // Show pending state
@@ -647,6 +618,30 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     toolSelect.addEventListener("change", () => {
         setTool(toolSelect.value);
     });
+
+    const orgBorrowBtn = document.getElementById("orgBorrowBtn");
+    if (orgBorrowBtn) {
+        orgBorrowBtn.addEventListener("click", () => {
+            const toolSelect = document.getElementById("toolSelect");
+            const toolImage = document.getElementById("toolImage");
+            const quantityText = document.getElementById("quantity");
+            const borrowDate = document.getElementById("borrowDate");
+            const returnDate = document.getElementById("returnDate");
+            const borrowPurpose = document.getElementById("borrowPurpose");
+
+            const draft = {
+                toolName: toolSelect?.value || "",
+                toolImage: toolImage?.src || "",
+                quantity: parseInt(quantityText?.textContent || "1"),
+                borrowDate: borrowDate?.value || "",
+                returnDate: returnDate?.value || "",
+                purpose: borrowPurpose?.value?.trim() || '',
+                available: getSelectedTool()?.available ?? true
+            };
+            sessionStorage.setItem("growsauyou-borrow-draft", JSON.stringify(draft));
+            window.location.href = "org-verification.html";
+        });
+    }
 
     plusBtn.addEventListener("click", () => {
         const selectedTool = getSelectedTool();
