@@ -1,0 +1,128 @@
+:root {
+    /* Palette (no gradients) */
+    --p-900: #546B41; /* dark olive */
+    --p-600: #99AD7A; /* sage */
+    --p-300: #DCCCAC; /* sand */
+    --p-50: #FFF8EC;  /* cream */
+
+    /* Semantic tokens */
+    --bg: var(--p-50);
+    --surface: var(--p-300);
+    --surface-2: color-mix(in srgb, var(--p-50) 70%, var(--p-300));
+    --text: var(--p-900);
+    --text-muted: color-mix(in srgb, var(--p-900) 72%, var(--p-50));
+    --primary: var(--p-900);
+    --primary-soft: var(--p-600);
+    --border: color-mix(in srgb, var(--p-900) 22%, transparent);
+
+    /* Existing names used around the UI */
+    --olive: var(--p-900);
+    --olive-dark: var(--p-900);
+    --glass: color-mix(in srgb, var(--p-50) 18%, transparent);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+    background: var(--bg);
+    overflow-x: hidden;
+    color: var(--text);
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 0 20px 40px 20px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px color-mix(in srgb, var(--p-900) 14%, transparent);
+}
+
+.debug-panel {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.debug-panel strong {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.debug-panel button {
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: color-mix(in srgb, var(--p-900) 18%, transparent);
+    color: var(--p-50);
+}
+
+.stat-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--primary);
+    margin: 10px 0;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+.task-item, .cert-item {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-item div, .cert-item div {
+    flex: 1;
+}
+
+.task-item button, .cert-item button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowSauYou | Organization Verification</title>
+
+    <!-- Match exact CSS imports from hereramin/index.html -->
+    <link rel="stylesheet" href="css/hereramin.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <link rel="stylesheet" href="../css/borrow.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ── ORG VERIFICATION PAGE SPECIFIC STYLES ── */
+
+        /* Step indicator */
+        .step-bar {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 28px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #9BA98C;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .step-item.done { color: #546B41; }
+        .step-item.active { color: #2b3d24; }
+
+        .step-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .step-item.done .step-circle {
+            background: #6D944A;
+            color: white;
+        }
+
+        .step-item.active .step-circle {
+            background: #2b3d24;
+            color: white;
+        }
+
+        .step-item.inactive .step-circle {
+            background: #dde;
+            color: #aaa;
+        }
+
+        .step-connector {
+            flex: 1;
+            height: 2px;
+            background: #dde8c7;
+            margin: 0 10px;
+        }
+
+        .step-connector.done {
+            background: #6D944A;
+        }
+
+        /* Section title */
+        .hereramin-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1F2D17;
+            margin: 0 0 6px;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── FORM ROWS ── */
+        .org-form-grid {
+            display: grid;
+            grid-template-columns: 230px 1fr;
+            gap: 18px 24px;
+            align-items: start;
+        }
+
+        .org-form-grid label {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #1F2D17;
+            padding-top: 14px;
+        }
+
+        .org-form-grid input[type="text"] {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 2px solid #9BA98C;
+            background: white;
+            font-size: 1rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .org-form-grid input[type="text"]:focus {
+            outline: none;
+            border-color: #546B41;
+        }
+
+        /* ── ID UPLOADS ── */
+        .id-multi-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .id-entry {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .id-thumb {
+            width: 110px;
+            height: 70px;
+            border-radius: 12px;
+            border: 2px solid #9BA98C;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f4f9ec;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            color: #9BA98C;
+            text-align: center;
+        }
+
+        .id-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .id-add-btn {
+            background: #546B41;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .id-add-btn:hover { background: #435836; }
+
+        .id-remove-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #c0392b;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .id-remove-btn:hover { background: #a93226; }
+
+        .id-add-another {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            padding: 9px 16px;
+            border: 2px dashed #8DA56B;
+            border-radius: 12px;
+            background: transparent;
+            color: #546B41;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .id-add-another:hover { background: #f0f7e8; }
+
+        /* ── LETTER UPLOAD ── */
+        .letter-drop-zone {
+            border: 2px dashed #9BA98C;
+            border-radius: 14px;
+            padding: 22px 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            background: white;
+        }
+
+        .letter-drop-zone:hover {
+            background: #f4f9ec;
+            border-color: #546B41;
+        }
+
+        .letter-drop-zone i {
+            font-size: 2rem;
+            color: #8DA56B;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .letter-drop-text {
+            font-size: 0.9rem;
+            color: #546B41;
+            font-weight: 600;
+        }
+
+        .letter-drop-sub {
+            font-size: 0.75rem;
+            color: #9BA98C;
+            margin-top: 4px;
+        }
+
+        .letter-file-name {
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: #6D944A;
+            font-weight: 600;
+        }
+
+        /* ── SIGNATURE ── */
+        .signature-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #orgSignaturePad {
+            width: 100%;
+            height: 150px;
+            background: white;
+            border: 2px solid #9BA98C;
+            border-radius: 14px;
+            cursor: crosshair;
+            display: block;
+        }
+
+        /* ── PENDING PAGE ── */
+        #pendingPage {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 30px;
+            min-height: 400px;
+        }
+
+        #pendingPage.active {
+            display: flex;
+        }
+
+        .pending-icon-ring {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #DDE8C7;
+            border: 4px solid #8DA56B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            margin-bottom: 24px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(109, 148, 74, 0.3); }
+            50%       { box-shadow: 0 0 0 14px rgba(109, 148, 74, 0); }
+        }
+
+        .pending-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #1F2D17;
+            margin-bottom: 10px;
+        }
+
+        .pending-sub {
+            font-size: 0.95rem;
+            color: #546B41;
+            max-width: 420px;
+            line-height: 1.7;
+            margin-bottom: 28px;
+        }
+
+        .pending-status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff8e1;
+            border: 2px solid #f0c040;
+            border-radius: 999px;
+            padding: 10px 22px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: #8a6800;
+            margin-bottom: 18px;
+        }
+
+        .pending-ref-text {
+            font-size: 0.78rem;
+            color: #9BA98C;
+            margin-top: 10px;
+        }
+
+        .pending-back-btn {
+            margin-top: 28px;
+            background: #6D944A;
+            color: white;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 999px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .pending-back-btn:hover { background: #546B41; }
+
+        /* hide form when pending shown */
+        #orgFormPage.hidden { display: none; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .org-form-grid {
+                grid-template-columns: 1fr;
+            }
+            .org-form-grid label {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════ NAVBAR (exact match to hereramin/index.html) ════════ -->
+<nav class="landing-navbar">
+    <div class="landing-nav-left">
+        <a href="../index.html" class="brand">
+            <img src="../assets/images/main-logo.png" alt="GrowSauYou Logo">
+            <span>GrowSauYou</span>
+        </a>
+        <div class="brand-container">
+            <div class="brand-highlight">
+                <i class="fas fa-seedling"></i>
+                <span>GROW TOOLGETHER</span>
+            </div>
+            <div class="brand-dropdown">
+                <a href="../pages/overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+                <a href="index.html" class="side-item active"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+                <a href="../pages/receipts/user.html" class="side-item"><i class="fas fa-receipt"></i> RECEIPTS</a>
+            </div>
+        </div>
+        <div class="landing-links">
+            <a href="../index.html">Home</a>
+            <a href="../pages/i-tanim/user.html">I-Tanim</a>
+            <a href="index.html" class="active-nav">Here-Ramin</a>
+            <a href="../pages/greencommunity/main/index.html">Green Community</a>
+        </div>
+    </div>
+    <div class="nav-right"></div>
+</nav>
+
+<!-- ════════ MAIN CONTENT ════════ -->
+<section class="borrow-page-shell">
+    <div class="borrow-grid">
+
+        <!-- ── LEFT TOOL PANEL (pulled from URL params / sessionStorage) ── -->
+        <section class="borrow-tool-panel">
+            <div class="borrow-tool-image-wrap">
+                <img id="orgToolImage" src="../assets/images/shovel.png" alt="Selected Tool">
+            </div>
+            <div class="availability-badge-wrap">
+                <span id="orgAvailBadge" class="availability-badge available">Available</span>
+            </div>
+
+            <label class="borrow-label" for="orgToolSelect">Tool Name</label>
+            <select id="orgToolSelect" class="borrow-input"></select>
+
+            <label class="borrow-label">Category</label>
+            <div class="borrow-input" id="orgToolCategory" style="cursor:default;">General Tools</div>
+
+            <label class="borrow-label">Quantity</label>
+            <div class="borrow-input" id="orgQtyDisplay" style="cursor:default;">1</div>
+
+            <label class="borrow-label">Borrow Date</label>
+            <input type="date" id="orgBorrowDate" class="borrow-input">
+            <div class="date-separator">TO</div>
+            <input type="date" id="orgReturnDate" class="borrow-input">
+        </section>
+
+        <!-- ── RIGHT FORM PANEL ── -->
+        <section class="borrow-form-panel">
+
+            <!-- STEP INDICATOR -->
+            <div class="step-bar">
+                <div class="step-item done">
+                    <div class="step-circle"><i class="fas fa-check" style="font-size:0.7rem;"></i></div>
+                    <span>User Info</span>
+                </div>
+                <div class="step-connector done"></div>
+                <div class="step-item active">
+                    <div class="step-circle">2</div>
+                    <span>Organization Verification</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item inactive">
+                    <div class="step-circle">3</div>
+                    <span>Pending</span>
+                </div>
+            </div>
+
+            <!-- ── FORM ── -->
+            <div id="orgFormPage">
+                <h2 class="hereramin-title">ORGANIZATION VERIFICATION</h2>
+                <p class="borrow-intro">Please provide your organization details for the 2nd level verification.</p>
+
+                <form id="orgVerifyForm">
+                    <div class="org-form-grid">
+
+                        <!-- Name of Organization -->
+                        <label for="orgName">NAME OF ORGANIZATION</label>
+                        <input type="text" id="orgName" placeholder="Enter full organization name" required>
+
+                        <!-- Organization Head -->
+                        <label for="orgHead">ORGANIZATION HEAD</label>
+                        <input type="text" id="orgHead" placeholder="Full name of head / representative" required>
+
+                        <!-- Proof of IDs -->
+                        <label>PROOF OF IDs</label>
+                        <div>
+                            <div class="id-multi-wrap" id="idMultiList"></div>
+                            <button type="button" class="id-add-another" id="addAnotherIdBtn">
+                                <i class="fas fa-plus"></i> Add Another ID
+                            </button>
+                        </div>
+
+                        <!-- Letter for Borrowing -->
+                        <label>LETTER FOR BORROWING</label>
+                        <div>
+                            <div class="letter-drop-zone" id="letterDropZone" onclick="document.getElementById('letterFileInput').click()">
+                                <i class="fas fa-file-alt"></i>
+                                <div class="letter-drop-text">Click to upload letter</div>
+                                <div class="letter-drop-sub">PDF, DOC, DOCX, JPG, PNG accepted</div>
+                                <div class="letter-file-name" id="letterFileName">No file chosen</div>
+                            </div>
+                            <input type="file" id="letterFileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="display:none;">
+                        </div>
+
+                        <!-- Signature -->
+                        <label>SIGNATURE</label>
+                        <div class="signature-area">
+                            <canvas id="orgSignaturePad"></canvas>
+                            <button type="button" id="clearOrgSig" class="clear-btn">Clear</button>
+                        </div>
+
+                    </div><!-- /org-form-grid -->
+                </form>
+
+                <p class="agreement">I hereby certify to the best of my knowledge that all information in this form are true and correct.</p>
+
+                <div class="borrow-actions">
+                    <button type="button" class="back-action" id="orgBackBtn">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </button>
+                    <button type="button" class="submit-action" id="orgSubmitBtn">
+                        Submit <i class="fas fa-paper-plane" style="margin-left:6px;"></i>
+                    </button>
+                </div>
+            </div><!-- /orgFormPage -->
+
+            <!-- ── PENDING STATE ── -->
+            <div id="pendingPage">
+                <!-- Step bar updates to step 3 active -->
+                <div class="step-bar" style="width:100%; margin-bottom:36px;">
+                    <div class="step-item done">
+                        <div class="step-circle"><i class="fas fa-check" style="font-size:0.7rem;"></i></div>
+                        <span>User Info</span>
+                    </div>
+                    <div class="step-connector done"></div>
+                    <div class="step-item done">
+                        <div class="step-circle"><i class="fas fa-check" style="font-size:0.7rem;"></i></div>
+                        <span>Organization Verification</span>
+                    </div>
+                    <div class="step-connector done"></div>
+                    <div class="step-item active">
+                        <div class="step-circle">3</div>
+                        <span>Pending</span>
+                    </div>
+                </div>
+
+                <div class="pending-icon-ring">⏳</div>
+                <div class="pending-title">Verification Pending</div>
+                <div class="pending-sub">
+                    Your organization borrow request has been submitted. Our team will review your details and documents. You will be notified once verified.
+                </div>
+                <div class="pending-status-chip">
+                    <i class="fas fa-clock"></i> Waiting for Verification
+                </div>
+                <div class="pending-ref-text" id="pendingRefText"></div>
+
+                <button class="pending-back-btn" onclick="window.location.href='index.html'">
+                    <i class="fas fa-home" style="margin-right:8px;"></i>Back to Here-Ramin
+                </button>
+            </div><!-- /pendingPage -->
+
+        </section>
+    </div>
+</section>
+
+<!-- ════════ FOOTER (exact match) ════════ -->
+<footer class="site-footer">
+    <div class="footer-grid">
+        <div>
+            <div class="footer-brand">
+                <img src="../assets/images/main-logo.png" alt="GrowSauYou Logo">
+                <span>GrowSauYou</span>
+            </div>
+            <p>56 Old Sauyo Rd, Sauyo, Novaliches,<br>Quezon City, Metro Manila</p>
+            <p>© 2026 SBCS-1B. All rights reserved</p>
+        </div>
+        <div>
+            <h4>ABOUT US</h4>
+            <a href="../aboutus.html">Barangay</a>
+            <a href="../aboutus.html">Community</a>
+            <a href="../aboutus.html">Developers</a>
+        </div>
+        <div>
+            <h4>CONTACT US</h4>
+            <a href="../contactus.html">7 - 3694 - 382</a>
+            <a href="../contactus.html">barangaysauyo2013@gmail.com</a>
+        </div>
+        <div>
+            <h4>FOLLOW US</h4>
+            <div class="footer-socials">
+                <i class="fab fa-instagram"></i>
+                <i class="fab fa-facebook-f"></i>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script type="module" src="../js/navbar-auth.js"></script>
+<script type="module">
+import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import firebaseConfig from "../js/firebaseConfig.js";
+
+(function () {
+
+    // ── 1. RESTORE LEFT PANEL from sessionStorage (set by hereramin/index.html) ──
+    const stored = JSON.parse(sessionStorage.getItem('growsauyou-borrow-draft') || '{}');
+    const orgToolSelect   = document.getElementById('orgToolSelect');
+    const orgToolImage    = document.getElementById('orgToolImage');
+    const orgAvailBadge   = document.getElementById('orgAvailBadge');
+    const orgToolCategory = document.getElementById('orgToolCategory');
+
+    const isHereRaminPage = window.location.pathname.includes('/hereramin/') || window.location.pathname.endsWith('/hereramin') || window.location.pathname.endsWith('/hereramin/');
+    const imageFolder = isHereRaminPage ? '../assets/images/' : 'assets/images/';
+    const TOOLS_COLLECTION = 'tools';
+
+    const defaultGroupedTools = [
+        {
+            category: 'Soil Preparation',
+            tools: [
+                { name: 'Trowel', image: 'trowel.png', available: true },
+                { name: 'Hoe', image: 'hoe.png', available: false },
+                { name: 'Pitchfork', image: 'pitchfork.png', available: true },
+                { name: 'Shovel', image: 'shovel.png', available: true }
+            ]
+        },
+        {
+            category: 'Planting & Propagation',
+            tools: [
+                { name: 'Seed Trays', image: 'seed-trays.png', available: true },
+                { name: 'Dibbers', image: 'dibbers.png', available: true },
+                { name: 'Plant Labels', image: 'plant-labels.png', available: false },
+                { name: 'Seed Starter Kit', image: 'seed-starter-kit.png', available: true }
+            ]
+        },
+        {
+            category: 'Watering & Irrigation',
+            tools: [
+                { name: 'Watering Can', image: 'watering-can.png', available: true },
+                { name: 'Hose', image: 'hose.png', available: false },
+                { name: 'Spray Nozzles', image: 'spray-nozzles.png', available: true },
+                { name: 'Sprinkler', image: 'sprinkler.png', available: true }
+            ]
+        },
+        {
+            category: 'Pruning & Maintenance',
+            tools: [
+                { name: 'Garden Scissors', image: 'garden-scissors.png', available: false },
+                { name: 'Hedge Trimmers', image: 'hedge-trimmers.png', available: true },
+                { name: 'Pruning Shears', image: 'pruning-shears.png', available: true }
+            ]
+        },
+        {
+            category: 'Harvesting',
+            tools: [
+                { name: 'Harvest Baskets', image: 'harvest-baskets.png', available: true },
+                { name: 'Garden Knives', image: 'garden-knives.png', available: false },
+                { name: 'Fruit Pickers', image: 'fruit-pickers.png', available: true },
+                { name: 'Harvest Scissors', image: 'harvest-scissors.png', available: true }
+            ]
+        },
+        {
+            category: 'Pest Control',
+            tools: [
+                { name: 'Garden Sprayers', image: 'garden-sprayers.png', available: true },
+                { name: 'Insect Nets', image: 'insect-nets.png', available: true },
+                { name: 'Sticky Traps', image: 'sticky-traps.png', available: false },
+                { name: 'Hand Dusters', image: 'hand-dusters.png', available: true }
+            ]
+        },
+        {
+            category: 'Protective & Safety',
+            tools: [
+                { name: 'Gloves', image: 'gloves.png', available: true },
+                { name: 'Aprons', image: 'aprons.png', available: true },
+                { name: 'Masks', image: 'masks.png', available: false },
+                { name: 'Knee Pads', image: 'knee-pads.png', available: true }
+            ]
+        }
+    ];
+    let groupedTools = JSON.parse(JSON.stringify(defaultGroupedTools));
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_API_KEY') && !firebaseConfig.apiKey.includes('XXXX');
+
+    function normalizeText(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function slugify(value) {
+        return normalizeText(value).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function getCategoryForToolName(name) {
+        for (const group of defaultGroupedTools) {
+            for (const tool of group.tools) {
+                if (normalizeText(tool.name) === normalizeText(name)) {
+                    return group.category;
+                }
+            }
+        }
+        return 'General Tools';
+    }
+
+    function getLocalImagePath(imageNameOrPath) {
+        if (!imageNameOrPath) {
+            return `${imageFolder}shovel.png`;
+        }
+        if (imageNameOrPath.startsWith('data:')) {
+            return imageNameOrPath;
+        }
+        if (imageNameOrPath.startsWith('http://') || imageNameOrPath.startsWith('https://')) {
+            return imageNameOrPath;
+        }
+        const normalized = imageNameOrPath.replace(/^\.\//, '').replace(/^\//, '');
+        if (normalized.startsWith('../assets/images/')) {
+            return normalized;
+        }
+        if (normalized.startsWith('assets/images/')) {
+            return `${imageFolder}${normalized.slice('assets/images/'.length)}`;
+        }
+        if (!normalized.includes('/')) {
+            return `${imageFolder}${normalized}`;
+        }
+        const baseName = normalized.replace(/^.*[\\/]/, '');
+        return `${imageFolder}${baseName}`;
+    }
+
+    function getFallbackToolImage(name) {
+        const fallback = defaultGroupedTools.flatMap(group => group.tools).find((tool) => normalizeText(tool.name) === normalizeText(name));
+        if (fallback?.image) {
+            return getLocalImagePath(fallback.image);
+        }
+        return getLocalImagePath(`${slugify(name)}.png`);
+    }
+
+    function getAllTools() {
+        return groupedTools.flatMap((group) => group.tools);
+    }
+
+    function rebuildToolsFromFlatArray(flatTools) {
+        const grouped = new Map();
+        flatTools.forEach((tool) => {
+            const category = tool.category || getCategoryForToolName(tool.name);
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
+            grouped.get(category).push(tool);
+        });
+        groupedTools = Array.from(grouped.entries()).map(([category, tools]) => ({ category, tools }));
+    }
+
+    function normalizeToolFromFirestore(docId, data) {
+        const toolName = data.tool_name || data.name || docId || 'Tool';
+        const quantityAvailable = Number(data.quantity_available ?? data.quantity ?? data.quantity_total ?? 0);
+        const quantityTotal = Number(data.quantity_total ?? quantityAvailable);
+        const explicitAvailable = typeof data.available === 'boolean' ? data.available : null;
+        const statusValue = normalizeText(data.status_ || data.status);
+        const isAvailable = explicitAvailable !== null
+            ? explicitAvailable
+            : quantityAvailable > 0 && statusValue !== 'borrowed' && statusValue !== 'unavailable';
+
+        const rawImage = data.image || data.image_url || getFallbackToolImage(toolName);
+        return {
+            id: docId,
+            name: toolName,
+            category: data.category || getCategoryForToolName(toolName),
+            image: getLocalImagePath(rawImage),
+            available: isAvailable,
+            maxQuantity: Math.max(1, quantityAvailable || quantityTotal || 1),
+            quantityAvailable: Math.max(0, quantityAvailable),
+            quantityTotal: Math.max(0, quantityTotal),
+            description: data.description || '',
+            wikihowUrl: data.wikihow_url || ''
+        };
+    }
+
+    function populateTools() {
+        if (!orgToolSelect) {
+            return;
+        }
+        orgToolSelect.innerHTML = '';
+        groupedTools.forEach((group) => {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = group.category;
+            group.tools.forEach((tool) => {
+                const option = document.createElement('option');
+                option.value = tool.name;
+                option.textContent = tool.name;
+                option.dataset.image = tool.image;
+                option.dataset.category = tool.category;
+                optGroup.appendChild(option);
+            });
+            orgToolSelect.appendChild(optGroup);
+        });
+    }
+
+    function renderToolSelection(tool) {
+        if (!tool) return;
+        if (orgToolImage) orgToolImage.src = tool.image || getFallbackToolImage(tool.name);
+        if (orgAvailBadge) {
+            orgAvailBadge.textContent = tool.available ? 'Available' : 'Unavailable';
+            orgAvailBadge.className = 'availability-badge ' + (tool.available ? 'available' : 'unavailable');
+        }
+        if (orgToolCategory) {
+            orgToolCategory.textContent = tool.category || getCategoryForToolName(tool.name);
+        }
+        if (orgToolSelect) {
+            orgToolSelect.value = tool.name;
+        }
+    }
+
+    async function hydrateToolsFromFirestore() {
+        if (!useFirestore || !orgToolSelect) {
+            return;
+        }
+        try {
+            const toolsCollectionRef = collection(db, TOOLS_COLLECTION);
+            const snapshot = await getDocs(toolsCollectionRef);
+            const firestoreTools = snapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
+            if (firestoreTools.length > 0) {
+                rebuildToolsFromFlatArray(firestoreTools);
+                populateTools();
+                const selectedBefore = stored.toolName;
+                const selectedTool = getAllTools().find((tool) => normalizeText(tool.name) === normalizeText(selectedBefore)) || getAllTools()[0];
+                if (selectedTool) {
+                    renderToolSelection(selectedTool);
+                    stored.toolName = selectedTool.name;
+                    stored.toolImage = selectedTool.image;
+                    stored.available = selectedTool.available;
+                }
+            }
+        } catch (error) {
+            console.warn('Could not pull tools from Firestore. Using fallback tool list.', error);
+        }
+    }
+
+    if (orgToolSelect) {
+        populateTools();
+        const initialToolName = stored.toolName || getAllTools()[0]?.name;
+        const initialTool = getAllTools().find((tool) => tool.name === initialToolName) || getAllTools()[0];
+        if (initialTool) {
+            renderToolSelection(initialTool);
+            stored.toolName = initialTool.name;
+            stored.toolImage = initialTool.image;
+            stored.available = initialTool.available;
+        }
+
+        orgToolSelect.addEventListener('change', () => {
+            const selectedTool = getAllTools().find((tool) => tool.name === orgToolSelect.value) || getAllTools()[0];
+            if (!selectedTool) return;
+            renderToolSelection(selectedTool);
+            stored.toolName = selectedTool.name;
+            stored.toolImage = selectedTool.image;
+            stored.available = selectedTool.available;
+        });
+
+        hydrateToolsFromFirestore();
+    } else if (stored.toolImage) {
+        document.getElementById('orgToolImage').src = stored.toolImage;
+    }
+
+    if (stored.quantity)   document.getElementById('orgQtyDisplay').textContent = stored.quantity;
+    if (stored.borrowDate) document.getElementById('orgBorrowDate').value = stored.borrowDate;
+    if (stored.returnDate) document.getElementById('orgReturnDate').value = stored.returnDate;
+
+    if (stored.available === false && orgAvailBadge) {
+        orgAvailBadge.textContent = 'Unavailable';
+        orgAvailBadge.className = 'availability-badge unavailable';
+    }
+
+    // ── 2. DYNAMIC ID UPLOADS ──
+    let idCounter = 0;
+
+    function addIdSlot() {
+        idCounter++;
+        const n = idCounter;
+        const list = document.getElementById('idMultiList');
+
+        const entry = document.createElement('div');
+        entry.className = 'id-entry';
+        entry.id = 'idEntry_' + n;
+
+        entry.innerHTML = `
+            <div class="id-thumb" id="idThumb_${n}">
+                <span style="padding:4px;">ID Preview</span>
+            </div>
+            <button type="button" class="id-add-btn" onclick="triggerId(${n})">
+                <i class="fas fa-camera" style="margin-right:6px;"></i>+ Add Image
+            </button>
+            <input type="file" id="idFile_${n}" accept="image/*" style="display:none;" onchange="previewId(this,${n})">
+            ${n > 1 ? `<button type="button" class="id-remove-btn" onclick="removeId(${n})" title="Remove"><i class="fas fa-times"></i></button>` : ''}
+        `;
+        list.appendChild(entry);
+    }
+
+    window.triggerId = function(n) {
+        document.getElementById('idFile_' + n).click();
+    };
+
+    window.previewId = function(input, n) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const box = document.getElementById('idThumb_' + n);
+            box.innerHTML = `<img src="${e.target.result}" alt="ID ${n}">`;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.removeId = function(n) {
+        const el = document.getElementById('idEntry_' + n);
+        if (el) el.remove();
+    };
+
+    document.getElementById('addAnotherIdBtn').addEventListener('click', addIdSlot);
+
+    // Init first slot
+    addIdSlot();
+
+    // ── 3. LETTER FILE ──
+    document.getElementById('letterFileInput').addEventListener('change', function () {
+        const name = this.files[0] ? this.files[0].name : 'No file chosen';
+        document.getElementById('letterFileName').textContent = name;
+    });
+
+    // ── 4. SIGNATURE PAD ──
+    const canvas = document.getElementById('orgSignaturePad');
+    const ctx    = canvas.getContext('2d');
+    let drawing  = false;
+
+    function resizeSigCanvas() {
+        const ratio = window.devicePixelRatio || 1;
+        const rect  = canvas.getBoundingClientRect();
+        canvas.width  = rect.width  * ratio;
+        canvas.height = 150 * ratio;
+        ctx.scale(ratio, ratio);
+        ctx.lineWidth   = 2;
+        ctx.strokeStyle = '#2b3d24';
+        ctx.lineCap     = 'round';
+        ctx.lineJoin    = 'round';
+    }
+    resizeSigCanvas();
+    window.addEventListener('resize', resizeSigCanvas);
+
+    function getPos(e) {
+        const r = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        const src   = e.touches ? e.touches[0] : e;
+        return {
+            x: (src.clientX - r.left) * (canvas.width  / r.width  / ratio),
+            y: (src.clientY - r.top)  * (canvas.height / r.height / ratio)
+        };
+    }
+
+    canvas.addEventListener('mousedown',  e => { drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); });
+    canvas.addEventListener('mousemove',  e => { if (!drawing) return; ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); });
+    canvas.addEventListener('mouseup',    () => drawing = false);
+    canvas.addEventListener('mouseleave', () => drawing = false);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); }, { passive: false });
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!drawing) return; ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); }, { passive: false });
+    canvas.addEventListener('touchend',   () => drawing = false);
+
+    document.getElementById('clearOrgSig').addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    // ── 5. BACK BUTTON → returns to hereramin/index.html ──
+    document.getElementById('orgBackBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+    });
+
+    // ── 6. SUBMIT → show pending page ──
+    document.getElementById('orgSubmitBtn').addEventListener('click', function () {
+        const orgName = document.getElementById('orgName').value.trim();
+        const orgHead = document.getElementById('orgHead').value.trim();
+
+        if (!orgName || !orgHead) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        // Collect org data and merge with borrow draft
+        const orgData = {
+            ...stored,
+            orgName,
+            orgHead,
+            borrowDate: document.getElementById('orgBorrowDate').value,
+            returnDate: document.getElementById('orgReturnDate').value,
+            submittedAt: new Date().toISOString(),
+            status: 'pending'
+        };
+        sessionStorage.setItem('growsauyou-org-submission', JSON.stringify(orgData));
+
+        // Show pending state
+        document.getElementById('orgFormPage').classList.add('hidden');
+        const pending = document.getElementById('pendingPage');
+        pending.classList.add('active');
+
+        const ref = 'GSY-ORG-' + Date.now().toString().slice(-8).toUpperCase();
+        document.getElementById('pendingRefText').textContent = 'Reference No: ' + ref;
+
+        // Scroll to top of panel
+        pending.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+})();
+</script>
+
+</body>
+</html>

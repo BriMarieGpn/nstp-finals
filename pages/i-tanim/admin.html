@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowsauYOU | Admin Panel</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="../../css/footer.css">
+</head>
+<body class="itanim-admin">
+<style>
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700; font-size: 1rem;
+  }
+</style>
+
+<div id="authLoadingGate">Checking session…</div>
+
+<div id="appContent" style="display:none;">
+
+<!-- ── Topbar ── -->
+<header class="topbar">
+  <a href="index.html" class="brand-name">
+    <img src="assets/SYSTEM-WIDE LOGO.png" alt="" class="brand-logo-img" aria-hidden="true">
+    <span class="brand-logo-text">GrowSauYOU</span>
+  </a>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span class="hotline">BRGY SAUYO HOTLINE: 0919 096 6996</span>
+  </div>
+</header>
+
+<!-- ── App shell: sidebar + main ── -->
+<div class="ad-shell">
+
+  <!-- Sidebar -->
+  <aside class="ad-sidebar">
+    <nav class="ad-sidenav">
+      <a href="index.html" class="ad-sidenav__item" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item ad-sidenav__item--active" data-tab="dashboard" onclick="showAdminTab('dashboard');return false;" title="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="volunteers" onclick="showAdminTab('volunteers');return false;" title="Volunteers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="analytics" onclick="showAdminTab('analytics');return false;" title="Analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="programs" onclick="showAdminTab('programs');return false;" title="Account Management">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="hereramin" onclick="showAdminTab('hereramin');return false;" title="Here-Ramin Tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 1 0 1.4l-7 7a2 2 0 0 1-2.8 0l-1.8-1.8a2 2 0 0 1 0-2.8l7-7a1 1 0 0 1 1.4 0z"/><path d="M16 8l2.5-2.5a2.1 2.1 0 0 1 3 3L19 11"/><path d="M2 22l6-1-5-5-1 6z"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="badges" onclick="showAdminTab('badges');return false;" title="Badge Management">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="certifications" onclick="showAdminTab('certifications');return false;" title="Certifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      </a>
+      <a href="#" class="ad-sidenav__item" data-tab="settings" onclick="showAdminTab('settings');return false;" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="ad-main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="ad-tab active" id="ad-tab-dashboard">
+
+      <div class="ad-page-header">
+        <p class="ad-subtitle">Administrator dashboard</p>
+        <h1 class="ad-page-title">Welcome, Admin</h1>
+      </div>
+
+      <!-- Top 3 stat cards -->
+      <div class="ad-row ad-row--3col">
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Total volunteers:</span>
+          <p class="ad-stat-big" id="totalVolunteers">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Pending Applications</span>
+          <p class="ad-stat-big" id="pendingApps">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Approved/rejected users:</span>
+          <p class="ad-stat-big"><span id="approvedUsers">0</span>/<span id="rejectedUsers">0</span></p>
+        </div>
+      </div>
+
+      <!-- Task Overview -->
+      <div class="ad-card ad-card--overview">
+        <div class="ad-overview-header">
+          <span class="ad-card__label" style="margin:0;">Program Overview:</span>
+          <button class="ad-view-more-btn" onclick="showAdminTab('programs')">Manage Accounts</button>
+        </div>
+
+        <!-- Active tasks table -->
+        <div class="ad-task-table">
+          <div class="ad-task-table__head">
+            <span>Active tasks: <strong id="activePrograms">0</strong></span>
+            <span>Status</span>
+          </div>
+          <div id="dashboardActiveTasks" class="ad-task-table__body"></div>
+        </div>
+
+        <!-- Completed tasks table -->
+        <div class="ad-task-table" style="margin-top:16px;">
+          <div class="ad-task-table__head ad-task-table__head--completed">
+            <span>Completed Tasks: <strong id="completedPrograms">0</strong></span>
+          </div>
+          <div id="dashboardCompletedTasks" class="ad-task-table__body"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ══ VOLUNTEERS ══ -->
+    <div class="ad-tab" id="ad-tab-volunteers">
+
+      <h1 class="ad-page-title">Volunteer Management</h1>
+      <div class="ad-card" style="margin-bottom:16px;">
+        <span class="ad-card__label">Assign Volunteer by QR / Registry ID</span>
+        <div class="ad-form-row">
+          <label class="ad-label">Program:</label>
+          <select id="qrAssignProgramSelect" class="ad-select"></select>
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Volunteer Registry ID:</label>
+          <input type="text" id="qrVolunteerIdInput" class="ad-input" placeholder="Enter volunteer QR registry ID" autocomplete="off">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button class="ad-btn ad-btn--approve" onclick="assignVolunteerByQr()">Assign to Program</button>
+          <button class="ad-btn ad-btn--approve" onclick="openQrScanner()">Scan QR Code</button>
+        </div>
+        <div id="qrScannerContainer" style="display:none;margin-top:16px;border:1px solid rgba(84,107,65,0.16);border-radius:16px;background:rgba(250,251,245,0.95);padding:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <strong style="font-size:0.95rem;">QR Scanner</strong>
+            <button class="ad-btn ad-btn--reject" style="font-size:0.82rem;padding:0.6rem 0.95rem;" onclick="closeQrScanner()">Close</button>
+          </div>
+          <p style="margin:10px 0 12px;color:#4b5a35;opacity:0.9;line-height:1.5;">Point the camera at the volunteer QR code. The registry ID will automatically populate when the QR is recognized.</p>
+          <video id="qrScannerVideo" autoplay muted playsinline style="width:100%;max-width:420px;height:auto;border-radius:14px;background:#000;outline:1px solid rgba(84,107,65,0.2);"></video>
+          <canvas id="qrScannerCanvas" style="display:none;"></canvas>
+          <p id="qrScannerStatus" style="margin-top:10px;color:#4b5a35;opacity:0.9;">Ready to scan. Allow camera access if prompted.</p>
+        </div>
+        <p style="margin-top:10px;color:#4b5a35;opacity:0.8;">Use the volunteer registry ID printed on their QR code. This assigns them directly to the selected program.</p>
+      </div>
+      
+      <!-- Attendance actions -->
+      <div class="ad-card" style="margin-bottom:16px;">
+        <span class="ad-card__label">Attendance / Completion Actions</span>
+        <div class="ad-form-row">
+          <label class="ad-label">Program:</label>
+          <select id="attendanceProgramSelect" class="ad-select" onchange="updateAttendanceVolunteerOptions()"></select>
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Volunteer:</label>
+          <select id="attendanceVolunteerSelect" class="ad-select"></select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+          <button class="ad-btn ad-btn--approve" onclick="markVolunteerFinishedFromSelection()">Mark as Finished</button>
+          <button class="ad-btn ad-btn--reject" onclick="markVolunteerAbsentFromSelection()">Mark as Absent</button>
+        </div>
+      </div>
+
+      <!-- Status filter -->
+      <div class="ad-form-row" style="margin-bottom:12px;">
+        <label class="ad-label">Filter Status:</label>
+        <select id="volunteerStatusFilter" class="ad-select" onchange="onVolunteerStatusFilterChange()">
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="all">All</option>
+        </select>
+      </div>
+
+      <!-- Program participant section -->
+      <div class="ad-card" style="margin-bottom:16px;">
+        <div class="ad-form-row">
+          <label class="ad-label">Filter by Program:</label>
+          <select id="volunteerProgramFilter" class="ad-select" onchange="onVolunteerProgramFilterChange()"></select>
+        </div>
+        <!-- Pending validation queue (from domain logic) -->
+        <div id="volunteerList"></div>
+        <div id="programParticipantList"></div>
+      </div>
+
+    </div>
+
+    <!-- ══ ANALYTICS ══ -->
+    <div class="ad-tab" id="ad-tab-analytics">
+
+      <h1 class="ad-page-title">Data Analytics</h1>
+
+      <!-- Row 1: Total Hours + Donut + Gauge -->
+      <div class="ad-row ad-row--3col">
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Total Volunteer Hours</span>
+          <p class="ad-stat-big" id="totalHours">0</p>
+          <span class="ad-stat-unit">HOURS</span>
+        </div>
+        <div class="ad-card" style="text-align:center;">
+          <span class="ad-card__label">Active vs. Inactive Volunteers</span>
+          <canvas id="donutChart" width="120" height="120" style="margin:8px auto;display:block;"></canvas>
+          <div style="display:flex;justify-content:center;gap:16px;margin-top:6px;font-family:'Montserrat',sans-serif;font-size:0.8rem;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#546B41;margin-right:4px;"></span><span id="activePct">0%</span> Active</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ccc;margin-right:4px;"></span><span id="inactivePct">0%</span> Inactive</span>
+          </div>
+          <p id="activeInactive" style="display:none;"></p>
+        </div>
+        <div class="ad-card" style="text-align:center;">
+          <span class="ad-card__label">Task Completion Rate</span>
+          <canvas id="gaugeChart" width="140" height="80" style="margin:8px auto;display:block;"></canvas>
+          <p class="ad-stat-big" id="completionRate" style="margin-top:4px;">0%</p>
+        </div>
+      </div>
+
+      <!-- Row 2: Bar chart + Badge distribution -->
+      <div class="ad-row ad-row--2col">
+        <div class="ad-card">
+          <span class="ad-card__label">Top 5 Programs</span>
+          <canvas id="barChart" height="160" style="margin-top:10px;width:100%;display:block;"></canvas>
+          <ul id="topPrograms" style="display:none;"></ul>
+        </div>
+        <div class="ad-card">
+          <span class="ad-card__label">Badge Distribution</span>
+          <div id="badgeChart" class="ad-badge-dist"></div>
+        </div>
+      </div>
+
+      <!-- Volunteer Growth line chart -->
+      <div class="ad-card">
+        <span class="ad-card__label">Volunteer Growth</span>
+        <canvas id="growthChart" height="160" style="margin-top:10px;width:100%;display:block;"></canvas>
+        <p id="volunteerGrowth" style="display:none;"></p>
+      </div>
+
+    </div>
+
+    <!-- ══ ACCOUNT MANAGEMENT ══ -->
+    <div class="ad-tab" id="ad-tab-programs">
+
+      <h1 class="ad-page-title">Account Management</h1>
+
+      <!-- Search accounts -->
+      <div class="ad-card" style="margin-bottom:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <input
+          type="text"
+          id="accountSearchInput"
+          class="ad-input"
+          placeholder="Search users by name, email, or ID…"
+          style="flex:1;min-width:180px;"
+          oninput="filterAccounts(this.value)"
+        >
+        <button class="ad-btn ad-btn--solid" onclick="updateAccounts();return false;">Refresh Accounts</button>
+      </div>
+
+      <!-- User account table -->
+      <div class="ad-card ad-card--table">
+        <div class="ad-prog-table-head">
+          <span>Name</span>
+          <span>Role</span>
+          <span>Status</span>
+          <span>Active</span>
+          <span>Actions</span>
+        </div>
+        <div id="programList" class="ad-prog-table-body"></div>
+      </div>
+
+    </div>
+
+    <!-- ══ HERE-RAMIN TOOL MANAGEMENT ══ -->
+    <div class="ad-tab" id="ad-tab-hereramin">
+      <h1 class="ad-page-title">Here-Ramin Tool Management</h1>
+
+      <div class="ad-card" style="margin-bottom:16px;">
+        <h2 class="ad-section-title">Add New Tool</h2>
+        <div class="ad-form-row">
+          <label class="ad-label">Tool Name *</label>
+          <input id="hrToolName" class="ad-input" type="text" placeholder="e.g. Garden Rake">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Category</label>
+          <select id="hrToolCategory" class="ad-select" style="width:100%;"></select>
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Image URL</label>
+          <input id="hrToolImageUrl" class="ad-input" type="text" placeholder="https://...">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Upload Tool Photo</label>
+          <input id="hrToolImageFile" class="ad-input" type="file" accept="image/*">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Preview</label>
+          <img id="hrToolImagePreview" alt="Tool preview" style="max-width:140px;max-height:100px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);display:none;background:#fff;padding:4px;">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">WikiHow URL</label>
+          <input id="hrToolWikiHowUrl" class="ad-input" type="url" placeholder="https://www.wikihow.com/...">
+        </div>
+        <div class="ad-form-row">
+          <label class="ad-label">Description</label>
+          <textarea id="hrToolDescription" class="ad-input" placeholder="Optional notes about this tool." style="min-height:72px;resize:vertical;"></textarea>
+        </div>
+        <div class="ad-form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label class="ad-label">Available Quantity *</label>
+            <input id="hrToolQtyAvailable" class="ad-input" type="number" min="0" value="1">
+          </div>
+          <div>
+            <label class="ad-label">Total Quantity *</label>
+            <input id="hrToolQtyTotal" class="ad-input" type="number" min="1" value="1">
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="hrToolSaveBtn" class="ad-btn ad-btn--solid" onclick="addHereRaminTool()">Add Tool</button>
+          <button class="ad-btn" type="button" onclick="resetHereRaminToolForm()">Clear Form</button>
+        </div>
+      </div>
+
+      <div class="ad-card ad-card--table">
+        <div class="ad-prog-table-head hr-tools-head">
+          <span>Tool</span>
+          <span>Category</span>
+          <span>Available</span>
+          <span>Total</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+        <div id="hereRaminToolsList" class="ad-prog-table-body hr-scroll-list"></div>
+      </div>
+
+      <div class="ad-card ad-card--table" style="margin-top:18px;">
+        <div class="ad-prog-table-head hr-receipts-head">
+          <span>Borrower</span>
+          <span>Tool</span>
+          <span>Qty</span>
+          <span>Status</span>
+          <span>Return Date</span>
+          <span>Actions</span>
+        </div>
+        <div style="padding:10px 14px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:flex-end;">
+          <button class="ad-btn ad-btn--reject" type="button" onclick="clearHereRaminBorrowers()">Clear Borrowers</button>
+        </div>
+        <div id="hereRaminReceiptsList" class="ad-prog-table-body hr-scroll-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ MORE TABS (hidden, kept for admin.js compatibility) ══ -->
+    <div class="ad-tab" id="ad-tab-restrictions">
+      <h1 class="ad-page-title">User Restrictions</h1>
+      <!-- Restrictions are managed in the Settings tab to avoid duplicate IDs -->
+    </div>
+
+    <div class="ad-tab" id="ad-tab-skills">
+      <h1 class="ad-page-title">Skill Categories</h1>
+      <div class="ad-card">
+        <div class="ad-form-row">
+          <input type="text" id="newSkill" placeholder="New skill category" class="ad-input">
+          <button class="ad-btn ad-btn--solid" onclick="addSkill()" style="margin-left:8px;">Add</button>
+        </div>
+        <ul id="skillList" style="margin-top:14px;padding-left:18px;"></ul>
+      </div>
+    </div>
+
+    <div class="ad-tab" id="ad-tab-badges">
+      <h1 class="ad-page-title">Badge and Threshold Management</h1>
+      <div class="ad-card">
+        <div class="ad-badge-threshold-list">
+
+          <div class="ad-badge-row">
+            <div class="ad-badge-row__info">
+              <strong class="ad-badge-row__name">BRONZE</strong>
+              <div class="ad-badge-row__input">
+                <input type="number" id="bronzeThreshold" value="10" class="ad-threshold-input">
+                <span class="ad-threshold-unit">HOURS</span>
+              </div>
+            </div>
+            <div class="ad-badge-row__medal">🥉</div>
+          </div>
+
+          <div class="ad-badge-row">
+            <div class="ad-badge-row__info">
+              <strong class="ad-badge-row__name">SILVER</strong>
+              <div class="ad-badge-row__input">
+                <input type="number" id="silverThreshold" value="25" class="ad-threshold-input">
+                <span class="ad-threshold-unit">HOURS</span>
+              </div>
+            </div>
+            <div class="ad-badge-row__medal">🥈</div>
+          </div>
+
+          <div class="ad-badge-row">
+            <div class="ad-badge-row__info">
+              <strong class="ad-badge-row__name">GOLD</strong>
+              <div class="ad-badge-row__input">
+                <input type="number" id="goldThreshold" value="50" class="ad-threshold-input">
+                <span class="ad-threshold-unit">HOURS</span>
+              </div>
+            </div>
+            <div class="ad-badge-row__medal">🥇</div>
+          </div>
+
+          <div class="ad-badge-row">
+            <div class="ad-badge-row__info">
+              <strong class="ad-badge-row__name">PLATINUM</strong>
+              <div class="ad-badge-row__input">
+                <input type="number" id="platinumThreshold" value="100" class="ad-threshold-input">
+                <span class="ad-threshold-unit">HOURS</span>
+              </div>
+            </div>
+            <div class="ad-badge-row__medal">🏆</div>
+          </div>
+
+        </div>
+        <button class="ad-btn ad-btn--solid" onclick="updateBadgeThresholds()" style="margin-top:20px;">Save Thresholds</button>
+      </div>
+    </div>
+
+    <div class="ad-tab" id="ad-tab-certifications">
+      <h1 class="ad-page-title">Certification Management</h1>
+
+      <!-- Table header -->
+      <div class="ad-card ad-card--table" style="padding:0;">
+        <div class="ad-cert-table-head">
+          <span>User</span>
+          <span>Validated Hours</span>
+          <span>Badge Level</span>
+          <span>Tasks Complete?</span>
+          <span>Action</span>
+        </div>
+        <div id="certRequests" class="ad-cert-table-body"></div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS (Program Management + Restrictions + Skills + Notifications) ══ -->
+    <div class="ad-tab" id="ad-tab-settings">
+      <h1 class="ad-page-title">Settings</h1>
+
+      <!-- ── Program Management ── -->
+      <div class="ad-card" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 class="ad-section-title" style="margin:0;">Program Management</h2>
+          <button class="ad-btn ad-btn--solid" id="toggleAddProgramForm" onclick="
+            var f=document.getElementById('addProgramForm');
+            var open=f.style.display!=='none';
+            f.style.display=open?'none':'block';
+            this.textContent=open?'+ Add New Program':'✕ Cancel';
+          ">+ Add New Program</button>
+        </div>
+
+        <!-- Inline add form (hidden by default) -->
+        <div id="addProgramForm" style="display:none;background:color-mix(in srgb,var(--secondary) 12%,var(--cream));border-radius:14px;padding:18px 20px;margin-bottom:18px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Program Name *</label>
+              <input type="text" id="newProgName" class="ad-input" placeholder="e.g. Seed Planting in Sauyo">
+            </div>
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Required Hours *</label>
+              <input type="number" id="newProgHours" class="ad-input" placeholder="e.g. 5" min="1">
+            </div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="ad-label" style="margin-bottom:4px;display:block;">Description *</label>
+            <textarea id="newProgDesc" class="ad-input" placeholder="Describe the program…" style="min-height:72px;resize:vertical;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Max Volunteers</label>
+              <input type="number" id="newProgMax" class="ad-input" placeholder="e.g. 20" min="1">
+            </div>
+            <div>
+              <label class="ad-label" style="margin-bottom:4px;display:block;">Badge Requirement</label>
+              <select id="newProgReq" class="ad-select" style="width:100%;">
+                <option value="None">None</option>
+                <option value="Bronze">Bronze</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Platinum">Platinum</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label class="ad-label" style="margin-bottom:4px;display:block;">Program Photo</label>
+            <input type="file" id="newProgAttachments" accept="image/*" class="ad-input" style="width:100%;padding:10px 14px;" multiple>
+            <input type="url" id="newProgramAttachmentUrl" class="ad-input" placeholder="Paste image URL here" style="width:100%;padding:10px 14px;margin-top:10px;" />
+            <small style="display:block;margin-top:6px;color:rgba(84,107,65,0.75);font-size:0.85rem;">Upload images or paste a direct image URL. The first image is used as the program photo.</small>
+            <div id="newProgramAttachmentPreview" class="attachment-preview-grid" style="margin-top:12px;"></div>
+          </div>
+          <div id="addProgramError" style="display:none;color:#c0392b;font-size:0.83rem;font-weight:600;margin-bottom:10px;"></div>
+          <button class="ad-btn ad-btn--solid" id="addProgramSubmitBtn" onclick="submitNewProgram()" style="min-width:180px;">Save Program</button>
+        </div>
+
+        <!-- Live program list inside settings -->
+        <div class="ad-prog-table-head" style="border-radius:10px 10px 0 0;">
+          <span>Name</span><span>Hours</span><span>Slots</span><span>Assigned</span><span>Status</span><span>Actions</span>
+        </div>
+        <div id="settingsProgramList" class="ad-prog-table-body" style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;"></div>
+      </div>
+
+      <!-- User Restriction -->
+      <div class="ad-card" style="margin-bottom:20px;">
+        <h2 class="ad-section-title">User Restriction</h2>
+        <label class="ad-label" style="margin-bottom:8px;display:block;">Minimum Age Requirement</label>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <input type="number" id="minAge" value="18" class="ad-age-input">
+          <button class="ad-btn ad-btn--solid" onclick="updateRestrictions()">Save</button>
+        </div>
+
+        <label class="ad-label" style="margin-bottom:8px;display:block;">Address Coverage (Barangay-Based Filtering)</label>
+        <div class="ad-barangay-box">
+          <input type="text" id="barangayInput" placeholder="Type barangay name…" class="ad-barangay-input" onkeydown="if(event.key==='Enter'){addBarangayTag();event.preventDefault();}">
+          <div id="barangayTags" class="ad-barangay-tags"></div>
+          <button class="ad-btn ad-btn--solid" onclick="addBarangayTag()" style="margin-top:10px;align-self:flex-start;">Add Barangay</button>
+        </div>
+        <!-- Hidden input for admin.js compatibility -->
+        <input type="hidden" id="validBarangays" value="All">
+      </div>
+
+      <!-- Skill Category Management -->
+      <div class="ad-card" style="margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <h2 class="ad-section-title" style="margin:0;">Skill Category Management</h2>
+          <button class="ad-btn ad-btn--solid" onclick="document.getElementById('settingsNewSkillRow').style.display='flex'">Add New Category</button>
+        </div>
+
+        <!-- Add form -->
+        <div id="settingsNewSkillRow" style="display:none;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+          <input type="text" id="settingsNewSkill" placeholder="e.g. Planting &amp; Seedling Skills" class="ad-input" style="flex:1;min-width:200px;">
+          <button class="ad-btn ad-btn--solid" id="settingsAddSkillBtn" onclick="addSkill()">Save</button>
+          <button class="ad-btn" onclick="document.getElementById('settingsNewSkillRow').style.display='none';document.getElementById('settingsNewSkill').value=''">Cancel</button>
+        </div>
+
+        <!-- Live skill list -->
+        <div class="ad-skill-table-head">
+          <span>Skill Category</span>
+          <span></span>
+          <span></span>
+          <span>Actions</span>
+        </div>
+        <ul id="settingsSkillList" class="ad-skill-table-body"></ul>
+      </div>
+
+      <!-- Notification System -->
+      <div class="ad-card notification-system">
+        <h2 class="ad-section-title">Notification System</h2>
+        <div class="ad-notif-grid">
+          <label class="ad-toggle-row">
+            <span class="ad-toggle-label">Task Validation Updates<br><small>(System Dashboard)</small></span>
+            <input type="checkbox" class="ad-toggle-cb" id="notifTaskDashboard" checked>
+            <span class="ad-toggle-track"></span>
+          </label>
+          <label class="ad-toggle-row">
+            <span class="ad-toggle-label">Certification Updates<br><small>(System Dashboard)</small></span>
+            <input type="checkbox" class="ad-toggle-cb" id="notifCertDashboard" checked>
+            <span class="ad-toggle-track"></span>
+          </label>
+          <label class="ad-toggle-row">
+            <span class="ad-toggle-label">Task Validation Updates<br><small>(Gmail)</small></span>
+            <input type="checkbox" class="ad-toggle-cb" id="notifTaskGmail">
+            <span class="ad-toggle-track"></span>
+          </label>
+          <label class="ad-toggle-row">
+            <span class="ad-toggle-label">Certification Updates<br><small>(Gmail)</small></span>
+            <input type="checkbox" class="ad-toggle-cb" id="notifCertGmail">
+            <span class="ad-toggle-track"></span>
+          </label>
+        </div>
+        <!-- Hidden fields kept for admin.js sendNotification() -->
+        <div style="display:none;">
+          <textarea id="notificationMessage"></textarea>
+          <select id="notificationType">
+            <option value="application">Application Result</option>
+            <option value="program">Program Update</option>
+            <option value="certification">Certification Update</option>
+          </select>
+          <button onclick="sendNotification()">Send</button>
+        </div>
+        <div id="notificationHistory" class="notification-history" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- Logs (collapsed under settings) -->
+      <div class="ad-card" style="margin-top:20px;">
+        <h2 class="ad-section-title">Activity Logs</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <input type="text" id="logSearchInput" placeholder="Search logs…" class="ad-input" style="flex:1;min-width:160px;">
+          <select id="logFilterType" class="ad-select">
+            <option value="">All Actions</option>
+            <option value="program_add">Program Added</option>
+            <option value="program_update">Program Updated</option>
+            <option value="program_delete">Program Deleted</option>
+            <option value="volunteer_join">User Joined</option>
+            <option value="volunteer_approve">Volunteer Approved</option>
+            <option value="volunteer_reject">Volunteer Rejected</option>
+            <option value="error">Error</option>
+          </select>
+          <button class="ad-btn" style="background:#d9534f;color:#fff;border-color:#d9534f;" onclick="clearAllLogs()">Clear</button>
+          <button class="ad-btn ad-btn--solid" onclick="exportLogs()">Export</button>
+        </div>
+        <div id="logsList" style="max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;"></div>
+      </div>
+    </div>
+
+    <!-- Logout handled by admin.js logoutAdmin() -->
+
+  </main>
+</div>
+
+<!-- ── Program Modal ── -->
+<div id="programModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(84,107,65,0.6); justify-content:center; align-items:center; z-index:99999;">
+  <div style="background:rgba(255,248,236,0.97); padding:24px; border-radius:18px; width:min(440px,92%); border:1px solid rgba(84,107,65,0.22); max-height:90vh; overflow-y:auto;">
+    <h3 id="programModalTitle" style="margin:0 0 16px;font-family:'Archivo Black',sans-serif;color:var(--primary);">Create Program</h3>
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Program Name</label>
+    <input id="programName" placeholder="Program Name" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Description</label>
+    <textarea id="programDesc" placeholder="Description" style="width:100%;height:72px;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;resize:vertical;box-sizing:border-box;"></textarea>
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Required Hours</label>
+    <input id="programHours" type="number" placeholder="Hours" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Optional Requirement</label>
+    <select id="programRequirement" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
+      <option value="None">None</option>
+      <option value="Bronze">Bronze</option>
+      <option value="Silver">Silver</option>
+      <option value="Gold">Gold</option>
+      <option value="Platinum">Platinum</option>
+      <option value="Diamond">Diamond</option>
+    </select>
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Max Volunteers</label>
+    <input id="programMaxVolunteers" type="number" placeholder="Max Volunteers" style="width:100%;margin-bottom:12px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;">
+    <label style="font-weight:700;font-size:0.82rem;color:var(--primary);display:block;margin-bottom:4px;">Program Image</label>
+    <input id="programAttachments" type="file" accept="image/*" multiple style="width:100%;margin-bottom:10px;">
+    <input id="programAttachmentUrl" type="url" placeholder="Paste image URL here" style="width:100%;margin-bottom:10px;padding:11px 14px;border:1px solid rgba(84,107,65,0.3);border-radius:10px;font-family:'Montserrat',sans-serif;box-sizing:border-box;" />
+    <div id="programAttachmentPreview" class="attachment-preview-grid" style="margin-bottom:12px;"></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;">
+      <button onclick="closeProgramModal()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:10px;background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Cancel</button>
+      <button id="saveProgramBtn" onclick="saveProgram()" style="flex:1;padding:10px;border:none;border-radius:10px;background:var(--primary);color:#FFF8EC;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;">Save</button>
+    </div>
+  </div>
+</div>
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="assets/SYSTEM-WIDE LOGO.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="../aboutus.html">Barangay</a>
+      <a href="../aboutus.html">Community</a>
+      <a href="../aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="../contactus.html">7 - 3694 - 382</a>
+      <a href="../contactus.html">7 - 3699 - 156</a>
+      <a href="../contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script>
+/* ── Sidebar tab switcher for new layout ── */
+function showAdminTab(name) {
+  document.querySelectorAll('.ad-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.ad-sidenav__item[data-tab]').forEach(function(a) {
+    a.classList.toggle('ad-sidenav__item--active', a.dataset.tab === name);
+  });
+  var tab = document.getElementById('ad-tab-' + name);
+  if (tab) tab.classList.add('active');
+  /* Also call admin.js updateTab if available */
+  if (typeof updateTab === 'function') updateTab(name);
+  if (name === 'programs' && typeof updateAccounts === 'function') {
+    updateAccounts();
+  }
+}
+
+/* Bridge: admin.js calls showTab() — redirect to our new function */
+window.showTab = function(name) {
+  showAdminTab(name);
+};
+
+/* After admin.js renders data, populate dashboard task tables */
+window.refreshAdminDashboard = function(programs) {
+  programs = programs || [];
+  var active    = programs.filter(function(p) { return p.status !== 'completed'; });
+  var completed = programs.filter(function(p) { return p.status === 'completed'; });
+
+  var activeEl = document.getElementById('dashboardActiveTasks');
+  var compEl   = document.getElementById('dashboardCompletedTasks');
+
+  if (activeEl) {
+    activeEl.innerHTML = active.length ? active.slice(0, 5).map(function(p) {
+      var joined = (p.joined || []).length;
+      var max    = p.maxVolunteers || 0;
+      return '<div class="ad-task-row">'
+        + '<span>' + (p.name || p.title || 'Untitled') + '</span>'
+        + '<span class="ad-task-status">' + joined + (max ? '/' + max : '') + '</span>'
+        + '</div>';
+    }).join('') : '<div class="ad-task-row"><span style="opacity:0.6;">No active tasks</span></div>';
+  }
+
+  if (compEl) {
+    compEl.innerHTML = completed.length ? completed.slice(0, 5).map(function(p) {
+      return '<div class="ad-task-row"><span>' + (p.name || p.title || 'Untitled') + '</span></div>';
+    }).join('') : '<div class="ad-task-row"><span style="opacity:0.6;">No completed tasks</span></div>';
+  }
+};
+
+/* ── Analytics charts ── */
+function drawDonut(canvasId, pct, color) {
+  var c = document.getElementById(canvasId); if (!c) return;
+  var ctx = c.getContext('2d'), r = 46, cx = 60, cy = 60;
+  c.width = 120; c.height = 120;
+  ctx.clearRect(0,0,120,120);
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.strokeStyle='#ddd'; ctx.lineWidth=12; ctx.stroke();
+  var end = (pct/100)*Math.PI*2 - Math.PI/2;
+  ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI/2,end); ctx.strokeStyle=color||'#546B41'; ctx.lineWidth=12; ctx.lineCap='round'; ctx.stroke();
+}
+
+function drawGauge(canvasId, pct) {
+  var c = document.getElementById(canvasId); if (!c) return;
+  var ctx = c.getContext('2d'), W=140, H=80, cx=70, cy=72, r=52;
+  c.width=W; c.height=H;
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,0); ctx.strokeStyle='#ddd'; ctx.lineWidth=12; ctx.stroke();
+  var end = Math.PI + (pct/100)*Math.PI;
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,end); ctx.strokeStyle='#546B41'; ctx.lineWidth=12; ctx.lineCap='round'; ctx.stroke();
+  /* needle */
+  var angle = Math.PI + (pct/100)*Math.PI;
+  ctx.beginPath();
+  ctx.moveTo(cx,cy);
+  ctx.lineTo(cx+Math.cos(angle)*40, cy+Math.sin(angle)*40);
+  ctx.strokeStyle='#333'; ctx.lineWidth=2; ctx.stroke();
+}
+
+function drawBar(canvasId, labels, values) {
+  var c = document.getElementById(canvasId); if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.offsetWidth || 300, H = 160;
+  c.width = W; c.height = H;
+  ctx.clearRect(0,0,W,H);
+  var max = Math.max.apply(null, values.concat([1]));
+  var pad = {top:16,right:16,bottom:28,left:32};
+  var cW = W-pad.left-pad.right, cH = H-pad.top-pad.bottom;
+  var bW = cW/values.length*0.5, gap = cW/values.length;
+  /* grid */
+  ctx.strokeStyle='rgba(84,107,65,0.1)'; ctx.lineWidth=1;
+  for(var g=0;g<=4;g++){var gy=pad.top+cH-(g/4)*cH; ctx.beginPath();ctx.moveTo(pad.left,gy);ctx.lineTo(pad.left+cW,gy);ctx.stroke();}
+  values.forEach(function(v,i){
+    var x=pad.left+i*gap+(gap-bW)/2, barH=(v/max)*cH, y=pad.top+cH-barH;
+    ctx.fillStyle='#546B41';
+    ctx.beginPath();
+    ctx.rect(x, y, bW, barH);
+    ctx.fill();
+    ctx.fillStyle='rgba(84,107,65,0.8)'; ctx.font='10px Montserrat,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(v, x+bW/2, y-4);
+    ctx.fillStyle='rgba(84,107,65,0.6)'; ctx.font='9px Montserrat,sans-serif';
+    ctx.fillText(labels[i]||'', x+bW/2, H-6);
+  });
+}
+
+function drawGrowthLine(canvasId, labels, data) {
+  var c = document.getElementById(canvasId); if (!c) return;
+  var ctx = c.getContext('2d');
+  var W = c.offsetWidth || 420, H = 180;
+  c.width = W; c.height = H;
+  ctx.clearRect(0,0,W,H);
+  if (!Array.isArray(labels) || !labels.length || !Array.isArray(data) || !data.length) {
+    ctx.fillStyle = '#666';
+    ctx.font = '13px Montserrat,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('No growth data available', W / 2, H / 2);
+    return;
+  }
+  var max = Math.max.apply(null, data.concat([1]));
+  var pad = {top:18,right:18,bottom:36,left:38};
+  var cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  var step = cW / Math.max(data.length - 1, 1);
+
+  ctx.strokeStyle = 'rgba(84,107,65,0.12)'; ctx.lineWidth = 1;
+  for (var g = 0; g <= 4; g++) {
+    var gy = pad.top + cH - (g / 4) * cH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, gy);
+    ctx.lineTo(pad.left + cW, gy);
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#546B41';
+  ctx.stroke();
+
+  ctx.beginPath();
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + cW, pad.top + cH);
+  ctx.lineTo(pad.left, pad.top + cH);
+  ctx.closePath();
+  var grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, 'rgba(84,107,65,0.22)');
+  grad.addColorStop(1, 'rgba(84,107,65,0)');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  ctx.fillStyle = '#546B41';
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step;
+    var y = pad.top + cH - (v / max) * cH;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.fillStyle = 'rgba(84,107,65,0.8)';
+  ctx.font = '10px Montserrat,sans-serif';
+  ctx.textAlign = 'center';
+  labels.forEach(function(l, i) {
+    var x = pad.left + i * step;
+    ctx.fillText(l, x, H - 12);
+  });
+
+  ctx.fillStyle = 'rgba(84,107,65,0.75)';
+  ctx.font = '10px Montserrat,sans-serif';
+  ctx.textAlign = 'right';
+  for (var g = 0; g <= 4; g++) {
+    var value = Math.round(max * (g / 4));
+    var y = pad.top + cH - (g / 4) * cH;
+    ctx.fillText(value, pad.left - 8, y + 4);
+  }
+}
+
+window.refreshAnalyticsCharts = function(users, programs) {
+  users = users || []; programs = programs || [];
+  var totalHours = users.reduce(function(s,u){return s+(u.hours||0);},0);
+  var active = users.filter(function(u){return u.status==='approved'&&(u.hours||0)>0;}).length;
+  var inactive = users.filter(function(u){return u.status==='approved'&&!(u.hours||0);}).length;
+  var total = active+inactive||1;
+  var activePct = Math.round(active/total*100);
+  var inactivePct = 100-activePct;
+  var completed = programs.filter(function(p){return p.status==='completed';}).length;
+  var compRate = programs.length ? Math.round(completed/programs.length*100) : 0;
+
+  var el = document.getElementById('totalHours'); if(el) el.textContent = totalHours;
+  var ap = document.getElementById('activePct'); if(ap) ap.textContent = activePct+'%';
+  var ip = document.getElementById('inactivePct'); if(ip) ip.textContent = inactivePct+'%';
+  var cr = document.getElementById('completionRate'); if(cr) cr.textContent = compRate+'%';
+
+  setTimeout(function(){
+    drawDonut('donutChart', activePct, '#546B41');
+    drawGauge('gaugeChart', compRate);
+
+    /* Top 5 tasks by joined count */
+    var sorted = programs.slice().sort(function(a,b){return (b.joined||[]).length-(a.joined||[]).length;}).slice(0,5);
+    drawBar('barChart', sorted.map(function(p,i){return i+1;}), sorted.map(function(p){return (p.joined||[]).length;}));
+
+    /* Badge distribution */
+    var bdg = {Bronze:0,Silver:0,Gold:0,Platinum:0};
+    users.forEach(function(u){if(bdg[u.badge]!==undefined)bdg[u.badge]++;});
+    var bdgEl = document.getElementById('badgeChart');
+    if(bdgEl) bdgEl.innerHTML = Object.entries(bdg).map(function(e){
+      var medals={Bronze:'🥉',Silver:'🥈',Gold:'🥇',Platinum:'🏆'};
+      return '<div class="ad-bdg-item"><span class="ad-bdg-count">'+e[1]+'</span>'
+        +'<span class="ad-bdg-medal">'+medals[e[0]]+'</span>'
+        +'<span class="ad-bdg-name">'+e[0]+'</span></div>';
+    }).join('');
+
+    /* Growth line — monthly new volunteers for the last 6 months */
+    var monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var countsByMonth={};
+    users.forEach(function(u){
+      if(!u.createdAt) return;
+      var d=new Date(u.createdAt); if(isNaN(d)) return;
+      var key=d.getFullYear()+'-'+(d.getMonth()+1);
+      countsByMonth[key]=(countsByMonth[key]||0)+1;
+    });
+    var now=new Date();
+    var labels=[]; var counts=[];
+    for(var i=5;i>=0;i--) {
+      var d=new Date(now.getFullYear(), now.getMonth()-i, 1);
+      var key=d.getFullYear()+'-'+(d.getMonth()+1);
+      labels.push(monthNames[d.getMonth()]);
+      counts.push(countsByMonth[key]||0);
+    }
+    drawGrowthLine('growthChart', labels, counts);
+  }, 80);
+};
+
+/* ── Task Validation tab ── */
+window.refreshTaskValidation = function(users, programs) {
+  users = users || []; programs = programs || [];
+  var items = [];
+  users.forEach(function(u) {
+    (u.pendingValidation || []).forEach(function(pid) {
+      var prog = programs.find(function(p){return p.id===pid;});
+      items.push({user:u, programId:pid, prog:prog});
+    });
+  });
+  var el = document.getElementById('taskValidationList');
+  if (!el) return;
+  if (!items.length) {
+    el.innerHTML = '<div class="ad-val-empty">No tasks pending validation.</div>';
+    return;
+  }
+  el.innerHTML = items.map(function(item) {
+    var u = item.user, prog = item.prog;
+    var title = prog ? (prog.name||prog.title||item.programId) : item.programId;
+    var hours = prog ? (prog.hours||0) : 0;
+    var submitted = u.updatedAt ? new Date(u.updatedAt).toLocaleDateString() : 'Recently';
+    return '<div class="ad-val-row">'
+      + '<div class="ad-val-user"><div class="ad-val-avatar"></div><span>'+u.name+'</span></div>'
+      + '<span>'+title+'</span>'
+      + '<span>'+hours+' Hours</span>'
+      + '<span>'+submitted+'</span>'
+      + '<div style="display:flex;flex-direction:column;gap:6px;">'
+      +   '<button class="approve-btn" onclick="approveTaskValidation(\''+item.programId+'\',\''+u.id+'\')">APPROVE</button>'
+      +   '<button class="reject-btn" onclick="rejectTaskValidation(\''+item.programId+'\',\''+u.id+'\')">REJECT</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+};
+
+/* ── Barangay tag UI ── */
+var barangayList = [];
+function syncBarangayInput() {
+  document.getElementById('validBarangays').value = barangayList.length ? barangayList.join(',') : 'All';
+}
+function addBarangayTag() {
+  var inp = document.getElementById('barangayInput');
+  var val = inp.value.trim();
+  if (!val || barangayList.includes(val)) { inp.value=''; return; }
+  barangayList.push(val);
+  inp.value = '';
+  renderBarangayTags();
+  syncBarangayInput();
+}
+function removeBarangayTag(name) {
+  barangayList = barangayList.filter(function(b){return b!==name;});
+  renderBarangayTags();
+  syncBarangayInput();
+}
+function renderBarangayTags() {
+  var el = document.getElementById('barangayTags');
+  if (!el) return;
+  el.innerHTML = barangayList.map(function(b){
+    return '<span class="ad-tag">'+b+'<button onclick="removeBarangayTag(\''+b+'\')" class="ad-tag__remove">×</button></span>';
+  }).join('');
+}
+window.addBarangayTag = addBarangayTag;
+window.removeBarangayTag = removeBarangayTag;
+
+/* Bridge showTab for settings/notifications/logs/restrictions/skills */
+window.showTab = function(name) {
+  var map = {notifications:'settings',logs:'settings',restrictions:'settings',skills:'settings'};
+  showAdminTab(map[name] || name);
+};
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script type="module" src="js/admin.js"></script>
+
+<script type="module">
+  import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+  import firebaseConfig from "./js/firebaseConfig.js";
+
+  const ADMIN_EMAIL = 'admin@test.local';
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const gate = document.getElementById('authLoadingGate');
+  const content = document.getElementById('appContent');
+
+  function show() { 
+    console.log('[admin.html] Showing app content');
+    gate.style.display = 'none'; 
+    content.style.display = 'block'; 
+  }
+  function deny() { 
+    console.log('[admin.html] Denying access, redirecting to login');
+    window.location.href = 'admin-login.html'; 
+  }
+
+  // Instant reveal if sessionStorage flag already set (plain-JS login flow)
+  if (sessionStorage.getItem('adminAuth') === 'true') { 
+    console.log('[admin.html] Session storage flag found, showing app');
+    show(); 
+  }
+
+  // Firebase Auth observer — covers live hosting where sessionStorage may be absent
+  console.log('[admin.html] Setting up auth state listener');
+  onAuthStateChanged(auth, (user) => {
+    console.log('[admin.html] Auth state changed:', user ? `${user.email}` : 'null');
+    if (user && user.email === ADMIN_EMAIL) {
+      sessionStorage.setItem('adminAuth', 'true');
+      show();
+    } else if (user) {
+      // Logged in but not admin — redirect
+      console.log('[admin.html] User logged in but not admin:', user.email);
+      deny();
+    } else if (sessionStorage.getItem('adminAuth') === 'true') {
+      // No Firebase user but session flag still valid — stay shown
+      show();
+    } else {
+      // Guest with no session — redirect to login
+      console.log('[admin.html] No auth and no session flag');
+      deny();
+    }
+  });
+
+  setTimeout(() => {
+    if (gate.style.display !== 'none') {
+      console.warn('[admin.html] auth state unresolved after 5s; redirecting to login');
+      deny();
+    }
+  }, 5000);
+</script>
+</div>
+</body>
+</html>

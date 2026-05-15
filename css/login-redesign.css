@@ -1,0 +1,405 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+:root{
+    --green:#81985a;
+    --green-dark:#546B41;
+    --cream:#F7F5EF;
+    --panel:rgba(247,245,239,0.88);
+    --field:#c8d2b3;
+    --stroke:#a8b397;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:
+        url("../assets/images/landing-background.png") center/cover no-repeat,
+        #f7f5ef;
+    color:var(--green-dark);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+}
+
+/* NAVBAR */
+.navbar{
+    height:82px;
+    background:var(--green);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 48px;
+}
+
+.nav-left,
+.nav-right{
+    display:flex;
+    align-items:center;
+    gap:28px;
+}
+
+.nav-site-name{
+    color:#fff;
+    text-decoration:none;
+    font-size:1.8rem;
+    font-weight:700;
+}
+
+.nav-links{
+    display:flex;
+    list-style:none;
+    gap:30px;
+}
+
+.nav-links a{
+    color:white;
+    text-decoration:none;
+    font-weight:500;
+}
+
+.nav-auth-link{
+    padding:10px 24px;
+    border:2px solid rgba(255,255,255,.45);
+    border-radius:999px;
+    color:white;
+    text-decoration:none;
+    font-weight:500;
+}
+
+/* MAIN LAYOUT */
+.pageShell{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:60px 24px;
+}
+
+.loginLayout{
+    width:100%;
+    max-width:1200px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:60px;
+    align-items:center;
+}
+
+/* LEFT BRAND PANEL */
+.loginBrand{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+
+.loginBrand img{
+    width:280px;
+    max-width:100%;
+}
+
+.loginBrand p{
+    margin-top:20px;
+    font-size:2rem;
+    font-style:italic;
+    color:var(--green-dark);
+}
+
+/* FORM PANEL */
+.formPage{
+    background:rgba(247,245,239,0.82);
+    border:1px solid rgba(168,179,151,.35);
+    border-radius:28px;
+    padding:42px;
+    backdrop-filter:blur(6px);
+    box-shadow:0 12px 32px rgba(0,0,0,.08);
+}
+
+.backLink{
+    display:none;
+}
+
+.pageTitle h2{
+    font-size:3rem;
+    font-weight:800;
+    color:var(--green-dark);
+    margin-bottom:8px;
+}
+
+.pageTitle p{
+    color:#607052;
+    margin-bottom:28px;
+}
+
+.fieldRow{
+    margin-bottom:18px;
+}
+
+input{
+    width:100%;
+    padding:18px 20px;
+    border-radius:16px;
+    border:2px solid var(--stroke);
+    background:var(--field);
+    font-size:1rem;
+    font-family:'Poppins',sans-serif;
+}
+
+.rememberForgotRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+}
+
+.linkButton{
+    background:none;
+    border:none;
+    color:var(--primary);
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+    font:inherit;
+}
+
+.modalOverlay{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,0.45);
+    z-index:1000;
+}
+
+.modalContent{
+    width:min(100%,440px);
+    background:#ffffff;
+    border-radius:24px;
+    padding:28px;
+    box-shadow:0 24px 60px rgba(15,23,42,0.18);
+    color:#0f172a;
+}
+
+.modalContent h3{
+    margin:0 0 12px;
+    font-size:1.2rem;
+}
+
+.modalContent p{
+    margin:0 0 18px;
+    color:#475569;
+    line-height:1.5;
+}
+
+.modalContent input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:14px;
+    border:2px solid var(--stroke);
+    background:var(--field);
+    font-size:1rem;
+    margin-bottom:16px;
+}
+
+.modalActions{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.modalMessage{
+    margin-top:14px;
+    color:#334155;
+    font-size:0.95rem;
+}
+
+.modalOverlay[hidden]{
+    display:none;
+}
+
+/* Remember Me Alignment Fix */
+.checkboxLabel{
+    display:flex;
+    align-items:center;
+    justify-content:flex-start;
+    gap:10px;
+    font-size:0.95rem;
+    color:#607052;
+    cursor:pointer;
+}
+
+.checkboxLabel input[type="checkbox"]{
+    width:18px;
+    height:18px;
+    margin:0;
+    accent-color:#546B41;
+    cursor:pointer;
+    flex-shrink:0;
+}
+
+.wideBtn{
+    width:100%;
+    padding:18px;
+    border:none;
+    border-radius:16px;
+    background:var(--green-dark);
+    color:white;
+    font-weight:700;
+    font-size:1rem;
+    cursor:pointer;
+}
+
+.divider{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    margin:22px 0;
+    color:#7a866d;
+}
+
+.divider::before,
+.divider::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:#b8c1aa;
+}
+
+.btn-google{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:16px;
+    background:white;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    cursor:pointer;
+}
+
+/* FOOTER */
+.site-footer{
+    background:var(--green);
+    color:white;
+    padding:42px 70px;
+}
+
+.footer-grid{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr 1fr;
+    gap:40px;
+    align-items:start;
+}
+
+.footer-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    font-size:1.5rem;
+    font-weight:700;
+    margin-bottom:18px;
+}
+
+.footer-brand img{
+    width:42px;
+    height:42px;
+    object-fit:contain;
+}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+    .loginLayout{
+        grid-template-columns:1fr;
+    }
+
+    .loginBrand{
+        display:none;
+    }
+}
+
+/* =========================
+   AUTH NAVBAR
+========================= */
+.auth-navbar{
+    height:82px;
+    background:#81985a;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 32px;
+}
+
+.auth-brand{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    text-decoration:none;
+    color:white;
+    font-size:1.9rem;
+    font-weight:700;
+}
+
+.auth-brand img{
+    width:48px;
+    height:48px;
+    object-fit:contain;
+}
+
+.auth-register-prompt{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:1.35rem;
+    color:white;
+}
+
+.auth-register-prompt span{
+    font-weight:400;
+}
+
+.auth-register-prompt a{
+    color:white;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.auth-register-prompt a:hover{
+    text-decoration:underline;
+}
+
+/* =========================
+   BIGGER LEFT BRANDING
+========================= */
+.loginBrand img{
+    width:420px;
+    max-width:100%;
+    object-fit:contain;
+}
+
+.loginBrand p{
+    margin-top:24px;
+    font-size:2.35rem;
+    font-style:italic;
+    color:#546B41;
+}
+
+.site-footer a,
+.site-footer a:visited,
+.site-footer a:active {
+    color: white;
+    text-decoration: none;
+}
+
+.site-footer a:hover {
+    color: #F7F5EF;
+    text-decoration: underline;
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipts - User</title>
+    <link rel="stylesheet" href="../../css/styles.css">
+    <link rel="stylesheet" href="../../css/receipts.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="receipts-page auth-pending">
+
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session</div>
+<div id="appContent">
+
+    <nav class="navbar">
+        <div class="nav-left">
+            <div class="nav-logo-circle"></div>
+            <a class="nav-site-name" href="../../index.html">GrowsauYOU</a>
+            <div class="brand-container">
+                <div class="brand-highlight">
+                    <i class="fas fa-seedling"></i>
+                    <span>GROW TOOLGETHER</span>
+                </div>
+                <div class="brand-dropdown">
+    <a href="../overview.html" class="side-item"><i class="fas fa-clipboard-list"></i> OVERVIEW</a>
+    <a href="../../hereramin/index.html" class="side-item"><i class="fas fa-hand-holding"></i> HERE-RAMIN</a>
+    <a href="user.html" class="side-item active"><i class="fas fa-receipt"></i> RECEIPTS</a>
+</div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../greencommunity/index.html" class="active-link">GREEN COMMUNITY</a></li>
+                <li><a href="../../i-tanim/user.html" class="active-link">I-TANIM</a></li>
+            </ul>
+        </div>
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="../i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+
+    <a class="subpage-back" href="../../index.html">Back</a>
+
+    <main class="receipts-shell">
+        <h1 class="receipts-title">Borrowing - Page</h1>
+        <div class="receipts-role-switch">
+            <span class="role-chip active">User View</span>
+        </div>
+
+        <section class="receipts-card">
+            <div class="receipts-tabs">
+                <button type="button" class="tab-btn active" data-tab="borrowing">Borrowing</button>
+                <button type="button" class="tab-btn" data-tab="returned">Returned</button>
+                <button type="button" class="tab-btn" data-tab="borrow-again">Borrow Again</button>
+            </div>
+
+            <div id="receiptsList"></div>
+        </section>
+    </main>
+
+    <script type="module" src="../../js/receipts-user.js"></script>
+    <script type="module" src="../../js/navbar-auth.js"></script>
+
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.remove('auth-pending');
+  });
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

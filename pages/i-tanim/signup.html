@@ -1,0 +1,270 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowSauYOU | Register</title>
+
+    <link rel="stylesheet" href="../../css/landing.css">
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/signup-redesign.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="auth-pending auth-pending">
+
+    <!-- AUTH NAVBAR -->
+    <nav class="auth-navbar">
+        <a href="../../index.html" class="auth-brand">
+            <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+            <span>GrowSauYOU</span>
+        </a>
+
+        <div class="auth-nav-right">
+            <span>Already have an account?</span>
+            <a href="login.html">Login</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="signup-wrapper">
+
+        <!-- LEFT BRANDING -->
+        <section class="signup-brand">
+            <img src="../../assets/images/main-logo-green.png" alt="GrowSauYOU Logo">
+            <p>Growth starts with you</p>
+        </section>
+
+        <!-- FORM CARD -->
+        <section class="signup-card">
+            <h1>Volunteer Registration</h1>
+            <p class="signup-subtitle">
+                Create your account and start volunteering with our barangay programs.
+            </p>
+
+            <form onsubmit="return false;">
+
+                <div class="form-row two-col">
+                    <input type="text" id="fname" placeholder="First Name">
+                    <input type="text" id="lname" placeholder="Last Name">
+                </div>
+
+                <div class="form-row">
+                    <input type="text" id="age" placeholder="Age">
+                </div>
+
+                <div class="form-row">
+                    <input type="text" id="address" placeholder="Address">
+                </div>
+
+                <div class="form-row two-col">
+                    <input type="email" id="email" placeholder="Email Address">
+                    <input type="password" id="pass" placeholder="Password">
+                </div>
+
+                <div class="form-row">
+                    <select id="skillCategory">
+                        <option selected disabled>Select Skill Category</option>
+                        <option>Urban Gardening</option>
+                        <option>Community Outreach</option>
+                        <option>Waste Management</option>
+                        <option>Construction Support</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <textarea id="otherSkills" rows="4" placeholder="Other Specific Skills"></textarea>
+                </div>
+
+                <button type="button" class="register-btn" id="reg-btn">
+                    REGISTER NOW
+                </button>
+
+            </form>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>Â© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="../../aboutus.html">Barangay</a>
+      <a href="../../aboutus.html">Community</a>
+      <a href="aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="../../contactus.html">7 - 3694 - 382</a>
+      <a href="../../contactus.html">7 - 3699 - 156</a>
+      <a href="contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+import {
+    getFirestore,
+    doc,
+    setDoc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+import firebaseConfig from "../../js/firebaseConfig.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+async function validateRegistrationRestrictions(age, address) {
+    try {
+        const adminState = await getDoc(doc(db, 'admin', 'state'));
+        if (!adminState.exists()) return { ok: true };
+
+        const restrictions = adminState.data()?.restrictions || {};
+        const minAge = Number(restrictions.minAge || 0);
+        const validBarangaysRaw = String(restrictions.validBarangays || 'All').trim();
+
+        const validBarangays = validBarangaysRaw.toLowerCase() === 'all'
+            ? []
+            : validBarangaysRaw
+                .replace(/\s*[,;]\s*/g, ',')
+                .split(',')
+                .map(item => item.trim().toLowerCase())
+                .filter(Boolean)
+                .flatMap(item => item.split(/\s+/));
+
+        const ageNumber = Number(age);
+
+        if (minAge > 0 && ageNumber < minAge) {
+            return { ok: false, message: `Registration is restricted to age ${minAge} and above.` };
+        }
+
+        if (validBarangays.length > 0) {
+            const addressLower = String(address || '').toLowerCase();
+            const isSauyoAddress = addressLower.includes('sauyo');
+            const matchesAnyBarangay = validBarangays.some(barangay =>
+                addressLower.includes(barangay)
+            );
+
+            if (!matchesAnyBarangay && !isSauyoAddress) {
+                return {
+                    ok: false,
+                    message: `Address is outside allowed barangays: ${Array.from(new Set(validBarangays)).join(', ')}`
+                };
+            }
+        }
+
+        return { ok: true };
+
+    } catch {
+        return { ok: true };
+    }
+}
+
+document.getElementById("reg-btn").onclick = async () => {
+    const email = document.getElementById("email").value.trim();
+    const pass = document.getElementById("pass").value;
+    const fname = document.getElementById("fname").value.trim();
+    const lname = document.getElementById("lname").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const age = document.getElementById("age").value.trim();
+    const skillCategory = document.getElementById("skillCategory").value;
+    const otherSkills = document.getElementById("otherSkills").value.trim();
+
+    if (!fname || !lname || !email || !pass || !address || !age || !skillCategory) {
+        alert("Please complete all required fields before registering.");
+        return;
+    }
+
+    if (pass.length < 6) {
+        alert("Password must be at least 6 characters.");
+        return;
+    }
+
+    const restrictionCheck = await validateRegistrationRestrictions(age, address);
+    if (!restrictionCheck.ok) {
+        alert(restrictionCheck.message);
+        return;
+    }
+
+    try {
+        const existingMethods = await fetchSignInMethodsForEmail(auth, email);
+
+        if (existingMethods?.length > 0) {
+            alert("An account already exists with this email.");
+            return;
+        }
+
+        const res = await createUserWithEmailAndPassword(auth, email, pass);
+
+        await setDoc(doc(db, "volunteers", res.user.uid), {
+            firstName: fname,
+            lastName: lname,
+            email,
+            age,
+            address,
+            skillCategory,
+            otherSkills,
+            status: "pending",
+            role: "user",
+            volunteerID: "ITNM-" + res.user.uid.substring(0, 5).toUpperCase(),
+            createdAt: new Date().toISOString(),
+            hours: 0,
+            enrolledPrograms: [],
+            completedPrograms: [],
+            pendingValidation: []
+        });
+
+        window.location.href = "user.html";
+
+    } catch (e) {
+        alert(`Signup failed: ${e.message}`);
+    }
+};
+</script>
+
+<script type="module" src="../../js/navbar-auth.js"></script>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.remove('auth-pending');
+  });
+</script>
+</body>
+</html>
+

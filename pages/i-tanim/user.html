@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowsauYOU | User Dashboard</title>
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/user.css">
+    <link rel="stylesheet" href="../../css/footer.css">
+</head>
+<body class="auth-pending itanim-user">
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session…</div>
+<div id="appContent">
+
+<!-- ── Topbar ── -->
+<!-- ───────────────── NAVBAR ───────────────── -->
+<header class="main-navbar">
+
+  <div class="navbar-left">
+    <a href="../../index.html" class="navbar-brand">
+      <img src="../../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+      <span>GrowSauYou</span>
+    </a>
+  </div>
+
+  <nav class="navbar-center">
+    <a href="../../index.html">Home</a>
+
+    <a href="index.html" class="active">
+      I-Tanim
+    </a>
+
+    <a href="../../hereramin/index.html">
+      Here-Ramin
+    </a>
+
+    <a href="../greencommunity/main.html">
+      Green Community
+    </a>
+  </nav>
+
+  <div class="navbar-right">
+    <a href="login.html" class="logout-btn">
+      Logout
+    </a>
+  </div>
+
+</header>
+
+<!-- ── App shell: sidebar + main ── -->
+<div class="ud-shell">
+
+  <!-- Sidebar -->
+  <aside class="ud-sidebar">
+    <nav class="ud-sidenav">
+      <a href="index.html" class="ud-sidenav__item" title="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </a>
+      <a href="#" class="ud-sidenav__item ud-sidenav__item--active" data-tab="overview" onclick="showTab('overview');return false;" title="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      <a href="#" class="ud-sidenav__item" data-tab="analytics" onclick="showTab('analytics');return false;" title="Analytics">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </a>
+      <a href="#" class="ud-sidenav__item" data-tab="programs" onclick="showTab('programs');return false;" title="Programs">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="ud-main">
+    
+    <!-- Pending / Rejected status banner -->
+    <div id="pendingStatusBanner" style="display:none; background:color-mix(in srgb,#b8860b 15%,var(--cream)); border:1px solid #b8860b; color:#7a5800; border-radius:12px; padding:12px 18px; margin-bottom:20px; font-family:'Montserrat',sans-serif; font-size:0.88rem; font-weight:600;"></div>
+
+    <!-- ══ TAB: OVERVIEW (Welcome / Profile) ══ -->
+    <section class="ud-tab active" id="tab-overview">
+
+      <div class="ud-page-header">
+        <p class="ud-welcome-label" id="welcomeMessage">Welcome, User!</p>
+        <h1 class="ud-page-title">PROFILE</h1>
+      </div>
+
+      <!-- Row 1: Profile + Status -->
+      <div class="ud-row ud-row--2col">
+        <div class="ud-card">
+          <span class="ud-card__label">Profile</span>
+          <p class="ud-card__name" id="profileName">UserName</p>
+          <p class="ud-card__sub" id="profileId">ID#</p>
+        </div>
+        <div class="ud-card">
+          <span class="ud-card__label">Status</span>
+          <p class="ud-card__status" id="profileStatus">APPROVED</p>
+          <p class="ud-card__sub" id="profileStatusDesc">This account is active and in good standing</p>
+        </div>
+      </div>
+
+      <!-- Row 2: Badge + Hours + Programs -->
+      <div class="ud-row ud-row--3col">
+        <div class="ud-card ud-card--badge">
+          <span class="ud-card__label">Badge Level</span>
+          <div class="ud-badge-display">
+            <div>
+              <p class="ud-card__name" id="badgeLevelText">Level: Bronze</p>
+            </div>
+            <div class="ud-badge-medal" id="badgeMedalIcon">🥉</div>
+          </div>
+        </div>
+        <div class="ud-card ud-card--stat">
+          <span class="ud-card__label">Total Hours:</span>
+          <p class="ud-stat-big" id="totalHours">0</p>
+          <p class="ud-stat-unit">HOURS</p>
+        </div>
+        <div class="ud-card ud-card--stat">
+          <span class="ud-card__label">Programs Joined:</span>
+          <p class="ud-stat-big" id="enrolledPrograms">0</p>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="ud-card ud-card--progress">
+        <span class="ud-card__label">Progress to next badge:</span>
+        <div class="ud-progress-row">
+          <div class="ud-progress-bar-wrap">
+            <div class="ud-progress-bar" id="badgeProgressBar" style="width:0%"></div>
+          </div>
+          <span class="ud-progress-pct" id="badgeProgressPct">0%</span>
+          <span class="ud-progress-medal" id="badgeNextMedal">🥈</span>
+        </div>
+        <p class="ud-progress-hint" id="badgeProgressHint">— more hours to reach next level</p>
+      </div>
+
+      <!-- Row 3: Hours chart + Recent programs -->
+      <div class="ud-row ud-row--2col">
+        <div class="ud-card">
+          <span class="ud-card__label">Hours this week:</span>
+          <canvas id="hoursWeekChart" class="ud-chart-canvas" height="140"></canvas>
+        </div>
+        <div class="ud-card">
+          <span class="ud-card__label">Recent Program Joined:</span>
+          <div id="recentProgramsList" class="ud-recent-list">
+            <p class="ud-empty">No programs joined yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="password-settings" style="margin-top: 20px;">
+        <h4>Account Settings</h4>
+        <input type="password" id="newPasswordInput" placeholder="New Password (min 6 chars)">
+        <button onclick="changeUserPassword()">Update Password</button>
+      </div>
+
+    </section>
+
+    <!-- ══ TAB: ANALYTICS / MY DASHBOARD ══ -->
+    <section class="ud-tab" id="tab-analytics">
+
+      <h1 class="ud-page-title" id="analyticsTitle">USERNAME | MY DASHBOARD</h1>
+
+      <!-- Top 3 stat cards with icons -->
+      <div class="ud-row ud-row--3col">
+        <div class="ud-card ud-card--stat">
+          <span class="ud-card__icon">📋</span>
+          <span class="ud-card__label">Tasks Completed</span>
+          <p class="ud-stat-big" id="badgesEarned">0</p>
+        </div>
+        <div class="ud-card ud-card--stat">
+          <span class="ud-card__icon">📜</span>
+          <span class="ud-card__label">Certificates Earned</span>
+          <p class="ud-stat-big" id="certificationsCount">0</p>
+        </div>
+        <div class="ud-card ud-card--stat">
+          <span class="ud-card__icon">⏱</span>
+          <span class="ud-card__label">Hours Rendered</span>
+          <p class="ud-stat-big" id="analyticsHours">0</p>
+        </div>
+      </div>
+
+      <!-- Cert eligibility rows (rendered by refreshDashboardWidgets) -->
+      <div id="userCertificationsList" class="ud-cert-rows certifications-list"></div>
+
+      <!-- FOR YOU + LEADERBOARD -->
+      <div class="ud-row ud-row--foryou">
+        <div>
+          <h2 class="ud-section-title">FOR YOU</h2>
+          <div id="forYouList" class="ud-foryou-grid"></div>
+        </div>
+        <div class="ud-card ud-leaderboard">
+          <div class="ud-leaderboard__head">
+            <span class="ud-card__label" style="margin:0;">LEADERBOARD</span>
+            <a href="#" class="ud-leaderboard__seeall">See All</a>
+          </div>
+          <div id="leaderboardList" class="ud-leaderboard__list">
+            <div class="ud-lb-item">
+              <div class="ud-lb-avatar"></div>
+              <span class="ud-lb-name">—</span>
+              <span class="ud-lb-hours">0 hrs</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══ TAB: PROGRAMS (task list) ══ -->
+    <section class="ud-tab" id="tab-programs">
+
+      <h1 class="ud-page-title" id="programsTitle">USERNAME | TASK LIST</h1>
+
+      <!-- Available programs — card + JOIN/REGISTERED button layout -->
+      <div id="availableProgramsList" class="ud-tasklist programs-list"></div>
+
+      <!-- My joined programs table -->
+      <h2 class="ud-section-title">MY TASKS:</h2>
+      <div class="ud-card ud-card--table">
+        <div class="ud-table-head">
+          <span>TASK LIST</span>
+          <span>STATUS</span>
+        </div>
+        <div id="enrolledProgramsList" class="programs-list ud-table-body"></div>
+      </div>
+
+      <!-- Hidden cert form — kept for user.js -->
+      <div style="display:none;">
+        <select id="certProgramSelect"><option value="">Select completed program</option></select>
+        <textarea id="certRequestReason"></textarea>
+        <textarea id="certProofDetails"></textarea>
+        <button id="requestCertButton">Request Certification</button>
+      </div>
+
+    </section>
+
+    <!-- ══ SHARED: Skills, Badges, Notifications (hidden sections kept for JS) ══ -->
+    <div style="display:none;">
+      <div id="userSkillsList" class="skills-list"></div>
+      <div id="userBadgesList" class="badges-list"></div>
+      <div id="userNotificationsList" class="notifications-list"></div>
+      <select id="skillSelect">
+        <option value="" disabled selected>Loading skills…</option>
+      </select>
+      <button id="addSkillButton">Add Skill</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Program Detail Modal ── -->
+<div id="userProgramDetailModal" style="
+    display:none; position:fixed; inset:0;
+    background:rgba(84,107,65,0.7); backdrop-filter:blur(10px);
+    justify-content:center; align-items:center; z-index:9999;">
+  <div style="
+      background:rgba(255,248,236,0.97); padding:24px; border-radius:18px;
+      width:min(460px,92%); border:1px solid rgba(84,107,65,0.2); position:relative;">
+    <button onclick="closeUserProgramModal()" style="
+        position:absolute; top:12px; right:12px; width:30px; height:30px;
+        border-radius:50%; border:1px solid rgba(84,107,65,0.3);
+        background:rgba(255,255,255,0.7); cursor:pointer; font-size:16px;">×</button>
+    <h3 id="userProgramDetailTitle" style="margin:0 0 8px;">Program Title</h3>
+    <p id="userProgramDetailDesc" style="margin:0 0 12px; opacity:0.85;">Program description</p>
+    <p style="margin:0 0 6px;"><strong>Hours:</strong> <span id="userProgramDetailHours"></span></p>
+    <p style="margin:0 0 6px;"><strong>Date:</strong> <span id="userProgramDetailDate"></span></p>
+    <p style="margin:0 0 6px;"><strong>Location:</strong> <span id="userProgramDetailLocation"></span></p>
+    <p style="margin:0 0 4px;"><strong>Status:</strong> <span id="userProgramDetailStatus"></span></p>
+  </div>
+</div>
+<!-- FOOTER -->
+<footer class="site-footer">
+
+<div class="footer-grid">
+
+<div>
+
+<div class="footer-brand">
+
+<img
+src="../../../assets/images/main-logo.png"
+alt="GrowSauYOU Logo"
+>
+
+<span>GrowSauYOU</span>
+
+</div>
+
+<p>
+56 Old Sauyo Rd, Sauyo, Novaliches,
+<br>
+Quezon City, Metro Manila
+</p>
+
+<p>
+© 2026 SBCS-1B. All rights reserved
+</p>
+
+</div>
+
+<div>
+
+<h4>ABOUT US</h4>
+
+<a href="../../../aboutus.html">
+Barangay
+</a>
+
+<a href="../../../aboutus.html">
+Community
+</a>
+
+<a href="../../../aboutus.html">
+Developers
+</a>
+
+</div>
+
+<div>
+
+<h4>CONTACT US</h4>
+
+<a href="../../../contactus.html">
+7 - 3694 - 382
+</a>
+
+<a href="../../../contactus.html">
+7 - 3699 - 156
+</a>
+
+<a href="../../../contactus.html">
+barangaysauyo2013@gmail.com
+</a>
+
+</div>
+
+<div>
+
+<h4>FOLLOW US</h4>
+
+<div class="footer-socials">
+<i class="fab fa-instagram"></i>
+<i class="fab fa-facebook-f"></i>
+</div>
+
+</div>
+
+</div>
+
+</footer>
+<script>
+/* ── Tab switcher ── */
+function showTab(name) {
+  document.querySelectorAll('.ud-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.ud-sidenav__item[data-tab]').forEach(function(a) {
+    a.classList.toggle('ud-sidenav__item--active', a.dataset.tab === name);
+  });
+  var tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+}
+
+/* ── Vanilla line chart ── */
+function drawLineChart(canvasId, labels, data, color) {
+  var canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = canvas.offsetWidth || 300;
+  var H = canvas.height || 140;
+  canvas.width = W;
+  ctx.clearRect(0, 0, W, H);
+  var pad = { top: 12, right: 16, bottom: 28, left: 28 };
+  var cW = W - pad.left - pad.right;
+  var cH = H - pad.top - pad.bottom;
+  var max = Math.max.apply(null, data.concat([1]));
+  var step = cW / (data.length - 1 || 1);
+  ctx.strokeStyle = 'rgba(84,107,65,0.12)'; ctx.lineWidth = 1;
+  for (var g = 0; g <= 4; g++) {
+    var gy = pad.top + cH - (g / 4) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + cW, gy); ctx.stroke();
+  }
+  ctx.strokeStyle = color || '#546B41'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step, y = pad.top + cH - (v / max) * cH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = color || '#546B41';
+  data.forEach(function(v, i) {
+    var x = pad.left + i * step, y = pad.top + cH - (v / max) * cH;
+    ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.fillStyle = 'rgba(84,107,65,0.6)';
+  ctx.font = '9px Montserrat, sans-serif'; ctx.textAlign = 'center';
+  labels.forEach(function(l, i) { ctx.fillText(l, pad.left + i * step, H - 6); });
+}
+
+var DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+/* ── Main widget refresh — called by user.js via window.refreshDashboardWidgets ── */
+window.refreshDashboardWidgets = function(user, programsList) {
+  if (!user) return;
+  programsList = programsList || [];
+
+  /* Welcome heading */
+  var wEl = document.getElementById('welcomeMessage');
+  if (wEl) wEl.textContent = 'Welcome, ' + (user.fullName || user.name || 'User') + '!';
+
+  /* Profile card */
+  var nameEl = document.getElementById('profileName');
+  var idEl   = document.getElementById('profileId');
+  if (nameEl) nameEl.textContent = user.fullName || user.name || 'User';
+  if (idEl)   idEl.textContent   = user.volunteerID || ('GRW-' + String(user.id || '').substring(0, 5).toUpperCase());
+
+  /* Status card */
+  var statusEl = document.getElementById('profileStatus');
+  var descEl   = document.getElementById('profileStatusDesc');
+  if (statusEl) {
+    statusEl.textContent = (user.status || 'pending').toUpperCase();
+    statusEl.className = 'ud-card__status ud-card__status--' + (user.status || 'pending');
+  }
+  if (descEl) {
+    descEl.textContent = user.status === 'approved'
+      ? 'This account is active and in good standing'
+      : user.status === 'pending' ? 'Your application is under review'
+      : 'Account status: ' + (user.status || 'unknown');
+  }
+
+  /* Analytics / programs page titles */
+  var uname = user.fullName || user.name || 'USERNAME';
+  var aTitle = document.getElementById('analyticsTitle');
+  var pTitle = document.getElementById('programsTitle');
+  if (aTitle) aTitle.textContent = uname + ' | MY DASHBOARD';
+  if (pTitle) pTitle.textContent = uname + ' | TASK LIST';
+
+  /* Mirror hours to analytics tab */
+  var aHours = document.getElementById('analyticsHours');
+  if (aHours) aHours.textContent = user.hours || 0;
+
+  /* Badge level */
+  var hours = Number(user.hours || 0);
+  var badge, medal, nextBadge, nextHours, prevHours;
+  if (hours >= 100) { badge='Platinum'; medal='🏆'; nextBadge='MAX';      nextHours=0;   prevHours=100; }
+  else if (hours >= 50) { badge='Gold';    medal='🥇'; nextBadge='Platinum'; nextHours=100; prevHours=50;  }
+  else if (hours >= 25) { badge='Silver';  medal='🥈'; nextBadge='Gold';     nextHours=50;  prevHours=25;  }
+  else                  { badge='Bronze';  medal='🥉'; nextBadge='Silver';   nextHours=25;  prevHours=0;   }
+
+  var bText = document.getElementById('badgeLevelText');
+  var bMedal = document.getElementById('badgeMedalIcon');
+  if (bText)  bText.textContent  = 'Level: ' + badge;
+  if (bMedal) bMedal.textContent = medal;
+
+  /* Progress bar */
+  var pct = nextHours > 0
+    ? Math.min(100, Math.round(((hours - prevHours) / (nextHours - prevHours)) * 100))
+    : 100;
+  var bar    = document.getElementById('badgeProgressBar');
+  var pctEl  = document.getElementById('badgeProgressPct');
+  var hintEl = document.getElementById('badgeProgressHint');
+  var nMedal = document.getElementById('badgeNextMedal');
+  if (bar)    bar.style.width = pct + '%';
+  if (pctEl)  pctEl.textContent = pct + '%';
+  if (hintEl) hintEl.textContent = nextHours > 0
+    ? (nextHours - hours) + ' more hours to reach ' + nextBadge.toUpperCase()
+    : 'Maximum badge level reached!';
+  if (nMedal) nMedal.textContent = nextBadge === 'Silver' ? '🥈'
+    : nextBadge === 'Gold' ? '🥇' : nextBadge === 'Platinum' ? '🏆' : '🏆';
+
+  /* Charts */
+  var weekData = DAYS.map(function(_, i) {
+    return i < 6 ? Math.floor(hours / 7) : hours % 7;
+  });
+  setTimeout(function() {
+    drawLineChart('hoursWeekChart', DAYS, weekData, '#546B41');
+  }, 80);
+
+  /* Recent programs joined */
+  var recentEl = document.getElementById('recentProgramsList');
+  var enrolled = user.enrolledPrograms || [];
+  if (recentEl) {
+    if (!enrolled.length) {
+      recentEl.innerHTML = '<p class="ud-empty">No programs joined yet.</p>';
+    } else {
+      var recentPrograms = enrolled.slice(-3).reverse();
+      recentEl.innerHTML = recentPrograms.map(function(pid) {
+        var prog = programsList.find(function(p) { return p.id === pid; });
+        var title = prog ? (prog.title || prog.name || pid) : pid;
+        return '<div class="ud-recent-item">'
+          + '<strong class="ud-recent-name">' + title + '</strong>'
+          + '<span class="ud-recent-meta">Recently joined</span>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  /* Cert eligibility rows (analytics tab) */
+  var certRowsEl = document.getElementById('userCertificationsList');
+  if (certRowsEl) {
+    var completed = user.completedPrograms || [];
+    var joinedProgs = enrolled.slice(0, 3);
+    if (!joinedProgs.length) {
+      certRowsEl.innerHTML = '<p class="ud-empty" style="padding:16px 0;">No programs joined yet.</p>';
+    } else {
+      certRowsEl.innerHTML = joinedProgs.map(function(pid, idx) {
+        var prog = programsList.find(function(p) { return p.id === pid; });
+        var title = prog ? (prog.title || prog.name || pid) : pid;
+        var isComplete = completed.includes(pid);
+        var pctC = isComplete ? 100 : Math.min(99, Math.floor((hours / (nextHours || 25)) * 100));
+        var eligible = isComplete;
+        var ringColor = eligible ? '#2ec4b6' : '#e63946';
+        var r = 28, circ = +(2 * Math.PI * r).toFixed(2);
+        var dash = +((pctC / 100) * circ).toFixed(2);
+        return '<div class="ud-cert-row">'
+          + '<div class="ud-cert-row__info">'
+          +   '<strong class="ud-cert-row__title">TASK ' + (idx+1) + ' : ' + title.toUpperCase() + '</strong>'
+          +   '<span class="ud-cert-row__sub">Details &nbsp; Contact</span>'
+          + '</div>'
+          + '<div class="ud-cert-row__ring">'
+          +   '<svg width="72" height="72" viewBox="0 0 72 72">'
+          +     '<circle cx="36" cy="36" r="' + r + '" fill="none" stroke="#e0d9cc" stroke-width="7"/>'
+          +     '<circle cx="36" cy="36" r="' + r + '" fill="none" stroke="' + ringColor + '" stroke-width="7"'
+          +       ' stroke-dasharray="' + dash + ' ' + circ + '"'
+          +       ' stroke-linecap="round" transform="rotate(-90 36 36)"/>'
+          +     '<text x="36" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="' + ringColor + '">' + pctC + '%</text>'
+          +   '</svg>'
+          + '</div>'
+          + '<div class="ud-cert-row__status">'
+          +   '<span class="ud-cert-row__label">' + (eligible ? 'ELIGIBLE' : 'NOT ELIGIBLE') + '</span>'
+          +   '<button class="ud-cert-btn ' + (eligible ? 'ud-cert-btn--eligible' : 'ud-cert-btn--ineligible') + '">CERTIFICATE</button>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  /* For You programs */
+  var forYouEl = document.getElementById('forYouList');
+  if (forYouEl) {
+    var notJoined = programsList.filter(function(p) {
+      return !enrolled.includes(p.id);
+    }).slice(0, 4);
+    if (!notJoined.length) {
+      forYouEl.innerHTML = '<p class="ud-empty">No recommendations yet.</p>';
+    } else {
+      forYouEl.innerHTML = notJoined.map(function(p) {
+        var img = p.image || 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=300&q=70';
+        return '<div class="ud-foryou-card">'
+          + '<img src="' + img + '" alt="' + (p.title||'') + '" class="ud-foryou-img">'
+          + '<strong class="ud-foryou-name">' + (p.title || 'Program').toUpperCase() + '</strong>'
+          + '<span class="ud-foryou-sub">' + (p.desc || p.description || '').substring(0, 50) + '</span>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  /* Leaderboard */
+  function normalizeDisplayName(name, maxLength) {
+    var raw = String(name || '').trim().replace(/\s+/g, ' ');
+    if (!raw) return 'User';
+    if (!maxLength || raw.length <= maxLength) return raw;
+    return raw.slice(0, maxLength - 1).trimEnd() + '…';
+  }
+
+  var lbEl = document.getElementById('leaderboardList');
+  if (lbEl) {
+    var allUsers = [];
+    try { allUsers = JSON.parse(localStorage.getItem('itanimUsers') || '[]'); } catch(e) {}
+    // Filter out admin accounts - only show regular users
+    var regularUsers = allUsers.filter(function(u) {
+      var isAdmin = (u.role || '').toLowerCase() === 'admin' || (String(u.email || '').toLowerCase().includes('admin'));
+      return !isAdmin;
+    });
+    var sorted = regularUsers
+      .map(function(u) {
+        u.hours = Number(u.hours || 0);
+        return u;
+      })
+      .sort(function(a,b) { return b.hours - a.hours; })
+      .slice(0,3);
+    var fallbackUser = typeof user !== 'undefined' ? user : null;
+    lbEl.innerHTML = (sorted.length ? sorted : (fallbackUser ? [fallbackUser] : [])).map(function(u) {
+      return '<div class="ud-lb-item">'
+        + '<div class="ud-lb-avatar"></div>'
+        + '<span class="ud-lb-name">' + normalizeDisplayName(u.fullName || u.name || u.email || 'User', 24) + '</span>'
+        + '<span class="ud-lb-hours">🏆 ' + (Number(u.hours || 0)) + ' hrs</span>'
+        + '</div>';
+    }).join('');
+  }
+};
+
+window.addEventListener('resize', function() {
+  var user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+  if (user) window.refreshDashboardWidgets(user, typeof programs !== 'undefined' ? programs : []);
+});
+</script>
+
+<!-- Leaderboard "See All" Modal -->
+<div id="leaderboardModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:10000;">
+  <div style="background:var(--cream);border-radius:16px;width:min(500px,90%);max-height:80vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.15);border:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px;border-bottom:1px solid var(--border);">
+      <h2 style="margin:0;font-family:'Archivo Black',sans-serif;color:var(--primary);font-size:1.4rem;">LEADERBOARD</h2>
+      <button onclick="document.getElementById('leaderboardModal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--primary);">×</button>
+    </div>
+    <div id="leaderboardModalList" style="overflow-y:auto;flex:1;padding:12px 0;">
+      <!-- Filled by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/user.js"></script>
+</div>
+</body>
+</html>
+

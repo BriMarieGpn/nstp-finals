@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowSauYou | Contact Us</title>
+    
+    <!-- Main Theme CSS -->
+    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/footer.css" />
+    <!-- Page Specific CSS -->
+    <link rel="stylesheet" href="pages/i-tanim/css/page.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-pending">
+
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session</div>
+<div id="appContent">
+
+    <!-- NAVBAR -->
+    <nav class="landing-navbar">
+        <div class="landing-nav-left">
+            <a href="index.html" class="brand">
+                <img src="assets/images/main-logo.png" alt="GrowSauYou Logo">
+                <span>GrowSauYou</span>
+            </a>
+
+            <div class="landing-links">
+                <a href="index.html">Home</a>
+                <a href="pages/i-tanim/user.html">I-Tanim</a>
+                <a href="hereramin/index.html">Here-Ramin</a>
+                <a href="pages/greencommunity/main/index.html">Green Community</a>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <a class="nav-auth-link" href="pages/i-tanim/login.html">Login</a>
+            <a class="nav-auth-link" href="pages/i-tanim/signup.html">Register</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="page-hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Contact Us</h1>
+            <p>We are here to help. Reach out for emergencies or inquiries.</p>
+        </div>
+    </section>
+
+    <!-- EMERGENCY SECTION -->
+    <section class="emergency-section">
+        <div class="container">
+            <div class="emergency-header">
+                <i class="fas fa-ambulance"></i>
+                <h2>Emergency Hotlines</h2>
+                <p>In case of urgent situations, please contact the following numbers immediately.</p>
+            </div>
+
+            <div class="emergency-grid">
+                <div class="emergency-card">
+                    <div class="icon-circle red"><i class="fas fa-phone-alt"></i></div>
+                    <h3>Police / Disaster</h3>
+                    <a href="tel:911">911</a>
+                    <span>National Emergency</span>
+                </div>
+
+                <div class="emergency-card">
+                    <div class="icon-circle red"><i class="fas fa-fire-extinguisher"></i></div>
+                    <h3>Fire Department</h3>
+                    <a href="tel:160">160</a>
+                    <span>BFP Hotline</span>
+                </div>
+
+                <div class="emergency-card">
+                    <div class="icon-circle red"><i class="fas fa-first-aid"></i></div>
+                    <h3>Medical / Hospital</h3>
+                    <a href="tel:1555">1555</a>
+                    <span>Health Emergency</span>
+                </div>
+
+                <div class="emergency-card">
+                    <div class="icon-circle green"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Barangay Tanod</h3>
+                    <a href="tel:+639123456789">0912 345 6789</a>
+                    <span>Local Security</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REACH US SECTION -->
+    <section class="reach-section">
+        <div class="container">
+            <h2 class="section-title">Reach The Barangay</h2>
+            
+            <div class="contact-grid">
+                <!-- Admin Office -->
+                <div class="contact-card">
+                    <div class="card-header">
+                        <i class="fas fa-building"></i>
+                        <h3>Administration Office</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Landline:</strong> (02) 8-3694-382</p>
+                        <p><strong>Mobile:</strong> 0967-054-5117</p>
+                        <p><strong>Email:</strong> sauyo.prs@gmail.com</p>
+                        <p><strong>Hours:</strong> Mon - Fri, 8:00 AM - 5:00 PM</p>
+                    </div>
+                </div>
+
+                <!-- Secretariat -->
+                <div class="contact-card">
+                    <div class="card-header">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Secretariat</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Landline:</strong> (02) 8-3699-156</p>
+                        <p><strong>Mobile:</strong> 0918 765 4321</p>
+                        <p><strong>Email:</strong> secretariat@sauyo.gov.ph</p>
+                        <p><strong>Hours:</strong> Mon - Fri, 8:00 AM - 5:00 PM</p>
+                    </div>
+                </div>
+
+                <!-- Social Media -->
+                <div class="contact-card">
+                    <div class="card-header">
+                        <i class="fas fa-share-alt"></i>
+                        <h3>Social Media</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Send us a direct message for faster response on non-urgent matters.</p>
+                        <div class="social-links">
+                            <a href="https://www.facebook.com/share/18eGb9S4Ag/"><i class="fab fa-facebook-messenger"></i> Messenger</a>
+                            <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Placeholder -->
+            <div class="map-placeholder">
+                <iframe 
+                    width="100%" 
+                    height="400" 
+                    style="border:0; border-radius: 20px;" 
+                    loading="lazy" 
+                    allowfullscreen 
+                    src="https://maps.google.com/maps?q=Barangay%20Sauyo&t=&z=13&ie=UTF8&iwloc=&output=embed">
+                </iframe>
+            </div>
+        </div>
+    </section>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="aboutus.html">Barangay</a>
+      <a href="aboutus.html">Community</a>
+      <a href="aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="contactus.html">7 - 3694 - 382</a>
+      <a href="contactus.html">7 - 3699 - 156</a>
+      <a href="contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+</div>
+
+    <script src="js/pages.js"></script>
+    <script type="module" src="js/navbar-auth.js"></script>
+</div>
+
+</body>
+</html>

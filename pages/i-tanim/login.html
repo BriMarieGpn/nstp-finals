@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GrowsauYOU | Login</title>
+
+  <link rel="stylesheet" href="../../css/landing.css">
+  <link rel="stylesheet" href="../../css/footer.css" />
+  <link rel="stylesheet" href="../../css/login-redesign.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="itanim-page pageLogin auth-pending">
+
+<style>
+  #appContent { opacity: 1; transition: opacity 220ms ease; }
+  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
+  #authLoadingGate {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #fff8ec; color: #546b41; z-index: 9999;
+    font-weight: 700; letter-spacing: 0.2px;
+    opacity: 1; visibility: visible;
+    transition: opacity 220ms ease, visibility 220ms ease;
+  }
+  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
+</style>
+
+<div id="authLoadingGate">Checking session</div>
+<div id="appContent">
+
+<!-- UNIFIED NAVBAR -->
+<nav class="landing-navbar">
+  <div class="landing-nav-left">
+    <a href="../../index.html" class="brand">
+      <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+      <span>GrowSauYOU</span>
+    </a>
+
+    <div class="landing-links">
+      <a href="../../index.html">Home</a>
+      <a href="user.html">I-Tanim</a>
+      <a href="../../hereramin/index.html">Here-Ramin</a>
+      <a href="../greencommunity/main/index.html">Green Community</a>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <span>Want to be a volunteer?</span>
+    <a class="nav-auth-link" href="signup.html">Register Now</a>
+  </div>
+</nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="pageShell">
+    <div class="loginLayout">
+
+      <!-- LEFT BRAND PANEL -->
+      <div class="loginBrand">
+        <img src="../../assets/images/main-logo-green.png" alt="GrowSauYOU Logo">
+        <p>Growth starts with you</p>
+      </div>
+
+      <!-- RIGHT LOGIN FORM -->
+      <div class="formPage">
+
+        <div class="pageTitle compact">
+          <h2>Login</h2>
+          <p>Get notified and stay updated.</p>
+        </div>
+
+        <div id="authStatusBanner"
+             class="auth-status-banner"
+             style="display:none; padding:16px; margin-bottom:16px; background: rgba(255,248,236,0.12); border: 1px solid rgba(255,248,236,0.25); border-radius:16px; color:#FFF8EC;">
+          <p id="authStatusMessage" style="margin:0 0 12px 0;"></p>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button id="continueDashboardBtn" class="wideBtn" style="flex:1; min-width:120px;">
+              <i class="fa fa-house" style="margin-right:8px;"></i>Open Dashboard
+            </button>
+
+            <button id="signOutBtn" class="btn ghostBtn" style="flex:1; min-width:120px;">
+              <i class="fa fa-sign-out-alt" style="margin-right:8px;"></i>Sign out
+            </button>
+          </div>
+        </div>
+
+        <form id="loginForm" class="softPanel formPanel loginPanel" onsubmit="return false;">
+
+          <div class="fieldRow">
+            <input type="email" id="email" placeholder="Email Address" required>
+          </div>
+
+          <div class="fieldRow">
+            <input type="password" id="password" placeholder="Password" required>
+          </div>
+
+          <div class="fieldRow rememberForgotRow">
+            <label class="checkboxLabel">
+              <input type="checkbox" id="remember">
+              Remember me
+            </label>
+            <button type="button" id="forgotPasswordBtn" class="linkButton">Forgot password?</button>
+          </div>
+
+          <div class="fieldRow submitRow">
+            <button type="button" class="wideBtn" id="login-btn">
+              LOG IN
+            </button>
+          </div>
+
+          <div class="divider">OR</div>
+
+          <button type="button" class="btn-google" id="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                 width="20"
+                 alt="Google icon">
+            Sign in with Google
+          </button>
+
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div id="passwordResetModal" class="modalOverlay" hidden>
+    <div class="modalContent">
+      <h3>Reset password</h3>
+      <p>Enter the email address for your account and we'll send a reset link.</p>
+      <input id="resetEmailInput" type="email" placeholder="Email address" />
+      <div class="modalActions" style="display:flex; gap:10px; justify-content:flex-end;">
+        <button id="cancelResetBtn" type="button" class="btn ghostBtn" aria-label="Cancel password reset">
+          <i class="fa fa-times" style="margin-right:8px;"></i>Cancel
+        </button>
+        <button id="sendResetBtn" type="button" class="wideBtn" style="min-width:160px;">
+          <i class="fa fa-envelope" style="margin-right:8px;"></i>Send Reset Email
+        </button>
+      </div>
+      <p id="resetModalMessage" class="modalMessage"></p>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-grid">
+
+    <div>
+      <div class="footer-brand">
+        <img src="../../assets/images/main-logo.png" alt="GrowSauYOU Logo">
+        <span>GrowSauYOU</span>
+      </div>
+
+      <p>
+        56 Old Sauyo Rd, Sauyo, Novaliches,<br>
+        Quezon City, Metro Manila
+      </p>
+
+      <p>© 2026 SBCS-1B. All rights reserved</p>
+    </div>
+
+    <div>
+      <h4>ABOUT US</h4>
+      <a href="../../aboutus.html">Barangay</a>
+      <a href="../../aboutus.html">Community</a>
+      <a href="../../aboutus.html">Developers</a>
+    </div>
+
+    <div>
+      <h4>CONTACT US</h4>
+      <a href="../../contactus.html">7 - 3694 - 382</a>
+      <a href="../../contactus.html">7 - 3699 - 156</a>
+      <a href="../../contactus.html">barangaysauyo2013@gmail.com</a>
+    </div>
+
+    <div>
+      <h4>FOLLOW US</h4>
+      <div class="footer-socials">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook-f"></i>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+</div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.remove('auth-pending');
+    });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      signOut,
+      sendPasswordResetEmail,
+      fetchSignInMethodsForEmail,
+      setPersistence,
+      browserLocalPersistence,
+      browserSessionPersistence
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+    import firebaseConfig from "../../js/firebaseConfig.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    const authStatusBanner = document.getElementById('authStatusBanner');
+    const authStatusMessage = document.getElementById('authStatusMessage');
+    const continueDashboardBtn = document.getElementById('continueDashboardBtn');
+    const signOutBtn = document.getElementById('signOutBtn');
+    const loginForm = document.getElementById('loginForm');
+
+    function showLoginForm() {
+      authStatusBanner.style.display = 'none';
+      loginForm.style.display = 'block';
+    }
+
+    async function getVolunteerProfileByUidOrEmail(uid, email) {
+      if (uid) {
+        const userDoc = await getDoc(doc(db, 'volunteers', uid));
+        if (userDoc.exists()) return userDoc;
+      }
+
+      if (!email) return null;
+
+      const q = query(collection(db, 'volunteers'), where('email', '==', email));
+      const snap = await getDocs(q);
+
+      return snap.docs[0] || null;
+    }
+
+    async function ensureVolunteerProfile(user) {
+      const existing = await getVolunteerProfileByUidOrEmail(user.uid, user.email);
+      if (existing) return;
+
+      await setDoc(doc(db, 'volunteers', user.uid), {
+        email: user.email || '',
+        role: 'user',
+        status: 'approved',
+        createdAt: new Date().toISOString(),
+        hours: 0,
+        enrolledPrograms: [],
+        completedPrograms: []
+      });
+    }
+
+    function showSignedInBanner(user) {
+      loginForm.style.display = 'none';
+      authStatusBanner.style.display = 'block';
+
+      authStatusMessage.textContent =
+        `You are already signed in as ${user.email}. Redirected to the homepage.`;
+
+      continueDashboardBtn.onclick = () => {
+        window.location.href = '../../index.html';
+      };
+
+      signOutBtn.onclick = async () => {
+        await signOut(auth);
+        window.location.href = '../../index.html';
+      };
+    }
+
+    async function redirectToDashboard(user) {
+      await ensureVolunteerProfile(user);
+      window.location.href = '../../index.html';
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await ensureVolunteerProfile(user);
+        showSignedInBanner(user);
+      } else {
+        showLoginForm();
+      }
+    });
+
+    document.getElementById("login-btn").onclick = async () => {
+      try {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+        const isRemembered = document.getElementById("remember").checked;
+
+        await setPersistence(
+          auth,
+          isRemembered ? browserLocalPersistence : browserSessionPersistence
+        );
+
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        await redirectToDashboard(result.user);
+
+      } catch (error) {
+        console.error("Login Error:", error);
+        alert(error.message);
+      }
+    };
+
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    const resetEmailInput = document.getElementById('resetEmailInput');
+    const resetModalMessage = document.getElementById('resetModalMessage');
+    const cancelResetBtn = document.getElementById('cancelResetBtn');
+    const sendResetBtn = document.getElementById('sendResetBtn');
+
+    function openResetModal() {
+      resetEmailInput.value = document.getElementById('email').value.trim();
+      resetModalMessage.textContent = '';
+      sendResetBtn.disabled = false;
+      passwordResetModal.hidden = false;
+      resetEmailInput.focus();
+    }
+
+    function closeResetModal() {
+      passwordResetModal.hidden = true;
+      resetModalMessage.textContent = '';
+    }
+
+    document.getElementById("forgotPasswordBtn").onclick = openResetModal;
+    cancelResetBtn.onclick = closeResetModal;
+    passwordResetModal.onclick = (event) => {
+      if (event.target === passwordResetModal) {
+        closeResetModal();
+      }
+    };
+
+    sendResetBtn.onclick = async () => {
+      const email = resetEmailInput.value.trim();
+      if (!email) {
+        resetModalMessage.textContent = 'Please enter your email address.';
+        return;
+      }
+
+      try {
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+        if (!methods || methods.length === 0) {
+          resetModalMessage.textContent = 'No account was found for that email address.';
+          return;
+        }
+
+        await sendPasswordResetEmail(auth, email);
+        resetModalMessage.textContent = `A reset link has been sent to ${email}. Check your inbox.`;
+        sendResetBtn.disabled = true;
+        setTimeout(closeResetModal, 3000);
+      } catch (error) {
+        console.error('Password reset error:', error);
+        if (error.code === 'auth/invalid-email') {
+          resetModalMessage.textContent = 'Please enter a valid email address.';
+        } else {
+          resetModalMessage.textContent = error.message || 'Unable to send password reset email at this time.';
+        }
+      }
+    };
+
+    document.getElementById("google-btn").onclick = async () => {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        await redirectToDashboard(result.user);
+
+      } catch (error) {
+        console.error("Google Login Error:", error);
+        alert(error.message);
+      }
+    };
+  </script>
+
+</body>
+</html>
