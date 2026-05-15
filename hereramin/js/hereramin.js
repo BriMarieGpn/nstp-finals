@@ -189,7 +189,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         // Org form submission
         const orgSubmitBtn = document.getElementById("orgSubmitBtn");
         if (orgSubmitBtn) {
-            orgSubmitBtn.addEventListener("click", function() {
+            orgSubmitBtn.addEventListener("click", async function() {
                 const orgName = document.getElementById("orgName")?.value?.trim() || "";
                 const orgHead = document.getElementById("orgHead")?.value?.trim() || "";
                 
@@ -199,28 +199,55 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                 }
                 
                 // Collect org data and merge with borrow draft
-                const orgData = {
-                    ...stored,
-                    orgName,
-                    orgHead,
-                    borrowDate: document.getElementById("orgBorrowDate")?.value || "",
-                    returnDate: document.getElementById("orgReturnDate")?.value || "",
-                    submittedAt: new Date().toISOString(),
+                const record = {
+                    id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                     status: "pending",
-                    borrowType: "organization"
+                    borrowType: "organization",
+                    borrower: {
+                        orgName,
+                        orgHead
+                    },
+                    tool: {
+                        name: stored.toolName || '',
+                        quantity: stored.quantity || 1,
+                        image: stored.toolImage || ''
+                    },
+                    schedule: {
+                        borrowDate: document.getElementById("orgBorrowDate")?.value || "",
+                        returnDate: document.getElementById("orgReturnDate")?.value || ""
+                    },
+                    submittedAt: new Date().toISOString(),
+                    purpose: document.getElementById("borrowPurpose")?.value?.trim() || '',
+                    organization: {
+                        name: orgName,
+                        head: orgHead
+                    }
                 };
-                sessionStorage.setItem("growsauyou-org-submission", JSON.stringify(orgData));
-                
+                sessionStorage.setItem("growsauyou-org-submission", JSON.stringify(record));
+
+                if (useFirestore) {
+                    try {
+                        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
+                    } catch (error) {
+                        console.warn('Could not save organization borrow request to Firestore.', error);
+                        try {
+                            await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
+                        } catch (fallbackError) {
+                            console.error('Fallback Firestore save failed for organization borrow request.', fallbackError);
+                        }
+                    }
+                }
+
                 // Show pending state
                 const orgFormPage = document.getElementById("orgFormPage");
                 const pendingPage = document.getElementById("pendingPage");
                 if (orgFormPage) orgFormPage.classList.add("hidden");
                 if (pendingPage) pendingPage.classList.add("active");
-                
+
                 const ref = "GSY-ORG-" + Date.now().toString().slice(-8).toUpperCase();
                 const refText = document.getElementById("pendingRefText");
                 if (refText) refText.textContent = "Reference No: " + ref;
-                
+
                 // Scroll to top of panel
                 if (pendingPage) pendingPage.scrollIntoView({ behavior: "smooth", block: "start" });
             });

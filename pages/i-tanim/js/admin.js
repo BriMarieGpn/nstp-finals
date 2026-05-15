@@ -94,7 +94,7 @@ function getCachedRole(uid) {
 
 function renderAdminShell() {
     const fns = [updateDashboard, updateAnalytics, updateVolunteers, loadRestrictionsUI,
-                 updateSkills, updateBadges, updateCertifications, updateNotifications, updateHereRaminTools, updateHereRaminReceipts, updateHereRaminAnalytics];
+                 updateSkills, updateBadges, updateCertifications, updateNotifications, updateHereRaminTools, updateHereRaminReceipts, updateHereRaminAnalytics, updateOrgVerificationRecords, updateOrgVerificationAnalytics];
     fns.forEach(fn => { try { fn(); } catch(e) { console.warn('renderAdminShell:', fn.name, e); } });
     // Fetch live programs from Firestore on load
     fetchAndRenderPrograms().catch(() => {});
@@ -567,6 +567,7 @@ function updateTab(tabName) {
             case 'skills': updateSkills(); break;
             case 'programs': updateAccounts(); break;
             case 'hereramin': updateHereRaminTools(); updateHereRaminReceipts(); break;
+            case 'org-verification': updateOrgVerificationRecords(); updateOrgVerificationAnalytics(); break;
             case 'badges': updateBadges(); break;
             case 'certifications': updateCertifications(); break;
             case 'notifications': updateNotifications(); break;
@@ -589,6 +590,8 @@ const HERE_RAMIN_CATEGORIES = [
 const BORROW_REQUESTS_COLLECTION = 'borrow_requests';
 let hereRaminBorrowRecords = [];
 let hereRaminReceiptsUnsubscribe = null;
+let organizationVerifications = [];
+let orgVerificationsUnsubscribe = null;
 let hereRaminEditingToolId = null;
 let hereRaminUploadedImageDataUrl = '';
 
@@ -633,6 +636,9 @@ function normalizeBorrowRecord(record) {
         borrower: record.borrower || {},
         tool: record.tool || {},
         schedule: record.schedule || {},
+        purpose: record.purpose || '',
+        validIdImage: record.validIdImage || record.idImage || '',
+        signatureImage: record.signatureImage || '',
         createdAt: record.createdAt || new Date(0).toISOString(),
         archived: Boolean(record.archived),
         deleted: Boolean(record.deleted)
@@ -740,6 +746,7 @@ function updateHereRaminReceipts() {
             <span>${record.status.replace(/_/g, ' ')}</span>
             <span>${record.schedule?.returnDate || '-'}</span>
             <span style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="edit-btn" onclick="openBorrowDetail('${record.id}')">View</button>
                 <button class="archive-btn" onclick="updateHereRaminReceiptStatus('${record.id}','in_use')">In Use</button>
                 <button class="archive-btn" onclick="updateHereRaminReceiptStatus('${record.id}','return_pending')">Pending</button>
                 <button class="approve-btn" onclick="updateHereRaminReceiptStatus('${record.id}','return_approved')">Approve</button>
@@ -828,6 +835,188 @@ function listenToHereRaminReceipts() {
     );
 
     loadHereRaminReceiptsOnce();
+}
+
+// ── ORGANIZATION VERIFICATION FUNCTIONS ──
+function updateOrgVerificationRecords() {
+    const list = document.getElementById('orgVerificationList');
+    if (!list) return;
+
+    if (!organizationVerifications.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No organization verification requests yet.</div>';
+        return;
+    }
+
+    const rows = [...organizationVerifications]
+        .filter((record) => !record.deleted && !record.archived)
+        .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    if (!rows.length) {
+        list.innerHTML = '<div style="padding:14px 18px;opacity:0.6;font-family:\'Montserrat\',sans-serif;font-size:0.85rem;">No active organization requests.</div>';
+        return;
+    }
+    list.innerHTML = rows.map((record) => `
+        <div class="ad-task-row">
+            <span>${record.borrower?.orgName || record.organization?.name || 'Unknown'}</span>
+            <span>${record.borrower?.orgHead || record.organization?.head || '-'}</span>
+            <span>${record.status || 'pending'}</span>
+            <span>${record.submittedAt ? new Date(record.submittedAt).toLocaleDateString() : '-'}</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button class="edit-btn" onclick="openOrgVerificationDetail('${record.id}')">View</button>
+                <button class="approve-btn" onclick="updateOrgVerificationStatusDirect('${record.id}','approved')">Approve</button>
+                <button class="reject-btn" onclick="updateOrgVerificationStatusDirect('${record.id}','rejected')">Reject</button>
+                <button class="delete-btn" onclick="deleteOrgVerification('${record.id}')">Delete</button>
+            </span>
+        </div>
+    `).join('');
+}
+
+function updateOrgVerificationAnalytics() {
+    const total = organizationVerifications.length;
+    const pending = organizationVerifications.filter((record) => record.status === 'pending' || !record.status).length;
+    const approved = organizationVerifications.filter((record) => record.status === 'approved').length;
+
+    const totalEl = document.getElementById('orgTotalRequests');
+    const pendingEl = document.getElementById('orgPendingRequests');
+    const approvedEl = document.getElementById('orgApprovedRequests');
+
+    if (totalEl) totalEl.textContent = String(total);
+    if (pendingEl) pendingEl.textContent = String(pending);
+    if (approvedEl) approvedEl.textContent = String(approved);
+}
+
+function listenToOrgVerifications() {
+    if (orgVerificationsUnsubscribe || !useFirestore) return;
+
+    orgVerificationsUnsubscribe = onSnapshot(
+        query(collection(db, BORROW_REQUESTS_COLLECTION), where('borrowType', '==', 'organization')),
+        (snapshot) => {
+            organizationVerifications = snapshot.docs.map((entry) => ({
+                id: entry.id,
+                ...entry.data()
+            }));
+            updateOrgVerificationRecords();
+            updateOrgVerificationAnalytics();
+        },
+        (error) => {
+            console.warn('Could not watch organization verifications', error);
+            updateOrgVerificationRecords();
+            updateOrgVerificationAnalytics();
+        }
+    );
+}
+
+let currentOrgVerificationId = null;
+
+function openOrgVerificationDetail(recordId) {
+    const record = organizationVerifications.find(r => r.id === recordId);
+    if (!record) {
+        alert('Organization verification request not found.');
+        return;
+    }
+
+    currentOrgVerificationId = recordId;
+
+    // Populate org info
+    document.getElementById('ov-org-name').textContent = record.borrower?.orgName || record.organization?.name || '-';
+    document.getElementById('ov-org-head').textContent = record.borrower?.orgHead || record.organization?.head || '-';
+    document.getElementById('ov-submitted-date').textContent = record.submittedAt ? new Date(record.submittedAt).toLocaleString() : '-';
+
+    // Populate documents section
+    const docsEl = document.getElementById('ov-documents');
+    let docsHtml = '<div style="line-height:1.8;">';
+    docsHtml += '<div><strong>Organization Name:</strong> ' + (record.borrower?.orgName || record.organization?.name || '-') + '</div>';
+    docsHtml += '<div><strong>Organization Head:</strong> ' + (record.borrower?.orgHead || record.organization?.head || '-') + '</div>';
+    if (record.tool && record.tool.name) {
+        docsHtml += '<div><strong>Tool Requested:</strong> ' + record.tool.name + '</div>';
+    }
+    if (record.schedule && record.schedule.borrowDate) {
+        docsHtml += '<div><strong>Borrow Date:</strong> ' + record.schedule.borrowDate + '</div>';
+    }
+    if (record.schedule && record.schedule.returnDate) {
+        docsHtml += '<div><strong>Return Date:</strong> ' + record.schedule.returnDate + '</div>';
+    }
+    docsHtml += '</div>';
+    docsEl.innerHTML = docsHtml;
+
+    // Set current status
+    document.getElementById('ov-status-select').value = record.status || 'pending';
+
+    // Show modal
+    document.getElementById('orgVerificationModal').style.display = 'flex';
+}
+
+function closeOrgVerificationModal() {
+    document.getElementById('orgVerificationModal').style.display = 'none';
+    currentOrgVerificationId = null;
+}
+
+async function updateOrgVerificationStatus() {
+    if (!currentOrgVerificationId) return;
+
+    const newStatus = document.getElementById('ov-status-select').value;
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, currentOrgVerificationId), {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        closeOrgVerificationModal();
+        updateOrgVerificationRecords();
+        updateOrgVerificationAnalytics();
+    } catch (error) {
+        console.error('Failed to update organization verification status', error);
+        alert('Failed to update status: ' + (error.message || error));
+    }
+}
+
+async function updateOrgVerificationStatusDirect(recordId, newStatus) {
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordId), {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        updateOrgVerificationRecords();
+        updateOrgVerificationAnalytics();
+    } catch (error) {
+        console.error('Failed to update organization verification status', error);
+        alert('Failed to update status: ' + (error.message || error));
+    }
+}
+
+async function archiveOrgVerification() {
+    if (!currentOrgVerificationId) return;
+    if (!confirm('Archive this organization verification request?')) return;
+
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, currentOrgVerificationId), {
+            archived: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        closeOrgVerificationModal();
+        updateOrgVerificationRecords();
+        updateOrgVerificationAnalytics();
+    } catch (error) {
+        console.error('Failed to archive organization verification', error);
+        alert('Failed to archive: ' + (error.message || error));
+    }
+}
+
+async function deleteOrgVerification(recordId) {
+    if (!recordId) recordId = currentOrgVerificationId;
+    if (!recordId) return;
+    if (!confirm('Permanently delete this organization verification request?')) return;
+
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, recordId), {
+            deleted: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        if (currentOrgVerificationId === recordId) closeOrgVerificationModal();
+        updateOrgVerificationRecords();
+        updateOrgVerificationAnalytics();
+    } catch (error) {
+        console.error('Failed to delete organization verification', error);
+        alert('Failed to delete: ' + (error.message || error));
+    }
 }
 
 async function addHereRaminTool() {
@@ -948,6 +1137,8 @@ async function updateHereRaminReceiptStatus(recordId, nextState) {
             updatedAt: new Date().toISOString()
         }, { merge: true });
         logAction('hereramin_receipt_status', `Updated HERE-RAMIN receipt ${recordId} -> ${nextState}`, { recordId, nextState });
+        updateHereRaminReceipts();
+        updateHereRaminAnalytics();
     } catch (error) {
         console.error('Failed to update HERE-RAMIN receipt status', error);
         alert('Failed to update receipt status: ' + (error.message || error));
@@ -961,6 +1152,8 @@ async function archiveHereRaminBorrower(recordId) {
             archived: true,
             updatedAt: new Date().toISOString()
         }, { merge: true });
+        updateHereRaminReceipts();
+        updateHereRaminAnalytics();
     } catch (error) {
         console.error('Failed to archive borrower record', error);
         alert('Failed to archive borrower record: ' + (error.message || error));
@@ -974,6 +1167,8 @@ async function deleteHereRaminBorrower(recordId) {
             deleted: true,
             updatedAt: new Date().toISOString()
         }, { merge: true });
+        updateHereRaminReceipts();
+        updateHereRaminAnalytics();
     } catch (error) {
         console.error('Failed to delete borrower record', error);
         alert('Failed to delete borrower record: ' + (error.message || error));
@@ -996,6 +1191,114 @@ async function clearHereRaminBorrowers() {
     } catch (error) {
         console.error('Failed to clear borrower records', error);
         alert('Failed to clear borrowers: ' + (error.message || error));
+    }
+}
+
+// ── BORROW REQUEST DETAIL MODAL FUNCTIONS ──
+let currentBorrowDetailId = null;
+
+function openBorrowDetail(recordId) {
+    const record = hereRaminBorrowRecords.find(r => r.id === recordId);
+    if (!record) {
+        alert('Borrow request not found.');
+        return;
+    }
+
+    currentBorrowDetailId = recordId;
+
+    // Populate borrower info
+    document.getElementById('bd-borrower-name').textContent = record.borrower?.name || '-';
+    document.getElementById('bd-borrower-age').textContent = record.borrower?.age || '-';
+    document.getElementById('bd-borrower-contact').textContent = record.borrower?.contact || '-';
+    document.getElementById('bd-borrower-address').textContent = record.borrower?.address || '-';
+
+    // Populate tool info
+    document.getElementById('bd-tool-name').textContent = record.tool?.name || '-';
+    document.getElementById('bd-tool-qty').textContent = record.tool?.quantity || '-';
+    document.getElementById('bd-tool-purpose').textContent = record.purpose || '-';
+
+    // Populate schedule
+    document.getElementById('bd-borrow-date').textContent = record.schedule?.borrowDate || '-';
+    document.getElementById('bd-return-date').textContent = record.schedule?.returnDate || '-';
+
+    // Populate images
+    const idImg = document.getElementById('bd-id-image');
+    const sigImg = document.getElementById('bd-signature-image');
+    
+    if (record.validIdImage) {
+        idImg.src = record.validIdImage;
+        idImg.style.display = 'block';
+    } else {
+        idImg.style.display = 'none';
+    }
+
+    if (record.signatureImage) {
+        sigImg.src = record.signatureImage;
+        sigImg.style.display = 'block';
+    } else {
+        sigImg.style.display = 'none';
+    }
+
+    // Set current status
+    document.getElementById('bd-status-select').value = record.status || 'in_use';
+
+    // Show modal
+    document.getElementById('borrowDetailModal').style.display = 'flex';
+}
+
+function closeBorrowDetailModal() {
+    document.getElementById('borrowDetailModal').style.display = 'none';
+    currentBorrowDetailId = null;
+}
+
+async function updateBorrowDetailStatus() {
+    if (!currentBorrowDetailId) return;
+
+    const newStatus = document.getElementById('bd-status-select').value;
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, currentBorrowDetailId), {
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        closeBorrowDetailModal();
+        updateHereRaminReceipts();
+    } catch (error) {
+        console.error('Failed to update borrow request status', error);
+        alert('Failed to update status: ' + (error.message || error));
+    }
+}
+
+async function archiveBorrowDetail() {
+    if (!currentBorrowDetailId) return;
+    if (!confirm('Archive this borrower request?')) return;
+
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, currentBorrowDetailId), {
+            archived: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        closeBorrowDetailModal();
+        updateHereRaminReceipts();
+    } catch (error) {
+        console.error('Failed to archive borrow request', error);
+        alert('Failed to archive: ' + (error.message || error));
+    }
+}
+
+async function deleteBorrowDetail() {
+    if (!currentBorrowDetailId) return;
+    if (!confirm('Permanently delete this borrower request?')) return;
+
+    try {
+        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, currentBorrowDetailId), {
+            deleted: true,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        closeBorrowDetailModal();
+        updateHereRaminReceipts();
+    } catch (error) {
+        console.error('Failed to delete borrow request', error);
+        alert('Failed to delete: ' + (error.message || error));
     }
 }
 
@@ -2766,6 +3069,11 @@ window.updateAccounts = updateAccounts;
 window.addSkill = addSkill;
 window.editSkill = editSkill;
 window.deleteSkill = deleteSkill;
+window.openBorrowDetail = openBorrowDetail;
+window.closeBorrowDetailModal = closeBorrowDetailModal;
+window.updateBorrowDetailStatus = updateBorrowDetailStatus;
+window.archiveBorrowDetail = archiveBorrowDetail;
+window.deleteBorrowDetail = deleteBorrowDetail;
 
 /* ── Inline program creation from Settings tab ── */
 window.submitNewProgram = async function() {
@@ -3031,6 +3339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     listenToHereRaminTools();
     listenToHereRaminReceipts();
+    listenToOrgVerifications();
     loadAdminSession();
 });
 
@@ -3090,6 +3399,827 @@ window.archiveHereRaminBorrower = archiveHereRaminBorrower;
 window.deleteHereRaminBorrower = deleteHereRaminBorrower;
 window.clearHereRaminBorrowers = clearHereRaminBorrowers;
 window.resetHereRaminToolForm = resetHereRaminToolForm;
+
+/* ── HERE-RAMIN PUBLIC USER PAGE SUPPORT ───────────────────────────────────── */
+function initHereRaminPublicPage() {
+    const isBorrowPage = document.getElementById('borrowForm') !== null;
+    const isOrgVerificationPage = document.getElementById('orgVerifyForm') !== null;
+    if (!isBorrowPage && !isOrgVerificationPage) {
+        return;
+    }
+
+    const RECEIPT_STATE_KEY = 'growsauyou-receipt-state';
+    const BORROW_RECORD_KEY = 'growsauyou-borrow-record';
+    const BORROW_HISTORY_KEY = 'growsauyou-borrow-history';
+    const TOOLS_COLLECTION = HERERAMIN_TOOLS_COLLECTION;
+    const BORROW_REQUESTS_COLLECTION = 'borrow_requests';
+    const imageFolder = 'assets/images/';
+    let toolsUnsubscribe = null;
+
+    const defaultGroupedTools = [
+        {
+            category: 'Soil Preparation',
+            tools: [
+                { name: 'Trowel', image: 'trowel.png', available: true },
+                { name: 'Hoe', image: 'hoe.png', available: false },
+                { name: 'Pitchfork', image: 'pitchfork.png', available: true },
+                { name: 'Shovel', image: 'shovel.png', available: true }
+            ]
+        },
+        {
+            category: 'Planting & Propagation',
+            tools: [
+                { name: 'Seed Trays', image: 'seed-trays.png', available: true },
+                { name: 'Dibbers', image: 'dibbers.png', available: true },
+                { name: 'Plant Labels', image: 'plant-labels.png', available: false },
+                { name: 'Seed Starter Kit', image: 'seed-starter-kit.png', available: true }
+            ]
+        },
+        {
+            category: 'Watering & Irrigation',
+            tools: [
+                { name: 'Watering Can', image: 'watering-can.png', available: true },
+                { name: 'Hose', image: 'hose.png', available: false },
+                { name: 'Spray Nozzles', image: 'spray-nozzles.png', available: true },
+                { name: 'Sprinkler', image: 'sprinkler.png', available: true }
+            ]
+        },
+        {
+            category: 'Pruning & Maintenance',
+            tools: [
+                { name: 'Garden Scissors', image: 'garden-scissors.png', available: false },
+                { name: 'Hedge Trimmers', image: 'hedge-trimmers.png', available: true },
+                { name: 'Pruning Shears', image: 'pruning-shears.png', available: true }
+            ]
+        },
+        {
+            category: 'Harvesting',
+            tools: [
+                { name: 'Harvest Baskets', image: 'harvest-baskets.png', available: true },
+                { name: 'Garden Knives', image: 'garden-knives.png', available: false },
+                { name: 'Fruit Pickers', image: 'fruit-pickers.png', available: true },
+                { name: 'Harvest Scissors', image: 'harvest-scissors.png', available: true }
+            ]
+        },
+        {
+            category: 'Pest Control',
+            tools: [
+                { name: 'Garden Sprayers', image: 'garden-sprayers.png', available: true },
+                { name: 'Insect Nets', image: 'insect-nets.png', available: true },
+                { name: 'Sticky Traps', image: 'sticky-traps.png', available: false },
+                { name: 'Hand Dusters', image: 'hand-dusters.png', available: true }
+            ]
+        },
+        {
+            category: 'Protective & Safety',
+            tools: [
+                { name: 'Gloves', image: 'gloves.png', available: true },
+                { name: 'Aprons', image: 'aprons.png', available: true },
+                { name: 'Masks', image: 'masks.png', available: false },
+                { name: 'Knee Pads', image: 'knee-pads.png', available: true }
+            ]
+        }
+    ];
+    let groupedTools = JSON.parse(JSON.stringify(defaultGroupedTools));
+
+    const toolSelect = document.getElementById('toolSelect');
+    const toolImage = document.getElementById('toolImage');
+    const minusBtn = document.getElementById('minusBtn');
+    const plusBtn = document.getElementById('plusBtn');
+    const quantityText = document.getElementById('quantity');
+    const availabilityBadge = document.getElementById('availabilityBadge');
+    const addIdBtn = document.getElementById('addIdBtn');
+    const idActions = document.querySelector('.id-actions');
+    const fileInput = document.getElementById('fileInput');
+    const idImage = document.getElementById('idImage');
+    const canvas = document.getElementById('signaturePad');
+    const borrowForm = document.getElementById('borrowForm');
+    const backBtn = document.getElementById('backBtn');
+    const borrowDateInput = document.getElementById('borrowDate');
+    const returnDateInput = document.getElementById('returnDate');
+    const borrowerName = document.getElementById('borrowerName');
+    const borrowerAddress = document.getElementById('borrowerAddress');
+    const borrowerAge = document.getElementById('borrowerAge');
+    const borrowerContact = document.getElementById('borrowerContact');
+    const borrowPurpose = document.getElementById('borrowPurpose');
+    const orgToolName = document.getElementById('orgToolName');
+    const orgToolImage = document.getElementById('orgToolImage');
+    const orgQtyDisplay = document.getElementById('orgQtyDisplay');
+    const orgBorrowDate = document.getElementById('orgBorrowDate');
+    const orgReturnDate = document.getElementById('orgReturnDate');
+    const orgAvailBadge = document.getElementById('orgAvailBadge');
+    const orgFormPage = document.getElementById('orgFormPage');
+    const pendingPage = document.getElementById('pendingPage');
+    const pendingRefText = document.getElementById('pendingRefText');
+    const letterFileInput = document.getElementById('letterFileInput');
+    const addAnotherIdBtn = document.getElementById('addAnotherIdBtn');
+    const orgCanvas = document.getElementById('orgSignaturePad');
+    const clearSig = document.getElementById('clearSig');
+    const clearOrgSig = document.getElementById('clearOrgSig');
+    const orgBackBtn = document.getElementById('orgBackBtn');
+    const orgSubmitBtn = document.getElementById('orgSubmitBtn');
+
+    let quantity = 1;
+    let idCounter = 0;
+    let toolsLoadedFromFirestore = false;
+    let drawing = false;
+    let orgDrawing = false;
+
+    function normalizeText(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function getAllTools() {
+        return groupedTools.flatMap((group) => group.tools);
+    }
+
+    function getToolFromUrlParam() {
+        const params = new URLSearchParams(window.location.search);
+        return (params.get('tool') || '').trim();
+    }
+
+    function slugify(value) {
+        return normalizeText(value).replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function getCategoryForToolName(name) {
+        for (const group of defaultGroupedTools) {
+            for (const tool of group.tools) {
+                if (normalizeText(tool.name) === normalizeText(name)) {
+                    return group.category;
+                }
+            }
+        }
+        return 'General Tools';
+    }
+
+    function getFallbackToolByName(name) {
+        return fallbackToolMap.get(normalizeText(name)) || null;
+    }
+
+    function buildFallbackToolMap() {
+        const map = new Map();
+        defaultGroupedTools.forEach((group) => {
+            group.tools.forEach((tool) => {
+                map.set(normalizeText(tool.name), { ...tool, category: group.category });
+            });
+        });
+        return map;
+    }
+
+    const fallbackToolMap = buildFallbackToolMap();
+
+    function getLocalImagePath(imageNameOrPath) {
+        if (!imageNameOrPath) {
+            return `${imageFolder}shovel.png`;
+        }
+        if (imageNameOrPath.startsWith('data:')) {
+            return imageNameOrPath;
+        }
+        if (imageNameOrPath.startsWith('http://') || imageNameOrPath.startsWith('https://')) {
+            return imageNameOrPath;
+        }
+        const normalized = imageNameOrPath.replace(/^\.\//, '');
+        if (normalized.startsWith('assets/images/')) {
+            return normalized;
+        }
+        if (!normalized.includes('/')) {
+            return `${imageFolder}${normalized}`;
+        }
+        const baseName = normalized.replace(/^.*[\\/]/, '');
+        return `${imageFolder}${baseName}`;
+    }
+
+    function getFallbackToolImage(name) {
+        const fallback = getFallbackToolByName(name);
+        if (fallback?.image) {
+            return getLocalImagePath(fallback.image);
+        }
+        return getLocalImagePath(`${slugify(name)}.png`);
+    }
+
+    function populateTools() {
+        if (!toolSelect) return;
+        toolSelect.innerHTML = '';
+        groupedTools.forEach((group) => {
+            const optGroup = document.createElement('optgroup');
+            optGroup.label = group.category;
+            group.tools.forEach((tool) => {
+                const option = document.createElement('option');
+                option.value = tool.name;
+                option.textContent = tool.name;
+                option.dataset.image = getLocalImagePath(tool.image || getFallbackToolImage(tool.name));
+                optGroup.appendChild(option);
+            });
+            toolSelect.appendChild(optGroup);
+        });
+    }
+
+    function setAvailability(isAvailable) {
+        if (!availabilityBadge) return;
+        availabilityBadge.classList.toggle('available', isAvailable);
+        availabilityBadge.classList.toggle('unavailable', !isAvailable);
+        availabilityBadge.textContent = isAvailable ? 'Available' : 'Not Available';
+    }
+
+    function setTool(toolName) {
+        if (!toolSelect || !toolImage) return;
+        const name = toolName || toolSelect.value || toolSelect.options[0]?.value || '';
+        const tool = getAllTools().find((entry) => entry.name === name);
+        if (!tool) {
+            return;
+        }
+
+        const selectedOption = toolSelect.options[toolSelect.selectedIndex] || toolSelect.options[0];
+        const rawImage = tool.image || selectedOption?.dataset.image || getFallbackToolImage(tool.name);
+        toolImage.src = getLocalImagePath(rawImage);
+        toolImage.alt = tool.name;
+
+        setAvailability(tool.available);
+        if (quantity > (tool.maxQuantity || 10)) {
+            quantity = Math.max(1, tool.maxQuantity || 10);
+            if (quantityText) quantityText.textContent = String(quantity);
+        }
+    }
+
+    function getSelectedTool() {
+        if (!toolSelect) return null;
+        return getAllTools().find((entry) => entry.name === toolSelect.value) || null;
+    }
+
+    function applyToolFromQueryParam() {
+        if (!toolSelect) return;
+        const toolFromParam = getToolFromUrlParam();
+        if (!toolFromParam) {
+            return;
+        }
+        const matchedTool = getAllTools().find((tool) => normalizeText(tool.name) === normalizeText(toolFromParam));
+        if (!matchedTool) {
+            return;
+        }
+        toolSelect.value = matchedTool.name;
+        setTool(matchedTool.name);
+    }
+
+    function rebuildToolsFromFlatArray(flatTools) {
+        const grouped = new Map();
+        flatTools.forEach((tool) => {
+            const category = tool.category || getCategoryForToolName(tool.name);
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
+            grouped.get(category).push(tool);
+        });
+        groupedTools = Array.from(grouped.entries()).map(([category, tools]) => ({ category, tools }));
+    }
+
+    function normalizeToolFromFirestore(docId, data) {
+        const toolName = data.tool_name || data.name || docId || 'Tool';
+        const fallback = getFallbackToolByName(toolName);
+        const quantityAvailable = Number(data.quantity_available ?? data.quantity ?? data.quantity_total ?? 0);
+        const quantityTotal = Number(data.quantity_total ?? quantityAvailable);
+        const explicitAvailable = typeof data.available === 'boolean' ? data.available : null;
+        const statusValue = normalizeText(data.status_ || data.status);
+        const isAvailable = explicitAvailable !== null
+            ? explicitAvailable
+            : quantityAvailable > 0 && statusValue !== 'borrowed' && statusValue !== 'unavailable';
+
+        const rawImage = data.image || data.image_url || fallback?.image || `${slugify(toolName)}.png`;
+        return {
+            id: docId,
+            name: toolName,
+            category: data.category || fallback?.category || getCategoryForToolName(toolName),
+            image: getLocalImagePath(rawImage),
+            available: isAvailable,
+            maxQuantity: Math.max(1, quantityAvailable || quantityTotal || 1),
+            quantityAvailable: Math.max(0, quantityAvailable),
+            quantityTotal: Math.max(0, quantityTotal),
+            description: data.description || '',
+            wikihowUrl: data.wikihow_url || ''
+        };
+    }
+
+    async function seedMissingToolsInFirestore(existingDocs) {
+        const existingNames = new Set(
+            existingDocs.map((item) => normalizeText(item.data.tool_name || item.data.name || item.id))
+        );
+        const seedPromises = [];
+        defaultGroupedTools.forEach((group) => {
+            group.tools.forEach((tool) => {
+                const normalizedName = normalizeText(tool.name);
+                if (existingNames.has(normalizedName)) {
+                    return;
+                }
+                const newDocId = slugify(tool.name);
+                const payload = {
+                    tool_name: tool.name,
+                    category: group.category,
+                    description: `${tool.name} tool for ${group.category.toLowerCase()}.`,
+                    image_url: getLocalImagePath(tool.image),
+                    quantity_available: tool.available ? 5 : 0,
+                    quantity_total: 5,
+                    status_: tool.available ? 'Available' : 'Unavailable',
+                    wikihow_url: '',
+                    created_at: new Date().toISOString()
+                };
+                seedPromises.push(setDoc(doc(db, TOOLS_COLLECTION, newDocId), payload, { merge: true }));
+            });
+        });
+
+        if (seedPromises.length > 0) {
+            await Promise.all(seedPromises);
+        }
+    }
+
+    function applyFirestoreToolsToSelect(firestoreTools) {
+        if (!Array.isArray(firestoreTools) || firestoreTools.length === 0) {
+            return;
+        }
+
+        const selectedBefore = toolSelect?.value;
+        rebuildToolsFromFlatArray(firestoreTools);
+        populateTools();
+
+        const nextSelected = getAllTools().some((item) => item.name === selectedBefore)
+            ? selectedBefore
+            : getAllTools()[0]?.name;
+        if (nextSelected) {
+            toolSelect.value = nextSelected;
+            setTool(nextSelected);
+        }
+        applyToolFromQueryParam();
+    }
+
+    async function hydrateToolsFromFirestore() {
+        if (!useFirestore) {
+            return;
+        }
+
+        try {
+            const toolsCollectionRef = collection(db, TOOLS_COLLECTION);
+            const snapshot = await getDocs(toolsCollectionRef);
+            const docs = snapshot.docs.map((entry) => ({ id: entry.id, data: entry.data() }));
+
+            await seedMissingToolsInFirestore(docs);
+
+            const refreshedSnapshot = await getDocs(toolsCollectionRef);
+            const firestoreTools = refreshedSnapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
+            applyFirestoreToolsToSelect(firestoreTools);
+            toolsLoadedFromFirestore = true;
+        } catch (error) {
+            console.warn('Could not pull tools from Firestore. Keeping local preview data.', error);
+        }
+    }
+
+    function watchToolsFromFirestore() {
+        if (!useFirestore || toolsUnsubscribe) {
+            return;
+        }
+        try {
+            toolsUnsubscribe = onSnapshot(
+                collection(db, TOOLS_COLLECTION),
+                (snapshot) => {
+                    const firestoreTools = snapshot.docs.map((entry) => normalizeToolFromFirestore(entry.id, entry.data()));
+                    applyFirestoreToolsToSelect(firestoreTools);
+                },
+                (error) => {
+                    console.warn('Could not watch HERE-RAMIN tools updates.', error);
+                }
+            );
+        } catch (error) {
+            console.warn('Failed to initialize HERE-RAMIN tools watcher.', error);
+        }
+    }
+
+    function resizeCanvas() {
+        if (!canvas) return;
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.round(rect.width * ratio);
+        canvas.height = Math.round(140 * ratio);
+        const context = canvas.getContext('2d');
+        if (!context) return;
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.scale(ratio, ratio);
+        context.lineWidth = 2;
+        context.strokeStyle = '#546B41';
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+    }
+
+    function resizeOrgCanvas() {
+        if (!orgCanvas) return;
+        const ratio = window.devicePixelRatio || 1;
+        const rect = orgCanvas.getBoundingClientRect();
+        orgCanvas.width = Math.round(rect.width * ratio);
+        orgCanvas.height = Math.round(150 * ratio);
+        const orgCtx = orgCanvas.getContext('2d');
+        if (!orgCtx) return;
+        orgCtx.setTransform(1, 0, 0, 1, 0, 0);
+        orgCtx.scale(ratio, ratio);
+        orgCtx.lineWidth = 2;
+        orgCtx.strokeStyle = '#2b3d24';
+        orgCtx.lineCap = 'round';
+        orgCtx.lineJoin = 'round';
+    }
+
+    function validateDates() {
+        if (!borrowDateInput || !returnDateInput) {
+            window.alert('Please select both borrow and return dates.');
+            return false;
+        }
+        const borrowDate = borrowDateInput.value;
+        const returnDate = returnDateInput.value;
+        if (!borrowDate || !returnDate) {
+            window.alert('Please select both borrow and return dates.');
+            return false;
+        }
+        if (new Date(returnDate) < new Date(borrowDate)) {
+            window.alert('Return date cannot be earlier than borrow date.');
+            return false;
+        }
+        return true;
+    }
+
+    function signatureAsDataUrl() {
+        if (!canvas) return '';
+        return canvas.toDataURL('image/png');
+    }
+
+    function appendBorrowHistory(record) {
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem(BORROW_HISTORY_KEY) || '[]');
+            if (!Array.isArray(history)) {
+                history = [];
+            }
+        } catch (error) {
+            history = [];
+        }
+        history.unshift(record);
+        localStorage.setItem(BORROW_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    function addIdSlot() {
+        idCounter += 1;
+        const n = idCounter;
+        const list = document.getElementById('idMultiList');
+        if (!list) return;
+
+        const entry = document.createElement('div');
+        entry.className = 'id-entry';
+        entry.id = 'idEntry_' + n;
+
+        entry.innerHTML = `
+            <div class="id-thumb" id="idThumb_${n}">
+                <span style="padding:4px;">ID Preview</span>
+            </div>
+            <button type="button" class="id-add-btn" onclick="window.triggerOrgId(${n})">
+                <i class="fas fa-camera" style="margin-right:6px;"></i>+ Add Image
+            </button>
+            <input type="file" id="idFile_${n}" accept="image/*" style="display:none;" onchange="window.previewOrgId(this,${n})">
+            ${n > 1 ? `<button type="button" class="id-remove-btn" onclick="window.removeOrgId(${n})" title="Remove"><i class="fas fa-times"></i></button>` : ''}
+        `;
+        list.appendChild(entry);
+    }
+
+    window.triggerOrgId = function(n) {
+        const input = document.getElementById('idFile_' + n);
+        if (input) input.click();
+    };
+
+    window.previewOrgId = function(input, n) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const box = document.getElementById('idThumb_' + n);
+            if (box) box.innerHTML = `<img src="${String(e.target.result)}" alt="ID ${n}">`;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    window.removeOrgId = function(n) {
+        const el = document.getElementById('idEntry_' + n);
+        if (el) el.remove();
+    };
+
+    function updateOrgVerificationFromDraft(stored) {
+        if (stored.toolName && orgToolName) orgToolName.textContent = stored.toolName;
+        if (stored.toolImage && orgToolImage) orgToolImage.src = stored.toolImage;
+        if (stored.quantity && orgQtyDisplay) orgQtyDisplay.textContent = stored.quantity;
+        if (stored.borrowDate && orgBorrowDate) orgBorrowDate.value = stored.borrowDate;
+        if (stored.returnDate && orgReturnDate) orgReturnDate.value = stored.returnDate;
+        if (stored.available === false && orgAvailBadge) {
+            orgAvailBadge.textContent = 'Unavailable';
+            orgAvailBadge.className = 'availability-badge unavailable';
+        }
+    }
+
+    async function saveOrgVerificationRecord(stored) {
+        const orgName = document.getElementById('orgName')?.value?.trim() || '';
+        const orgHead = document.getElementById('orgHead')?.value?.trim() || '';
+        if (!orgName || !orgHead) {
+            window.alert('Please fill in all required fields.');
+            return;
+        }
+
+        const record = {
+            id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            status: 'pending',
+            borrowType: 'organization',
+            borrower: {
+                orgName,
+                orgHead
+            },
+            tool: {
+                name: stored.toolName || '',
+                image: stored.toolImage || '',
+                quantity: stored.quantity || 1,
+                available: stored.available !== false
+            },
+            schedule: {
+                borrowDate: orgBorrowDate?.value || '',
+                returnDate: orgReturnDate?.value || ''
+            },
+            purpose: document.getElementById('borrowPurpose')?.value?.trim() || '',
+            submittedAt: new Date().toISOString(),
+            organization: {
+                name: orgName,
+                head: orgHead
+            }
+        };
+        sessionStorage.setItem('growsauyou-org-submission', JSON.stringify(record));
+
+        if (useFirestore) {
+            try {
+                await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
+            } catch (error) {
+                console.warn('Could not save organization borrow request to Firestore.', error);
+                try {
+                    await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
+                } catch (fallbackError) {
+                    console.error('Fallback Firestore save failed for organization borrow request.', fallbackError);
+                }
+            }
+        }
+
+        if (orgFormPage) orgFormPage.classList.add('hidden');
+        if (pendingPage) pendingPage.classList.add('active');
+        if (pendingRefText) pendingRefText.textContent = 'Reference No: GSY-ORG-' + Date.now().toString().slice(-8).toUpperCase();
+        if (pendingPage) pendingPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function restoreBorrowDraft() {
+        const stored = JSON.parse(sessionStorage.getItem('growsauyou-borrow-draft') || '{}');
+        if (isOrgVerificationPage) {
+            updateOrgVerificationFromDraft(stored);
+        }
+    }
+
+    function bindOrgVerificationEvents() {
+        if (addAnotherIdBtn) {
+            addAnotherIdBtn.addEventListener('click', addIdSlot);
+            addIdSlot();
+        }
+        if (letterFileInput) {
+            letterFileInput.addEventListener('change', function() {
+                const name = this.files && this.files[0] ? this.files[0].name : 'No file chosen';
+                const nameEl = document.getElementById('letterFileName');
+                if (nameEl) nameEl.textContent = name;
+            });
+        }
+        if (clearOrgSig) {
+            clearOrgSig.addEventListener('click', () => {
+                if (!orgCanvas) return;
+                const orgCtx = orgCanvas.getContext('2d');
+                if (!orgCtx) return;
+                orgCtx.clearRect(0, 0, orgCanvas.width, orgCanvas.height);
+            });
+        }
+        if (orgBackBtn) {
+            orgBackBtn.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+        }
+        if (orgSubmitBtn) {
+            orgSubmitBtn.addEventListener('click', async function() {
+                const stored = JSON.parse(sessionStorage.getItem('growsauyou-borrow-draft') || '{}');
+                await saveOrgVerificationRecord(stored);
+            });
+        }
+    }
+
+    function bindBorrowPageEvents() {
+        if (!toolSelect || !toolImage || !quantityText || !availabilityBadge || !borrowForm) return;
+
+        populateTools();
+        setTool(toolSelect.value);
+        applyToolFromQueryParam();
+        hydrateToolsFromFirestore();
+        watchToolsFromFirestore();
+
+        toolSelect.addEventListener('change', () => {
+            setTool(toolSelect.value);
+        });
+
+        if (plusBtn) {
+            plusBtn.addEventListener('click', () => {
+                const selectedTool = getSelectedTool();
+                const maxQuantity = selectedTool?.maxQuantity || 10;
+                if (quantity < maxQuantity) {
+                    quantity += 1;
+                    quantityText.textContent = String(quantity);
+                }
+            });
+        }
+
+        if (minusBtn) {
+            minusBtn.addEventListener('click', () => {
+                if (quantity > 1) {
+                    quantity -= 1;
+                    quantityText.textContent = String(quantity);
+                }
+            });
+        }
+
+        if (addIdBtn && idActions) {
+            addIdBtn.addEventListener('click', () => idActions.classList.toggle('show'));
+        }
+
+        if (document.getElementById('fromDevice')) {
+            document.getElementById('fromDevice').addEventListener('click', () => fileInput?.click());
+        }
+
+        if (document.getElementById('fromInternet')) {
+            document.getElementById('fromInternet').addEventListener('click', () => {
+                const url = window.prompt('Paste image URL:');
+                if (url && idImage) idImage.src = url;
+            });
+        }
+
+        if (fileInput) {
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    if (idImage) idImage.src = String(ev.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (canvas) {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            const ctx2 = canvas.getContext('2d');
+            if (ctx2) {
+                canvas.addEventListener('mousedown', (e) => {
+                    drawing = true;
+                    ctx2.beginPath();
+                    ctx2.moveTo(e.offsetX, e.offsetY);
+                });
+                canvas.addEventListener('mouseup', () => { drawing = false; });
+                canvas.addEventListener('mouseleave', () => { drawing = false; });
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!drawing) return;
+                    ctx2.lineTo(e.offsetX, e.offsetY);
+                    ctx2.stroke();
+                });
+            }
+        }
+
+        if (clearSig && canvas) {
+            clearSig.addEventListener('click', () => {
+                const ctx2 = canvas.getContext('2d');
+                if (ctx2) ctx2.clearRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                window.history.back();
+            });
+        }
+
+        borrowForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!validateDates()) return;
+            const selectedTool = getSelectedTool();
+            if (!selectedTool) {
+                window.alert('Please select a tool.');
+                return;
+            }
+            const record = {
+                id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                status: 'in_use',
+                borrowType: 'individual',
+                borrower: {
+                    name: borrowerName?.value.trim() || '',
+                    address: borrowerAddress?.value.trim() || '',
+                    age: borrowerAge?.value.trim() || '',
+                    contact: borrowerContact?.value.trim() || ''
+                },
+                tool: {
+                    name: selectedTool.name,
+                    image: selectedTool.image ? new URL(selectedTool.image, window.location.href).href : toolImage.src,
+                    available: selectedTool.available,
+                    quantity,
+                    quantityAvailable: selectedTool.quantityAvailable ?? null,
+                    quantityTotal: selectedTool.quantityTotal ?? null
+                },
+                schedule: {
+                    borrowDate: borrowDateInput?.value || '',
+                    returnDate: returnDateInput?.value || ''
+                },
+                purpose: borrowPurpose?.value.trim() || '',
+                validIdImage: idImage?.src || '',
+                signatureImage: signatureAsDataUrl(),
+                createdAt: new Date().toISOString()
+            };
+
+            localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(record));
+            appendBorrowHistory(record);
+            localStorage.setItem(RECEIPT_STATE_KEY, 'in_use');
+
+            if (useFirestore) {
+                try {
+                    const borrowDocRef = doc(db, 'hereramin', 'latestBorrow');
+                    await setDoc(borrowDocRef, record, { merge: true });
+                    await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
+                } catch (error) {
+                    console.warn('Could not save HERE-RAMIN record to Firestore.', error);
+                    try {
+                        await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
+                        console.log('Saved HERE-RAMIN borrow request with fallback addDoc.');
+                    } catch (fallbackError) {
+                        console.error('Fallback Firestore save failed for HERE-RAMIN borrow request.', fallbackError);
+                    }
+                }
+            }
+
+            window.location.href = '../pages/receipts/user.html';
+        });
+    }
+
+    function init() {
+        if (isBorrowPage) {
+            bindBorrowPageEvents();
+        }
+        if (isOrgVerificationPage) {
+            updateOrgVerificationFromDraft(JSON.parse(sessionStorage.getItem('growsauyou-borrow-draft') || '{}'));
+            bindOrgVerificationEvents();
+            if (orgCanvas) {
+                resizeOrgCanvas();
+                window.addEventListener('resize', resizeOrgCanvas);
+                orgCanvas.addEventListener('mousedown', (e) => {
+                    orgDrawing = true;
+                    const orgCtx = orgCanvas.getContext('2d');
+                    if (!orgCtx) return;
+                    const rect = orgCanvas.getBoundingClientRect();
+                    orgCtx.beginPath();
+                    orgCtx.moveTo((e.clientX - rect.left), (e.clientY - rect.top));
+                });
+                orgCanvas.addEventListener('mousemove', (e) => {
+                    if (!orgDrawing) return;
+                    const orgCtx = orgCanvas.getContext('2d');
+                    if (!orgCtx) return;
+                    const rect = orgCanvas.getBoundingClientRect();
+                    orgCtx.lineTo((e.clientX - rect.left), (e.clientY - rect.top));
+                    orgCtx.stroke();
+                });
+                orgCanvas.addEventListener('mouseup', () => { orgDrawing = false; });
+                orgCanvas.addEventListener('mouseleave', () => { orgDrawing = false; });
+                orgCanvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    orgDrawing = true;
+                    const orgCtx = orgCanvas.getContext('2d');
+                    if (!orgCtx) return;
+                    const touch = e.touches[0];
+                    const rect = orgCanvas.getBoundingClientRect();
+                    orgCtx.beginPath();
+                    orgCtx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                }, { passive: false });
+                orgCanvas.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                    if (!orgDrawing) return;
+                    const orgCtx = orgCanvas.getContext('2d');
+                    if (!orgCtx) return;
+                    const touch = e.touches[0];
+                    const rect = orgCanvas.getBoundingClientRect();
+                    orgCtx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                    orgCtx.stroke();
+                }, { passive: false });
+                orgCanvas.addEventListener('touchend', () => { orgDrawing = false; });
+            }
+        }
+    }
+
+    init();
+}
+
+document.addEventListener('DOMContentLoaded', initHereRaminPublicPage);
 
 window.debugAuthState = () => {
     console.log("=== ADMIN AUTH DEBUG ===");

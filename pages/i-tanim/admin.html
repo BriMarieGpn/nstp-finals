@@ -58,6 +58,9 @@
       <a href="#" class="ad-sidenav__item" data-tab="hereramin" onclick="showAdminTab('hereramin');return false;" title="Here-Ramin Tools">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 1 0 1.4l-7 7a2 2 0 0 1-2.8 0l-1.8-1.8a2 2 0 0 1 0-2.8l7-7a1 1 0 0 1 1.4 0z"/><path d="M16 8l2.5-2.5a2.1 2.1 0 0 1 3 3L19 11"/><path d="M2 22l6-1-5-5-1 6z"/></svg>
       </a>
+      <a href="#" class="ad-sidenav__item" data-tab="org-verification" onclick="showAdminTab('org-verification');return false;" title="Organization Verification">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </a>
       <a href="#" class="ad-sidenav__item" data-tab="badges" onclick="showAdminTab('badges');return false;" title="Badge Management">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
       </a>
@@ -340,7 +343,12 @@
         <div id="hereRaminToolsList" class="ad-prog-table-body hr-scroll-list"></div>
       </div>
 
+      <!-- Borrow Requests Section -->
       <div class="ad-card ad-card--table" style="margin-top:18px;">
+        <div style="padding:14px 18px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h2 class="ad-section-title" style="margin:0;">Borrow Requests</h2>
+          <button class="ad-btn ad-btn--reject" type="button" onclick="clearHereRaminBorrowers()">Clear All</button>
+        </div>
         <div class="ad-prog-table-head hr-receipts-head">
           <span>Borrower</span>
           <span>Tool</span>
@@ -349,11 +357,183 @@
           <span>Return Date</span>
           <span>Actions</span>
         </div>
-        <div style="padding:10px 14px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:flex-end;">
-          <button class="ad-btn ad-btn--reject" type="button" onclick="clearHereRaminBorrowers()">Clear Borrowers</button>
-        </div>
         <div id="hereRaminReceiptsList" class="ad-prog-table-body hr-scroll-list"></div>
       </div>
+
+      <!-- Analytics Cards for Here-Ramin -->
+      <div class="ad-row ad-row--3col" style="margin-top:18px;">
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Total Borrow Requests</span>
+          <p class="ad-stat-big" id="hrTotalRequests">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Pending Returns</span>
+          <p class="ad-stat-big" id="hrPendingReturns">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Approved Returns</span>
+          <p class="ad-stat-big" id="hrApprovedReturns">0</p>
+        </div>
+      </div>
+
+      <!-- Top Borrowed Tools -->
+      <div class="ad-card" style="margin-top:18px;">
+        <h2 class="ad-section-title">Top Borrowed Tools</h2>
+        <div id="hrTopBorrowedTools" style="padding:12px 0;"></div>
+      </div>
+    </div>
+
+    <!-- ══ ORGANIZATION VERIFICATION ══ -->
+    <div class="ad-tab" id="ad-tab-org-verification">
+      <h1 class="ad-page-title">Organization Verification Requests</h1>
+
+      <!-- Stats -->
+      <div class="ad-row ad-row--3col">
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Total Requests</span>
+          <p class="ad-stat-big" id="orgTotalRequests">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Pending Verification</span>
+          <p class="ad-stat-big" id="orgPendingRequests">0</p>
+        </div>
+        <div class="ad-card ad-card--stat">
+          <span class="ad-card__label">Approved</span>
+          <p class="ad-stat-big" id="orgApprovedRequests">0</p>
+        </div>
+      </div>
+
+      <!-- Organization Verification Table -->
+      <div class="ad-card ad-card--table" style="margin-top:18px;">
+        <div class="ad-prog-table-head">
+          <span>Organization Name</span>
+          <span>Head/Representative</span>
+          <span>Status</span>
+          <span>Submitted Date</span>
+          <span>Actions</span>
+        </div>
+        <div id="orgVerificationList" class="ad-prog-table-body"></div>
+      </div>
+    </div>
+
+    <!-- ORGANIZATION VERIFICATION DETAIL MODAL -->
+    <div id="orgVerificationModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="background:white;border-radius:16px;max-width:600px;width:100%;padding:0;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <!-- Header -->
+        <div style="padding:20px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;border-radius:16px 16px 0 0;">
+          <h2 style="margin:0;font-size:1.3rem;color:#1F2D17;">Organization Verification Details</h2>
+          <button onclick="closeOrgVerificationModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#546B41;">&times;</button>
+        </div>
+        <!-- Content -->
+        <div style="padding:20px;">
+          <!-- Organization Information -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Organization Information</h3>
+            <div style="display:grid;grid-template-columns:1fr;gap:12px;font-size:0.9rem;">
+              <div><strong>Organization Name:</strong> <span id="ov-org-name">-</span></div>
+              <div><strong>Head/Representative:</strong> <span id="ov-org-head">-</span></div>
+              <div><strong>Submitted Date:</strong> <span id="ov-submitted-date">-</span></div>
+            </div>
+          </div>
+
+          <!-- Submitted Documents -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Submitted Documents</h3>
+            <div id="ov-documents" style="font-size:0.9rem;"></div>
+          </div>
+
+          <!-- Status & Actions -->
+          <div style="margin-bottom:0;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Status & Actions</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              <select id="ov-status-select" class="ad-select" style="flex:1;min-width:150px;padding:8px;border:1px solid #9BA98C;border-radius:8px;font-size:0.9rem;">
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+              <button onclick="updateOrgVerificationStatus()" class="ad-btn ad-btn--solid" style="padding:8px 16px;font-size:0.9rem;">Update Status</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick="archiveOrgVerification()" class="ad-btn ad-btn--reject" style="flex:1;min-width:100px;padding:8px;">Archive</button>
+              <button onclick="deleteOrgVerification()" class="ad-btn ad-btn--reject" style="flex:1;min-width:100px;padding:8px;">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BORROW REQUEST DETAIL MODAL -->
+    <div id="borrowDetailModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;align-items:center;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="background:white;border-radius:16px;max-width:600px;width:100%;padding:0;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <!-- Header -->
+        <div style="padding:20px;border-bottom:1px solid rgba(84,107,65,0.12);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;border-radius:16px 16px 0 0;">
+          <h2 style="margin:0;font-size:1.3rem;color:#1F2D17;">Borrow Request Details</h2>
+          <button onclick="closeBorrowDetailModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#546B41;">&times;</button>
+        </div>
+        <!-- Content -->
+        <div style="padding:20px;">
+          <!-- Borrower Information -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Borrower Information</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
+              <div><strong>Name:</strong> <span id="bd-borrower-name">-</span></div>
+              <div><strong>Age:</strong> <span id="bd-borrower-age">-</span></div>
+              <div><strong>Contact:</strong> <span id="bd-borrower-contact">-</span></div>
+              <div><strong>Address:</strong> <span id="bd-borrower-address">-</span></div>
+            </div>
+          </div>
+
+          <!-- Tool Information -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Tool Information</h3>
+            <div style="font-size:0.9rem;">
+              <div style="margin-bottom:8px;"><strong>Tool Name:</strong> <span id="bd-tool-name">-</span></div>
+              <div style="margin-bottom:8px;"><strong>Quantity:</strong> <span id="bd-tool-qty">-</span></div>
+              <div style="margin-bottom:8px;"><strong>Purpose:</strong> <span id="bd-tool-purpose">-</span></div>
+            </div>
+          </div>
+
+          <!-- Schedule Information -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Schedule</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.9rem;">
+              <div><strong>Borrow Date:</strong> <span id="bd-borrow-date">-</span></div>
+              <div><strong>Return Date:</strong> <span id="bd-return-date">-</span></div>
+            </div>
+          </div>
+
+          <!-- ID Image -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Valid ID</h3>
+            <img id="bd-id-image" src="" alt="Valid ID" style="width:100%;max-height:300px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;">
+          </div>
+
+          <!-- Signature -->
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Signature</h3>
+            <img id="bd-signature-image" src="" alt="Signature" style="width:100%;max-height:200px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;">
+          </div>
+
+          <!-- Status & Actions -->
+          <div style="margin-bottom:0;">
+            <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Status & Actions</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+              <select id="bd-status-select" class="ad-select" style="flex:1;min-width:150px;padding:8px;border:1px solid #9BA98C;border-radius:8px;font-size:0.9rem;">
+                <option value="in_use">In Use</option>
+                <option value="return_pending">Pending Return</option>
+                <option value="return_approved">Approved Return</option>
+                <option value="return_rejected">Rejected Return</option>
+              </select>
+              <button onclick="updateBorrowDetailStatus()" class="ad-btn ad-btn--solid" style="padding:8px 16px;font-size:0.9rem;">Update Status</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button onclick="archiveBorrowDetail()" class="ad-btn ad-btn--reject" style="flex:1;min-width:100px;padding:8px;">Archive</button>
+              <button onclick="deleteBorrowDetail()" class="ad-btn ad-btn--reject" style="flex:1;min-width:100px;padding:8px;">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     </div>
 
     <!-- ══ MORE TABS (hidden, kept for admin.js compatibility) ══ -->
