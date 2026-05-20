@@ -1,5 +1,6 @@
 ﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
 function createGreenCommunityHeader() {
     const headerHTML = `
         <header class="green-community-header">
@@ -27,10 +28,10 @@ function createGreenCommunityHeader() {
     document.body.insertAdjacentHTML('afterbegin', headerHTML);
 }
 
-// Call it when page loads
 document.addEventListener("DOMContentLoaded", () => {
-    createGreenCommunityHeader();
-    // your existing code...
+    if (!document.querySelector(".landing-navbar")) {
+        createGreenCommunityHeader();
+    }
 });
 
 const firebaseConfig = {
@@ -48,33 +49,13 @@ const db = getFirestore(app);
 
 let allPlants = [];
 let currentCategory = null;
-let currentFilters = { search: "", lifespan: "All", sort: "name-asc" };
+let currentFilters = { search: "", lifespan: "All", season: "All", sort: "name-asc", whenToPlant: "All", whenToHarvest: "All" };
 
 const herbNames = [
-    'AKAPULKO', 
-    'ALOE VERA', 
-    'BALANOY', 
-    'BALBAS-PUSA', 
-    'BAYABAS', 
-    'CHIVES', 
-    'CILANTRO', 
-    'DAMONG MARIA', 
-    'DILL', 
-    'GINGER', 
-    'GOTU-KOLA', 
-    'LAGUNDI', 
-    'MAYANA', 
-    'OREGANO', 
-    'PANDAN', 
-    'PANSIT-PANSITAN', 
-    'ROSEMARY', 'SAMBONG', 
-    'SERPENTINA', 
-    'STEVIA', 
-    'TANGLAD', 
-    'TARRAGON', 
-    'TSAANG GUBAT', 
-    'TURMERIC', 
-    'YERBA BUENA'
+    'AKAPULKO', 'ALOE VERA', 'BALANOY', 'BALBAS-PUSA', 'BAYABAS', 'CHIVES', 'CILANTRO', 
+    'DAMONG MARIA', 'DILL', 'GINGER', 'GOTU-KOLA', 'LAGUNDI', 'MAYANA', 'OREGANO', 'PANDAN', 
+    'PANSIT-PANSITAN', 'ROSEMARY', 'SAMBONG', 'SERPENTINA', 'STEVIA', 'TANGLAD', 'TARRAGON', 
+    'TSAANG GUBAT', 'TURMERIC', 'YERBA BUENA'
 ];
 const herbIcons = ['plantimg_01.png', 'plantimg_02.png', 'plantimg_03.png', 'plantimg_04.png', 'plantimg_05.png', 'plantimg_06.png', 'plantimg_07.png', 'plantimg_08.png', 'plantimg_09.png', 'plantimg_10.png', 'plantimg_11.png', 'plantimg_12.png', 'plantimg_13.png', 'plantimg_14.png', 'plantimg_15.png', 'plantimg_16.png', 'plantimg_17.png', 'plantimg_18.png', 'plantimg_19.png', 'plantimg_20.png', 'plantimg_21.png', 'plantimg_22.png', 'plantimg_23.png', 'plantimg_24.png', 'plantimg_25.png'];
 
@@ -84,57 +65,162 @@ const herbIconMap = herbNames.reduce((map, name, idx) => {
 }, {});
 
 const fruitIconMap = {
-    'AVOCADO': 'plantimg_26.PNG',
-    'BANANA': 'plantimg_27.png',
-    'CALAMANSI': 'plantimg_28.PNG',
-    'GUYABANO': 'plantimg_29.png',
-    'SUGAR APPLE': 'plantimg_30.jpg',
-    'DURIAN': 'plantimg_33.png',
-    'RAMBUTAN': 'plantimg_34.png',
-    'PAPAYA': 'plantimg_35.PNG',
-    'DRAGON FRUIT': 'plantimg_36.PNG',
-    'GUAVA': 'plantimg_37.PNG',
-    'LANZONES': 'plantimg_38.png',
-    'PASSION FRUIT': 'plantimg_39.PNG',
-    'CHICO': 'plantimg_40.png',
-    'STARFRUIT': 'plantimg_41.PNG   ',
-    'JACKFRUIT': 'plantimg_42.png',
-    'MULBERRY': 'plantimg_43.PNG',
-    'ORANGE': 'plantimg_44.png',
-    'SANTOL': 'plantimg_45.png',
-    'MANGO': 'plantimg_46.png',
-    'FIG': 'plantimg_47.png',
-    'TOMATO': 'plantimg_49.png'
+    'AVOCADO': 'plantimg_26.PNG', 'BANANA': 'plantimg_27.png', 'CALAMANSI': 'plantimg_28.PNG',
+    'GUYABANO': 'plantimg_29.png', 'SUGAR APPLE': 'plantimg_30.jpg', 'DURIAN': 'plantimg_33.png',
+    'RAMBUTAN': 'plantimg_34.png', 'PAPAYA': 'plantimg_35.PNG', 'DRAGON FRUIT': 'plantimg_36.PNG',
+    'GUAVA': 'plantimg_37.PNG', 'LANZONES': 'plantimg_38.png', 'PASSION FRUIT': 'plantimg_39.PNG',
+    'CHICO': 'plantimg_40.png', 'STARFRUIT': 'plantimg_41.PNG   ', 'JACKFRUIT': 'plantimg_42.png',
+    'MULBERRY': 'plantimg_43.PNG', 'ORANGE': 'plantimg_44.png', 'SANTOL': 'plantimg_45.png',
+    'MANGO': 'plantimg_46.png', 'FIG': 'plantimg_47.png', 'TOMATO': 'plantimg_49.png'
 };
 
 const vegetableIconMap = {
-    'PECHAY': 'plantimg_48.jpg',
-    'TALONG': 'plantimg_50.jpg',
-    'LABANOS': 'plantimg_51.png',
-    'AMPALAYA': 'plantimg_52.jpg',
-    'KANGKONG': 'plantimg_53.jpg',
-    'SALUYOT': 'plantimg_54.png',
-    'MALUNGGAY': 'plantimg_55.png',
-    'SITAW': 'plantimg_56.png',
-    'GABI': 'plantimg_57.jpg',
-    'KAMOTE': 'plantimg_58.jpg',
-    'BELL PEPPER': 'plantimg_59.jpg',
-    'LETSUGAS': 'plantimg_60.jpg',
-    'BAWANG': 'plantimg_61.jpg',
-    'REPOLYO': 'plantimg_62.jpg',
-    'CARROT': 'plantimg_63.jpg',
-    'CELERY': 'plantimg_64.png',
-    'SIBUYAS': 'plantimg_65.jpg',
-    'SILI': 'plantimg_66.jpg',
-    'POTATO': 'plantimg_67.png',
-    'SNAP BEANS': 'plantimg_68.png',
-    'SWEET PEA': 'plantimg_69.png',
-    'PIPINO': 'plantimg_70.png',
-    'OKRA': 'plantimg_71.png',
+    'PECHAY': 'plantimg_48.jpg', 'TALONG': 'plantimg_50.jpg', 'LABANOS': 'plantimg_51.png',
+    'AMPALAYA': 'plantimg_52.jpg', 'KANGKONG': 'plantimg_53.jpg', 'SALUYOT': 'plantimg_54.png',
+    'MALUNGGAY': 'plantimg_55.png', 'SITAW': 'plantimg_56.png', 'GABI': 'plantimg_57.jpg',
+    'KAMOTE': 'plantimg_58.jpg', 'BELL PEPPER': 'plantimg_59.jpg', 'LETSUGAS': 'plantimg_60.jpg',
+    'BAWANG': 'plantimg_61.jpg', 'REPOLYO': 'plantimg_62.jpg', 'CARROT': 'plantimg_63.jpg',
+    'CELERY': 'plantimg_64.png', 'SIBUYAS': 'plantimg_65.jpg', 'SILI': 'plantimg_66.jpg',
+    'POTATO': 'plantimg_67.png', 'SNAP BEANS': 'plantimg_68.png', 'SWEET PEA': 'plantimg_69.png',
+    'PIPINO': 'plantimg_70.png', 'OKRA': 'plantimg_71.png',
 };
 
 function normalizeName(value) {
     return (value || "").toString().toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+}
+
+const SEASON_YEAR_ROUND = [
+    "year round",
+    "year-round",
+    "all year",
+    "whole year",
+    "any time",
+    "anytime",
+    "any season",
+    "throughout the year",
+    "throughout the year.",
+    "kahit anong buwan",
+    "kahit anong panahon",
+    "continuous",
+    "perennial harvest",
+];
+
+const SEASON_WET = [
+    "rainy season",
+    "wet season",
+    "tag-ulan",
+    "monsoon",
+    "rainy months",
+    "wet months",
+    "during the rainy",
+    "during rainy",
+    "start of the rainy",
+    "start of rainy",
+    "beginning of the rainy",
+    "early rainy",
+    "pag-ulan",
+    "tag ulan",
+    "onset of rain",
+    "beginning of rains",
+];
+
+const SEASON_DRY = [
+    "dry season",
+    "tag-init",
+    "tag init",
+    "dry months",
+    "summer season",
+    "during dry",
+    "during the dry",
+    "hot season",
+    "peak dry",
+];
+
+function plantingSeasonBlob(plant) {
+    const parts = [
+        plant.when,
+        plant["when-to-plant"],
+        plant.when_to_plant,
+        plant.needs,
+        plant.notes,
+        plant.preparation,
+    ];
+    return parts
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function hasYearRoundTiming(plant) {
+    const wtp = String(plant["when-to-plant"] || plant.when_to_plant || "").toLowerCase();
+    return (
+        wtp.includes("any time") ||
+        wtp.includes("anytime") ||
+        wtp.includes("kahit anong buwan") ||
+        wtp.includes("year round") ||
+        wtp.includes("year-round")
+    );
+}
+
+function matchesWetSeason(t) {
+    if (!t) return false;
+    if (SEASON_WET.some((phrase) => t.includes(phrase))) return true;
+    if (/\brainy\b/.test(t) && /\bseason\b/.test(t)) return true;
+    if (/\bwet\b/.test(t) && /\bseason\b/.test(t)) return true;
+    return false;
+}
+
+function matchesDrySeason(t) {
+    if (!t) return false;
+    if (SEASON_DRY.some((phrase) => t.includes(phrase))) return true;
+    if (/\bdry\b/.test(t) && /\bseason\b/.test(t)) return true;
+    if (/\bsummer\b/.test(t) && (t.includes("plant") || t.includes("sow") || t.includes("transplant") || t.includes("season"))) {
+        return true;
+    }
+    return false;
+}
+
+function matchesPlantingSeason(plant, filterSeason) {
+    if (filterSeason === "All") return true;
+    const t = plantingSeasonBlob(plant);
+    if (!t && !hasYearRoundTiming(plant)) return false;
+
+    if (filterSeason === "YearRound") {
+        if (hasYearRoundTiming(plant)) return true;
+        if (!t) return false;
+        return SEASON_YEAR_ROUND.some((phrase) => t.includes(phrase));
+    }
+
+    if (filterSeason === "Wet") {
+        if (!t) return false;
+        return matchesWetSeason(t);
+    }
+
+    if (filterSeason === "Dry") {
+        if (!t) return false;
+        return matchesDrySeason(t);
+    }
+
+    return true;
+}
+
+function matchesMonthFilter(plantValue, filterValue) {
+    if (filterValue === "All") return true;
+    
+    const normalizedVal = String(plantValue || '').toLowerCase();
+    if (!normalizedVal) return false;
+
+    const isAnytimePlant = normalizedVal.includes('any time') || 
+                           normalizedVal.includes('anytime') || 
+                           normalizedVal.includes('kahit anong buwan');
+
+    if (filterValue === "Anytime") {
+        return isAnytimePlant;
+    }
+
+    return normalizedVal.includes(filterValue.toLowerCase()) || isAnytimePlant;
 }
 
 function findIconFromMap(name, iconMap) {
@@ -191,16 +277,25 @@ function renderGrid() {
 
     let filtered = allPlants.filter(plant => {
         if (currentCategory && plant.category !== currentCategory) return false;
+        
         if (currentFilters.search) {
             const term = currentFilters.search.toLowerCase();
             if (!(plant.name || "").toLowerCase().includes(term) &&
                 !(plant.scientific_name || "").toLowerCase().includes(term)) return false;
         }
+        
+        if (!matchesPlantingSeason(plant, currentFilters.season)) return false;
         if (currentFilters.lifespan !== "All" && plant.lifespan !== currentFilters.lifespan) return false;
+        
+        const plantWhenToPlant = plant['when-to-plant'] || plant.when_to_plant || '';
+        const plantWhenToHarvest = plant['when-to-harvest'] || plant.when_to_harvest || '';
+
+        if (!matchesMonthFilter(plantWhenToPlant, currentFilters.whenToPlant)) return false;
+        if (!matchesMonthFilter(plantWhenToHarvest, currentFilters.whenToHarvest)) return false;
+
         return true;
     });
 
-    // Apply sorting
     if (currentFilters.sort === "name-asc") {
         filtered.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     } else if (currentFilters.sort === "name-desc") {
@@ -224,8 +319,8 @@ function renderGrid() {
             <p>${plant.scientific_name}</p>
             <p>${plant.type}</p>
             <p>${plant.lifespan}</p>
+            <p>${plant.when || ''}</p>
         `;
-        // When clicked, run showFullDetail
         card.onclick = () => showFullDetail(plant);
         container.appendChild(card);
     });
@@ -240,63 +335,161 @@ function populatePopupOptions() {
         uniqueLifespan.map(l => `<option value="${l}">${l}</option>`).join('');
 }
 
+let seasonPopupWired = false;
+
+function formatSeasonLabel(season) {
+    switch (season) {
+        case "YearRound": return "Year Round";
+        case "Dry": return "Dry";
+        case "Wet": return "Wet";
+        default: return "Season";
+    }
+}
+
+function updateSeasonButtonState() {
+    const seasonToggle = document.getElementById("season-toggle");
+    if (!seasonToggle) return;
+    seasonToggle.textContent = formatSeasonLabel(currentFilters.season);
+    seasonToggle.classList.toggle("active", currentFilters.season !== "All");
+}
+
+function openSeasonPopup() {
+    const seasonPopup = document.getElementById("season-popup");
+    const seasonToggle = document.getElementById("season-toggle");
+    if (!seasonPopup || !seasonToggle) return;
+    if (popup.style.display === "flex") popup.style.display = "none";
+    seasonPopup.style.display = "flex";
+    seasonToggle.setAttribute("aria-expanded", "true");
+    const seasonSelect = document.getElementById("popup-season");
+    if (seasonSelect) seasonSelect.value = currentFilters.season || "All";
+}
+
+window.closeSeasonPopup = function () {
+    const seasonPopup = document.getElementById("season-popup");
+    const seasonToggle = document.getElementById("season-toggle");
+    if (seasonPopup) seasonPopup.style.display = "none";
+    if (seasonToggle) seasonToggle.setAttribute("aria-expanded", "false");
+};
+
+function wireSeasonPopupOnce() {
+    if (seasonPopupWired) return;
+    const seasonToggle = document.getElementById("season-toggle");
+    const seasonPopup = document.getElementById("season-popup");
+    if (!seasonToggle || !seasonPopup) return;
+    seasonPopupWired = true;
+
+    seasonToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (seasonPopup.style.display === "flex") {
+            closeSeasonPopup();
+        } else {
+            openSeasonPopup();
+        }
+    });
+
+    seasonPopup.addEventListener("click", (e) => {
+        if (e.target === seasonPopup) {
+            closeSeasonPopup();
+        }
+    });
+}
+
 window.filterPlants = async function (category) {
     currentCategory = category;
-    currentFilters = { search: "", lifespan: "All", sort: "name-asc" };
+    currentFilters = { search: "", lifespan: "All", season: "All", sort: "name-asc", whenToPlant: "All", whenToHarvest: "All" };
 
     document.querySelector(".welcome-section").style.display = "none";
     document.querySelector(".text").style.display = "none";
+    document.querySelector(".gif").style.display = "none";
     document.getElementById("category-menu").style.display = "none";
     document.getElementById("plant-grid").style.display = "block";
     document.getElementById("plant-detail").style.display = "none";
+
+    window.scrollTo(0, 0);
 
     await loadAllPlants();
     populatePopupOptions();
     renderGrid();
 
-    // Live search
     const searchInput = document.getElementById("live-search");
     searchInput.value = "";
     searchInput.oninput = debounce(() => {
         currentFilters.search = searchInput.value.trim();
         renderGrid();
     }, 200);
+
+    const searchToggle = document.querySelector(".search-icon");
+    if (searchToggle) {
+        searchToggle.onclick = () => {
+            const searchWrapper = document.querySelector(".search-wrapper");
+            if (searchWrapper && searchInput) {
+                searchWrapper.classList.toggle("search-open");
+                if (searchWrapper.classList.contains("search-open")) {
+                    searchInput.style.display = "block";
+                    searchInput.focus();
+                } else {
+                    searchInput.style.display = "none";
+                }
+            }
+        };
+    }
+
+    updateSeasonButtonState();
 };
 
 window.clearFilters = function () {
-    currentFilters = { search: "", lifespan: "All", sort: "name-asc" };
+    currentFilters = { search: "", lifespan: "All", season: "All", sort: "name-asc", whenToPlant: "All", whenToHarvest: "All" };
     document.getElementById("live-search").value = "";
+    updateSeasonButtonState();
     renderGrid();
 };
 
-// Popup functions
 const popup = document.getElementById("filter-popup");
 
 document.getElementById("filter-btn").addEventListener("click", () => {
+    closeSeasonPopup();
     document.getElementById("popup-lifespan").value = currentFilters.lifespan;
     document.getElementById("popup-sort").value = currentFilters.sort;
+    document.getElementById("popup-when-to-plant").value = currentFilters.whenToPlant;
+    document.getElementById("popup-when-to-harvest").value = currentFilters.whenToHarvest;
     popup.style.display = "flex";
 });
 
 window.closePopup = function () {
     popup.style.display = "none";
+    closeSeasonPopup();
 };
 
 window.applyFilters = function () {
     currentFilters.lifespan = document.getElementById("popup-lifespan").value;
     currentFilters.sort = document.getElementById("popup-sort").value;
+    currentFilters.whenToPlant = document.getElementById("popup-when-to-plant").value;
+    currentFilters.whenToHarvest = document.getElementById("popup-when-to-harvest").value;
+    
     popup.style.display = "none";
+    closeSeasonPopup();
     renderGrid();
 };
 
-// Close popup when clicking outside
+window.applySeasonFilter = function () {
+    const seasonSelect = document.getElementById("popup-season");
+    if (seasonSelect) {
+        currentFilters.season = seasonSelect.value || "All";
+    }
+    updateSeasonButtonState();
+    closeSeasonPopup();
+    renderGrid();
+};
+
 popup.addEventListener("click", (e) => {
-    if (e.target === popup) closePopup();
+    if (e.target === popup) window.closePopup();
 });
 
 window.showMenu = function () {
+    closeSeasonPopup();
     document.querySelector(".welcome-section").style.display = "flex";
     document.querySelector(".text").style.display = "block";
+    document.querySelector(".gif").style.display = "block";
     document.getElementById("category-menu").style.display = "flex";
     document.getElementById("plant-grid").style.display = "none";
     document.getElementById("plant-detail").style.display = "none";
@@ -308,6 +501,7 @@ window.showGrid = function () {
     document.getElementById("plant-grid").style.display = "block";
     document.getElementById("plant-detail").style.display = "none";
     renderGrid();
+    updateSeasonButtonState();
 };
 
 window.showFullDetail = function (plant) {
@@ -317,6 +511,7 @@ window.showFullDetail = function (plant) {
 
 document.addEventListener("DOMContentLoaded", async () => {
     await loadAllPlants();
+    wireSeasonPopupOnce();
     const params = new URLSearchParams(window.location.search);
     const category = params.get("category");
     if (category) {

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add New Plant</title>
+    <link rel="stylesheet" href="../css/reusable.css">
+    <link rel="stylesheet" href="../css/admin-add.css">
+</head>
+<body>
+    <div class="card">
+        <div class="back-button"> 
+            <button class="back" onclick="window.location.href='admin-index.html'">← Back</button>
+        </div>
+        <div class="text"> 
+            <h2>ADD PLANT</h2>
+        </div>
+        <div class="card-content">
+        <form id="itemForm">
+        <!-- Basic fields -->
+        <div><input type="text" id="name" placeholder="Name (Pangalan)" required></div>
+        <div><input type="text" id="scientific_name" placeholder="Scientific Name (Optional)"></div>
+
+        <div><label>Season:</label>
+        <select id="season" required>
+            <option value="">Select season</option>  
+            <option value="year-round">Year Round</option>
+            <option value="dry-season">Dry Season</option>
+            <option value="rainy-season">Rainy Season</option>
+        </select></div>
+
+        <div><label>Category:</label>
+        <select id="category" required>
+            <option value="">Select Plant Category</option>
+            <option value="herbs">Herbs</option>
+            <option value="fruits">Fruits</option>
+            <option value="vegetables">Vegetables</option>
+        </select></div>
+
+        <div><label>Type:</label>
+        <select id="type" required>
+            <option value="">Select type</option>
+            <option value="trees">Trees</option>
+            <option value="shrubs">Shrubs</option>
+            <option value="herbs">Herbs</option>
+            <option value="climbers">Climbers</option>
+            <option value="creepers">Creepers</option>
+        </select></div>
+
+        <div><label>Lifespan:</label>
+        <select id="lifespan" required>
+            <option value="">Select lifespan</option>
+            <option value="annual">Annual (Taunan)</option>
+            <option value="biennial">Biennial (Bawat Dalawang Taon)</option>
+            <option value="perennial">Perennial (Pangmatagalan)</option>
+        </select></div>
+
+        <!-- Other text fields -->
+        <div><input type="text" id="habitat" placeholder="Habitat (Tahanan)"></div>
+        <div><input type="text" id="origin" placeholder="Origin (Pinagmulan)"></div>
+        <div><input type="text" id="size" placeholder="Size (Laki)"></div>
+        <div><input type="text" id="water" placeholder="Water, eg. Katamtaman"></div>
+        <div><input type="text" id="sunlight" placeholder="Sunlight, eg. Full Sun"></div>
+        <div><input type="text" id="soil" placeholder="Soil, eg. Matabang Lupa (Loamy)"></div>
+        <div><input type="text" id="plant" placeholder="When to Plant. eg. simula ng tag-ulan"></div>
+        <div><input type="text" id="harvest" placeholder="When to Harvest. eg. kahit anong buwan"></div>
+        <div><input type="text" id="bloom" placeholder="Bloom (Kailan Nagbubunga)"></div>
+        <div><input type="text" id="uses" placeholder="Uses (Ginagamit Para Sa...)"></div>
+        <div><input type="text" id="notes" placeholder="Notes (Mga Paalala)"></div>
+
+        <!-- Needs (map) -->
+        <h3>Needs</h3>
+        <div><input type="text" id="fertilizers" placeholder="Fertilizers"></div>
+        <div><input type="text" id="soil-type" placeholder="Soil Type"></div>
+
+        <!-- Long text fields -->
+        <h3>What to do</h3>
+        <div><textarea id="what-to-do" rows="4" cols="50" placeholder="Paghahanda"></textarea></div>
+
+        <h3>Step by Step</h3>
+        <div><textarea id="steps" rows="4" cols="50" placeholder="Note: One step per line"></textarea></div>
+
+        <h3>When</h3>
+        <div><textarea id="when" rows="2" cols="50" placeholder="Tamang Panahon"></textarea></div>
+
+        <h3>Where</h3>
+        <div><textarea id="where" rows="2" cols="50" placeholder="Saan Itatanim"></textarea></div>
+
+        <br>
+        <button type="button" onclick="addItem()" class="add-plant">Add Plant</button>
+    </form>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getFirestore, doc, setDoc, updateDoc, deleteField, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w",
+        authDomain: "growsauyou.firebaseapp.com",
+        projectId: "growsauyou",
+        storageBucket: "growsauyou.appspot.com",
+        messagingSenderId: "668294542285",
+        appId: "1:668294542285:web:5f07bc1f8747a12d3d4a84",
+        measurementId: "G-8XMRP43PRP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function nextId() {
+        const snapshot = await getDocs(collection(db, "plants"));
+        let max = 0;
+        snapshot.forEach(docSnap => {
+            const id = docSnap.id;
+            const num = parseInt(id.replace("plant_", ""));
+            if (!isNaN(num) && num > max) max = num;
+        });
+        return "plant_" + (max + 1);
+        }
+
+        function getFormData() {
+            return {
+                name: document.getElementById("name").value,
+                scientific_name: document.getElementById("scientific_name").value,
+                season: document.getElementById("season").value,
+                category: document.getElementById("category").value,
+                type: document.getElementById("type").value,    
+                lifespan: document.getElementById("lifespan").value,
+                habitat: document.getElementById("habitat").value,
+                origin: document.getElementById("origin").value,
+                size: document.getElementById("size").value,
+                water: document.getElementById("water").value,
+                sunlight: document.getElementById("sunlight").value,
+                soil: document.getElementById("soil").value,
+                plant: document.getElementById("plant").value,
+                harvest: document.getElementById("harvest").value,
+                bloom: document.getElementById("bloom").value,
+                uses: document.getElementById("uses").value,
+                notes: document.getElementById("notes").value,
+                needs: {
+                fertilizers: document.getElementById("fertilizers").value || "",
+                "soil-type": document.getElementById("soil-type").value || "",
+                },
+                "what-to-do": document.getElementById("what-to-do").value || "",
+                "step-by-step": document.getElementById("steps").value
+                ? document.getElementById("steps").value.split("\n").filter(s => s.trim() !== "")
+                : [],
+                when: document.getElementById("when").value || "",
+                where: document.getElementById("where").value || ""
+            };
+        }
+                async function addItem() {
+            const data = getFormData();
+            try {
+                const docId = await nextId();
+                await setDoc(doc(db, "plants", docId), data);
+                document.getElementById("itemForm").reset();
+                alert("Successfully added " + docId + "!");
+            } catch (error) {
+                console.error("Error adding document: ", error.message);
+                alert("Failed to add document: " + error.message);
+            }
+        }
+
+        async function removeFieldPrompt(field) {
+        const docId = prompt("Enter plant ID to remove field from (e.g., plant_01):");
+            if (docId) {
+                try {
+                await updateDoc(doc(db, "plants", docId), { [field]: deleteField() });
+                alert("Removed " + field + " from " + docId + "!");
+                } catch (error) {
+                alert("Failed to remove: " + error.message);
+                }
+            }
+        }
+        window.addItem = addItem;
+    </script>
+    </body>
+</html>

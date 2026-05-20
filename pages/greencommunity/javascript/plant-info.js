@@ -4,25 +4,21 @@ import { getFirestore, collection, query, where, getDocs } from "https://www.gst
 // Intro overlay animation
 document.addEventListener('DOMContentLoaded', () => {
     const introOverlay = document.getElementById('intro-overlay');
-
-    // Remove the intro overlay after animation completes (3.3 seconds total)
     setTimeout(() => {
         if (introOverlay) {
             introOverlay.style.pointerEvents = 'none';
-            setTimeout(() => {
-                introOverlay.remove();
-            }, 300);
+            setTimeout(() => { introOverlay.remove(); }, 300);
         }
     }, 3300);
 });
 
-// Photo / Video toggle
+// --- GLOBAL MEDIA STATE ---
 const mediaPlaceholder = document.getElementById('mediaPlaceholder');
 const photoBtn = document.getElementById('photoBtn');
 const videoBtn = document.getElementById('videoBtn');
 
-let photoSrc = "your-photo.jpg";   // Default placeholder if no plant image is found
-const videoSrc = "your-video.mp4";   // Change to your actual video if available
+let photoSrc = "../assets/images/bg.png"; // Fallback
+let videoUrl = ""; // Will be populated from Firestore 'video-url'
 
 const setMediaPlaceholder = (content) => {
     if (mediaPlaceholder) {
@@ -35,59 +31,60 @@ const setPhotoPlaceholder = (src, alt = 'Plant Photo') => {
     setMediaPlaceholder(`<img src="${photoSrc}" alt="${alt}" style="width:100%; height:100%; object-fit:cover; border-radius:17px;">`);
 };
 
-// Start with the placeholder by default
-setPhotoPlaceholder(photoSrc);
-
+// --- PHOTO / VIDEO TOGGLE LISTENERS ---
 photoBtn.addEventListener('click', () => {
     setPhotoPlaceholder(photoSrc, 'Plant Photo');
 });
 
 videoBtn.addEventListener('click', () => {
-    setMediaPlaceholder(`
-        <video width="100%" height="100%" controls style="border-radius:17px;">
-            <source src="${videoSrc}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-    `);
+    if (!videoUrl || videoUrl.trim() === "") {
+        setMediaPlaceholder(`
+            <div style="width:100%; height:100%; border-radius:17px; display:flex; align-items:center; justify-content:center; background:#2c3e50; color:white; font-family:sans-serif;">
+                <p>No video guide available.</p>
+            </div>
+        `);
+        return;
+    }
+
+    let finalUrl = videoUrl;
+
+    // --- SMART LINK CONVERSION (YouTube Support) ---
+    if (videoUrl.includes("youtube.com/watch?v=")) {
+        finalUrl = videoUrl.replace("watch?v=", "embed/");
+    } else if (videoUrl.includes("youtu.be/")) {
+        finalUrl = videoUrl.replace("youtu.be/", "youtube.com/embed/");
+    }
+
+    // Use Iframe for web links/YouTube, or Video tag for direct MP4s
+    if (finalUrl.includes("embed") || finalUrl.includes("http")) {
+        setMediaPlaceholder(`
+            <iframe src="${finalUrl}" style="width:100%; height:100%; border:none; border-radius:17px; background:#000;" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        `);
+    } else {
+        setMediaPlaceholder(`
+            <video width="100%" height="100%" controls style="border-radius:17px; background:#000; object-fit:cover;">
+                <source src="${finalUrl}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `);
+    }
 });
 
+// --- HELPER FUNCTIONS ---
 function normalizeName(value) {
     return (value || "").toString().replace(/[^a-zA-Z0-9 ]+/g, '').trim();
 }
 
-function titleCase(str) {
-    return str.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
-}
-
 const folderImageFiles = {
-    herbs: [
-        'akapulko.png', 'aloe vera.jpeg', 'balanoy.png', 'balbaspusa.png', 'bayabas.jpg',
-        'chives.jpg', 'cilantro.jpg', 'damong maria.png', 'dill.jpeg', 'ginger.jpeg',
-        'gotu kola.jpeg', 'lagundi.jpg', 'mayana.jpg', 'oregano.jpg', 'pandan.png',
-        'pansitpansitan.jpg', 'rosemary.jpeg', 'sambong.jpeg', 'serpentina.png',
-        'stevia.jpg', 'tanglad.jpeg', 'tarragon.jpg', 'tsaang gubat.png', 'turmeric.jpeg',
-        'yerba buena.jpeg'
-    ],
-    fruits: [
-        'Avocado.jpg', 'Balimbing.jpg', 'Banana.jpg', 'Calamansi.jpg', 'Chico.jpg',
-        'Dalandan.jpg', 'Dragon Fruit.jpg', 'Durian.jpg', 'Fig - Ficus Carica.jpg',
-        'Guava Bayabas.jpg', 'Guyabano.jpg', 'Jackfruit.jpg', 'Lanzones.jpg', 'Manga.jpg',
-        'Mulberry.jpg', 'Papaya.jpg', 'Passion Fruit.jpg', 'Rambutan.jpg', 'Santol.jpg',
-        'Starfruit.jpg', 'Sugar apple.jpg', 'Tomato.jpg'
-    ],
-    vegetables: [
-        'Ampalaya.jpg', 'Baguio Beans.jpg', 'Bawang.jpg', 'Bell Pepper.jpg', 'Carrot.jpg',
-        'Gabi.jpg', 'Kamote.jpg', 'Kangkong.jpg', 'Kintsay.jpg', 'Labanos.jpg',
-        'Letsugas.jpg', 'Malunggay.jpg', 'Okra.jpg', 'Patatas.jpg', 'Pechay.jpg',
-        'Pipino.jpg', 'Repolyo.jpg', 'Saluyot.jpg', 'Sibuyas Dahon.jpg', 'Sibuyas.jpg',
-        'Sili.jpg', 'Sitaw.jpg', 'Snap Beans.jpg', 'Sweet Pea.jpg', 'Talong.jpg'
-    ]
+    herbs: ['akapulko.png', 'aloe vera.jpeg', 'balanoy.png', 'balbaspusa.png', 'bayabas.jpg', 'chives.jpg', 'cilantro.jpg', 'damong maria.png', 'dill.jpeg', 'ginger.jpeg', 'gotu kola.jpeg', 'lagundi.jpg', 'mayana.jpg', 'oregano.jpg', 'pandan.png', 'pansitpansitan.jpg', 'rosemary.jpeg', 'sambong.jpeg', 'serpentina.png', 'stevia.jpg', 'tanglad.jpeg', 'tarragon.jpg', 'tsaang gubat.png', 'turmeric.jpeg', 'yerba buena.jpeg'],
+    fruits: ['Avocado.jpg', 'Balimbing.jpg', 'Banana.jpg', 'Calamansi.jpg', 'Chico.jpg', 'Dalandan.jpg', 'Dragon Fruit.jpg', 'Durian.jpg', 'Fig - Ficus Carica.jpg', 'Guava Bayabas.jpg', 'Guyabano.jpg', 'Jackfruit.jpg', 'Lanzones.jpg', 'Manga.jpg', 'Mulberry.jpg', 'Papaya.jpg', 'Passion Fruit.jpg', 'Rambutan.jpg', 'Santol.jpg', 'Starfruit.jpg', 'Sugar apple.jpg', 'Tomato.jpg'],
+    vegetables: ['Ampalaya.jpg', 'Baguio Beans.jpg', 'Bawang.jpg', 'Bell Pepper.jpg', 'Carrot.jpg', 'Gabi.jpg', 'Kamote.jpg', 'Kangkong.jpg', 'Kintsay.jpg', 'Labanos.jpg', 'Letsugas.jpg', 'Malunggay.jpg', 'Okra.jpg', 'Patatas.jpg', 'Pechay.jpg', 'Pipino.jpg', 'Repolyo.jpg', 'Saluyot.jpg', 'Sibuyas Dahon.jpg', 'Sibuyas.jpg', 'Sili.jpg', 'Sitaw.jpg', 'Snap Beans.jpg', 'Sweet Pea.jpg', 'Talong.jpg']
 };
 
 function findBestMatch(name, fileNames) {
     const normalized = normalizeName(name).toLowerCase();
     if (!normalized) return null;
-
     const simpleMatch = fileNames.find(file => {
         const base = normalizeName(file.replace(/\.[^.]+$/, '')).toLowerCase();
         return base === normalized || base.includes(normalized) || normalized.includes(base);
@@ -97,48 +94,30 @@ function findBestMatch(name, fileNames) {
     const score = (a, b) => {
         const m = Math.min(a.length, b.length);
         let dist = 0;
-        for (let i = 0; i < m; i += 1) {
-            if (a[i] !== b[i]) dist += 1;
-        }
+        for (let i = 0; i < m; i += 1) if (a[i] !== b[i]) dist += 1;
         return dist + Math.abs(a.length - b.length);
     };
 
     const best = fileNames.reduce((bestFile, current) => {
         const currentBase = normalizeName(current.replace(/\.[^.]+$/, '')).toLowerCase();
         const currentScore = score(normalized, currentBase);
-        if (!bestFile || currentScore < bestFile.score) {
-            return { score: currentScore, file: current };
-        }
+        if (!bestFile || currentScore < bestFile.score) return { score: currentScore, file: current };
         return bestFile;
     }, null);
-
     return best && best.score <= 2 ? best.file : null;
 }
 
 function getIconPath(plant) {
     const category = (plant.category || '').toLowerCase();
-    let folderKey;
+    let folderKey = category.includes('herb') ? 'herbs' : category.includes('fruit') ? 'fruits' : category.includes('vegetable') ? 'vegetables' : null;
+    if (!folderKey) return null;
 
-    if (category.includes('herb')) {
-        folderKey = 'herbs';
-    } else if (category.includes('fruit')) {
-        folderKey = 'fruits';
-    } else if (category.includes('vegetable')) {
-        folderKey = 'vegetables';
-    } else {
-        return null;
-    }
-
-    const folderMap = {
-        herbs: '../assets/pics&icon/r.image/herbs.r/',
-        fruits: '../assets/pics&icon/r.image/fruits.r/',
-        vegetables: '../assets/pics&icon/r.image/vegatables.r/'
-    };
-
+    const folderMap = { herbs: '../assets/pics&icon/r.image/herbs.r/', fruits: '../assets/pics&icon/r.image/fruits.r/', vegetables: '../assets/pics&icon/r.image/vegatables.r/' };
     const bestFile = findBestMatch(plant.name, folderImageFiles[folderKey]);
     return bestFile ? folderMap[folderKey] + bestFile : null;
 }
 
+// --- FIREBASE INITIALIZATION ---
 const firebaseConfig = {
     apiKey: "AIzaSyCNjcXGW7mvVhjAVcFv8MphD943J2Z6x3w",
     authDomain: "growsauyou.firebaseapp.com",
@@ -152,6 +131,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// --- DATA FETCHING ---
 window.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const plantName = params.get('name');
@@ -168,6 +148,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             if (!snapshot.empty) {
                 const plantData = snapshot.docs[0].data();
 
+                // VIDEO: Sync the URL from Firestore field 'video-url'
+                videoUrl = (plantData["video-url"] || "").trim();
+
                 const setText = (id, value) => {
                     const el = document.getElementById(id);
                     if (el) el.textContent = value ?? 'N/A';
@@ -178,54 +161,27 @@ window.addEventListener('DOMContentLoaded', async () => {
                     if (el) el.innerHTML = html ?? 'N/A';
                 };
 
-                const titleCase = (key) => {
-                    return key
-                        .replace(/[-_]/g, ' ')
-                        .replace(/\b\w/g, char => char.toUpperCase());
-                };
+                const titleCaseFormatter = (key) => key.replace(/[-_]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 
                 const formatLines = (value) => {
                     if (value == null) return 'N/A';
-                    return String(value)
-                        .split(/\r?\n/)
-                        .map(line => line.trim())
-                        .filter(line => line.length)
-                        .join('<br>');
+                    return String(value).split(/\r?\n/).map(line => line.trim()).filter(line => line.length).join('<br>');
                 };
 
                 const formatMapStrings = (value) => {
                     if (typeof value === 'string') return formatLines(value);
                     if (value && typeof value === 'object') {
-                        return Object.entries(value)
-                            .map(([k, v]) => {
-                                if (Array.isArray(v)) {
-                                    return `<div><strong>${titleCase(k)}:</strong><ul>${v.map(item => `<li>${formatLines(item)}</li>`).join('')}</ul></div>`;
-                                }
-                                return `<div><strong>${titleCase(k)}:</strong><br>${formatLines(v)}</div>`;
-                            })
-                            .join('') || 'N/A';
+                        return Object.entries(value).map(([k, v]) => `<div><strong>${titleCaseFormatter(k)}:</strong><br>${formatLines(v)}</div>`).join('') || 'N/A';
                     }
                     return 'N/A';
                 };
 
                 const formatMapArrays = (value) => {
-                    if (Array.isArray(value)) {
-                        return `<ul>${value.map(item => `<li>${formatLines(item)}</li>`).join('')}</ul>`;
-                    }
-                    if (value && typeof value === 'object') {
-                        return Object.entries(value)
-                            .filter(([, v]) => Array.isArray(v))
-                            .map(([k, v]) => `
-                                <div><strong>${titleCase(k)}:</strong>
-                                    <ul>${v.map(item => `<li>${formatLines(item)}</li>`).join('')}</ul>
-                                </div>
-                            `)
-                            .join('') || 'N/A';
-                    }
+                    if (Array.isArray(value)) return `<ul>${value.map(item => `<li>${formatLines(item)}</li>`).join('')}</ul>`;
                     return 'N/A';
                 };
 
-                // Populate all plant info fields
+                // Populate UI
                 setText('scientific_name', plantData.scientific_name);
                 setText('type', plantData.type);
                 setText('lifespan', plantData.lifespan);
@@ -236,19 +192,27 @@ window.addEventListener('DOMContentLoaded', async () => {
                 setText('water', plantData.water);
                 setText('soil', plantData.soil);
                 setText('size', plantData.size);
-                setText('blossom', plantData.blossom);
+                setText('bloom', plantData.bloom);
                 setText('uses', plantData.uses);
                 setText('notes', plantData.notes);
                 setHtml('needs', formatMapStrings(plantData.needs));
                 setHtml('preparation', formatMapArrays(plantData['what-to-do']));
-                setHtml('step-by-step', formatMapStrings(plantData['steps'] || plantData['step_by_step'] || plantData['step-by-step']));
+                setHtml('step-by-step', formatMapStrings(plantData['steps'] || plantData['step-by-step']));
                 setText('where', plantData.where);
                 setText('when', plantData.when);
 
-                // Update media placeholder with local icon image only
-                const imageSource = getIconPath({ name: plantName, category: plantData.category });
-                if (imageSource) {
-                    setPhotoPlaceholder(imageSource, plantName);
+                // PHOTO: Check for custom uploaded image first, then fall back to icon matching
+                if (plantData.image && plantData.image.trim()) {
+                    // Use the uploaded image from Firestore
+                    setPhotoPlaceholder(plantData.image, plantName);
+                } else {
+                    // Fall back to icon matching logic
+                    const imageSource = getIconPath({ name: plantName, category: plantData.category });
+                    if (imageSource) {
+                        setPhotoPlaceholder(imageSource, plantName);
+                    } else {
+                        setPhotoPlaceholder("../assets/images/bg.png");
+                    }
                 }
             }
         } catch (error) {

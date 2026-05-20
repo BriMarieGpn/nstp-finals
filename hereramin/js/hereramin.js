@@ -15,7 +15,11 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     if (!isBorrowPage && !isOrgVerificationPage) {
         return;
     }
-    
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+    const BORROW_REQUESTS_COLLECTION = "borrow_requests";
     
     // If this is the org verification page, handle the org verification form
     if (isOrgVerificationPage) {
@@ -219,8 +223,18 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                 const refText = document.getElementById("pendingRefText");
                 if (refText) refText.textContent = "Reference No: " + ref;
 
-                // Scroll to top of panel
+                if (orgFormPage) {
+                    orgFormPage.classList.add("hidden");
+                    orgFormPage.style.display = "none";
+                }
+                if (pendingPage) {
+                    pendingPage.classList.add("active");
+                    pendingPage.style.display = "flex";
+                    pendingPage.style.opacity = "1";
+                }
+
                 if (pendingPage) pendingPage.scrollIntoView({ behavior: "smooth", block: "start" });
+                window.alert("Organization borrow request submitted. Pending status is now visible.");
             });
         }
         
@@ -245,11 +259,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     const BORROW_HISTORY_KEY = "growsauyou-borrow-history";
     const BORROW_DOC_PATH = ["hereramin", "latestBorrow"];
     const TOOLS_COLLECTION = "tools";
-    const BORROW_REQUESTS_COLLECTION = "borrow_requests";
-
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
+    
     const imageFolder = "assets/images/";
     let toolsUnsubscribe = null;
 

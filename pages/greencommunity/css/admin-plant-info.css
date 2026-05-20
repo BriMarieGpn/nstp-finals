@@ -1,0 +1,133 @@
+.content {
+    position: fixed;
+    top: 110px;
+    left: 30px;
+    right: 30px;
+    bottom: 20px;
+    max-width: calc(100% - 60px);
+    margin: 0 auto;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.info-card {
+    background: var(--color-05);
+    backdrop-filter: blur(8px);
+    border: 2px solid var(--color-01);
+    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: 45px;
+    padding: 40px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.text-section {
+    flex: 2;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 25px;
+    margin-top: 0;
+    max-height: calc(100% - 80px);
+}
+
+.text-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.text-section::-webkit-scrollbar-track {
+    background: rgb(186, 186, 186);
+    border-radius: 10px;
+}
+
+.text-section::-webkit-scrollbar-thumb {
+    background: var(--color-01);
+    border-radius: 10px;
+}
+
+.text-section::-webkit-scrollbar-thumb:hover {
+    background: var(--color);
+}
+
+.text-section h2 {
+    color: var(--color-01);
+    margin-bottom: 12px;
+    margin-top: 40px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 18px;
+    text-transform: uppercase;
+}
+
+.text-section p {
+    margin-bottom: 20px;
+    line-height: 1.7;
+    color: var(--color);
+    font-size: 15.5px;
+}
+
+.guide p,
+.guide div {
+    margin-bottom: 18px;
+    line-height: 1.8;
+}
+
+.text-section hr {
+    border: none;
+    border-top: 2px solid rgb(186, 186, 186);
+    margin: 20px 0;
+}
+
+.video-section {
+    flex: 1.15;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding-top: 50px;
+}
+
+.media-buttons {
+    display: flex;
+    gap: 14px;
+    margin-top: 20px;
+    margin-left: 30px;
+}
+.fruit-name {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--color-01);
+    position: relative;
+    right: 90px;
+}
+
+input[type="text"], textarea {
+    font-size: 16px;
+    color: var(--color-01);
+    background-color: #98ad7a2a;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+}
+
+input[type="text"]:focus, textarea:focus {
+  background-color: var(--color-04);
+  border: solid 1px var(--color-01);
+  outline: none;
+}
+
+.add-plant {
+    background-color: var(--color-01);
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+    border: var(--color-01) solid 1px;
+}
+
+.add-plant:hover {
+    background-color: var(--color-02);
+    border: var(--color-02) solid 1px;
+    cursor: pointe  r;
+}

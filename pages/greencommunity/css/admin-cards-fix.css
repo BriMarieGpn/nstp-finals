@@ -1,0 +1,54 @@
+/* Fix misalignment for Edit/Delete buttons inside green community mini cards */
+
+/* Make the card a flex column so actions can stick to the bottom consistently */
+.mini-card{
+  display: flex;
+  flex-direction: column;
+}
+
+/* Push actions row to the bottom (not based on text height) */
+.mini-card-media-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  width:100%;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+/* Ensure both edit/delete buttons use identical box model */
+.mini-card-action-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+
+  padding:8px 12px;
+  min-width:44px;
+  height:40px;
+
+  line-height:1;
+  box-sizing:border-box;
+}
+
+/* Keep icons aligned consistently */
+.mini-card-action-btn i{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* If text spans exist (some versions), don't break layout */
+.mini-card-action-btn span{
+  display:inline-block;
+  white-space:nowrap;
+  font-size:14px;
+}
+
+/* Responsive fallback */
+@media (max-width: 600px){
+  .mini-card-media-actions{
+    justify-content:center;
+  }
+}

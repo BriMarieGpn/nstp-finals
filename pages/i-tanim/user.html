@@ -102,6 +102,25 @@
           <span class="ud-card__label">Profile</span>
           <p class="ud-card__name" id="profileName">UserName</p>
           <p class="ud-card__sub" id="profileId">ID#</p>
+          <div id="qrCodeContainer" style="margin-top:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <img id="qrCodeImage" src="" alt="User QR Code" style="width:120px;height:120px;border-radius:18px;background:#ffffff;object-fit:contain;border:1px solid rgba(84,107,65,0.15);cursor:pointer;" title="Click to view and download your QR code" onclick="openQrModal()">
+            <div style="max-width:220px;font-size:0.88rem;line-height:1.5;">
+              <strong>Show this QR code at the barangay hall.</strong>
+              <p style="margin:8px 0 0;color:#4b5a35;opacity:0.9;">This is your registry ID. Brgy admin will scan it, review your profile details, and assign your program.</p>
+            </div>
+          </div>
+          <div id="qrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+            <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:20px;position:relative;box-shadow:0 22px 50px rgba(0,0,0,0.18);">
+              <button onclick="closeQrModal()" style="position:absolute;top:16px;right:16px;border:none;background:none;color:#546b41;font-size:1.2rem;cursor:pointer;">✕</button>
+              <h2 style="margin:0 0 12px;font-size:1.05rem;color:#546b41;">Your QR Code</h2>
+              <img id="qrModalImage" src="" alt="Your QR Code" style="width:100%;max-width:320px;height:auto;border-radius:18px;border:1px solid rgba(84,107,65,0.15);background:#fff;display:block;margin:0 auto 14px;">
+              <p style="margin:0 0 14px;color:#4b5a35;opacity:0.9;line-height:1.5;">Download or show this QR code when checking in at the barangay hall.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                <a id="qrModalDownload" href="#" download="qrcode.png" style="display:inline-block;padding:12px 16px;border-radius:12px;background:#546b41;color:#fff;text-decoration:none;font-weight:700;">Download QR</a>
+                <button onclick="closeQrModal()" style="padding:12px 16px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);background:#f4f7ec;color:#546b41;font-weight:700;cursor:pointer;">Close</button>
+              </div>
+            </div>
+        </div>
         </div>
         <div class="ud-card">
           <span class="ud-card__label">Status</span>

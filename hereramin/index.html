@@ -68,7 +68,6 @@
 
     <div class="borrow-grid">
 
-        <!-- LEFT TOOL PANEL -->
         <section class="borrow-tool-panel">
             <div class="borrow-tool-image-wrap">
                 <img id="toolImage" src="assets/images/shovel.png" alt="Selected Tool">
@@ -84,7 +83,7 @@
             <label class="borrow-label">Quantity</label>
             <div class="qty-control">
                 <button type="button" id="minusBtn" class="qty-btn">−</button>
-                <span id="quantity" class="qty-value">1</span>
+                <input type="number" id="quantity" class="qty-value" min="1" value="1" inputmode="numeric" />
                 <button type="button" id="plusBtn" class="qty-btn">+</button>
             </div>
 
@@ -95,6 +94,7 @@
 
             <input type="date" id="returnDate" class="borrow-input">
         </section>
+
 
         <!-- RIGHT FORM -->
         <section class="borrow-form-panel">

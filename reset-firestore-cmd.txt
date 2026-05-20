@@ -1,2 +1,2 @@
-cd "c:\Users\rhejie carl\Downloads\GrowsauyouV12\nstp-finals-GrowsauyouV12"
+cd "C:\Users\rhejie carl\Downloads\nstp-finals-GrowsauyouV17.1\nstp-finals-GrowsauyouV17.1"
 powershell -ExecutionPolicy Bypass -File reset-firestore.ps1 -Force

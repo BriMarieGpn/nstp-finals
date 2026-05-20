@@ -1,0 +1,188 @@
+* {
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, var(--color-01), var(--color-02), var(--color-02));
+  color: var(--color-01);
+}
+
+.card {
+  width: 90%;
+  max-width: 750px;
+  max-height: 80vh;
+  overflow: hidden;
+  padding: 20px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border: solid 2px var(--color-01);
+}
+
+.card-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 12px;
+  min-height: 0;
+}
+
+.card-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.card-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.card-content::-webkit-scrollbar-thumb {
+  background: var(--color-01);
+  border-radius: 10px;
+  min-height: 50px;
+}
+
+.card-content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-02);
+}
+
+.text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--color1);
+  border-bottom: solid 2px var(--color-01);
+  flex-shrink: 0;
+}
+
+.card form div {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.card input, .card select, .card textarea {
+  flex: 1;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.card label {
+  margin-right: 10px;
+  min-width: 80px;
+}
+
+.card button {
+  padding: 8px 12px;
+  margin-left: 10px;
+  background-color: white;
+  color: var(--color-01);
+  border: solid 1px var(--color-01);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background-color: var(--color-01);
+  color: var(--color4);
+}
+
+#plantList {
+  margin-top: 20px;
+}
+
+#plantList div {
+  border: 1px solid #eee;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+.add-plant {
+  color: var(--color-04) !important;
+  display: block !important;
+  margin: 0 auto !important;
+  background-color: var(--color-01) !important;
+}
+
+.add-plant:hover {
+  background-color: var(--color-02) !important;
+  color: var(--color4) !important;
+}
+
+
+/*FORM CSS (INPUT AND SELECT)*/
+input[type="text"], textarea {
+  color: var(--color-01);
+  background-color: #98ad7a2a;
+}
+
+input[type="text"]:focus, textarea:focus {
+  color: #000;
+  background-color: #f4ffe5;
+  border: solid 1px var(--color-02);
+  outline: none;
+}
+
+select {
+  color: var(--color1);
+  background-color: #98ad7a2a;
+  border: 1px solid var(--color-01);
+  padding: 5px;
+}
+
+select:focus {
+  color: #000;
+  background-color: #f4ffe5;
+  border-color: var(--color-02);
+  outline: none;
+}
+
+.back-button {
+  position: absolute;
+  top: 60px;
+  left: 30px;
+  font-family: 'Archivo Black', sans-serif;
+}
+
+.back {
+  background-color: white;
+  color: var(--color-01);
+  border: solid 1px var(--color-01);
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.back:hover {
+  background-color: var(--color-01);
+  color: white !important;
+}
+
+.text {
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  border: 2px solid var(--color-01);
+}
+
+.text h2 {
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 40px;
+  color: var(--color-01);
+  position: relative  !important;
+  right: 10px !important;
+}

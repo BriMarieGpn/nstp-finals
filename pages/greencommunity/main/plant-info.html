@@ -6,55 +6,42 @@
     <title>Planting Guide</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;700&family=Product+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-p7MHX4zZ32TqQte97ulRkzvBvs2rR0KpFv8o7w9m1tK0v4uR0K0bA7+K1K0uR8n8x8TsXfy8J4qL6AwD4w5oqg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;700&family=Product+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-p7MHX4zZ32TqQte97ulRkzvBvs2rR0KpFv8o7w9m1tK0v4uR0K0bA7+K1K0uR8n8x8TsXfy8J4qL6AwD4w5oqg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="../../../css/styles.css">
     <link rel="stylesheet" href="../../../css/landing.css">
-      <link rel="stylesheet" href="../../../css/footer.css" />
+    <link rel="stylesheet" href="../../../css/footer.css" />
     <link rel="stylesheet" href="../css/reusable.css">
     <link rel="stylesheet" href="../css/plant-info.css">
 </head>
 
-<body class="background-image auth-pending">
+<body class="background-image">
 
-<style>
-  #appContent { opacity: 1; transition: opacity 220ms ease; }
-  body.auth-pending #appContent { opacity: 0; pointer-events: none; }
-  #authLoadingGate {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: #fff8ec; color: #546b41; z-index: 9999;
-    font-weight: 700; letter-spacing: 0.2px;
-    opacity: 1; visibility: visible;
-    transition: opacity 220ms ease, visibility 220ms ease;
-  }
-  body:not(.auth-pending) #authLoadingGate { opacity: 0; visibility: hidden; pointer-events: none; }
-</style>
+    <nav class="landing-navbar">
+        <div class="landing-nav-left">
+            <a href="../../../index.html" class="brand">
+                <span>GrowSauYou</span>
+            </a>
 
-<div id="authLoadingGate">Checking session</div>
-<div id="appContent">
-
-  <nav class="landing-navbar">
-    <div class="landing-nav-left">
-        <a href="../../../index.html" class="brand">
-            <span>GrowSauYou</span>
-        </a>
-
-        <div class="landing-links">
-            <a href="../../../index.html">Home</a>
-            <a href="../../i-tanim/user.html">I-Tanim</a>
-            <a href="../../../hereramin/index.html">Here-Ramin</a>
-            <a href="index.html">Green Community</a>
+            <div class="landing-links">
+                <a href="../../../index.html">Home</a>
+                <a href="../../i-tanim/user.html">I-Tanim</a>
+                <a href="../../../hereramin/index.html">Here-Ramin</a>
+                <a href="index.html">Green Community</a>
+            </div>
         </div>
-    </div>
 
-    <!-- REQUIRED FOR navbar-auth.js -->
-    <div class="nav-right">
-        <a class="nav-auth-link" href="../../i-tanim/login.html">Login</a>
-        <a class="nav-auth-link" href="../../i-tanim/signup.html">Register</a>
-    </div>
-  </nav>
+        <!-- REQUIRED FOR navbar-auth.js -->
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../../greencommunity/main/admin-index.html">Login</a>
+            <a class="nav-auth-link" href="../../greencommunity/main/admin-index.html">Register</a>
+        </div>
+    </nav>
 
     <div class="content">
         <div class="info-card">
@@ -76,7 +63,7 @@
                 <p><strong>Water:</strong><br><span id="water">Text</span></p>
                 <p><strong>Soil:</strong><br><span id="soil">Text</span></p>
                 <p><strong>Size:</strong><br><span id="size">Text</span></p>
-                <p><strong>Blossom:</strong><br><span id="blossom">Text</span></p>
+                <p><strong>Bloom:</strong><br><span id="bloom">Text</span></p>
                 <p><strong>Uses:</strong><br><span id="uses">Text</span></p>
                 <p><strong>Notes:</strong><br><span id="notes">Text</span></p>
                 <hr>
@@ -84,21 +71,33 @@
                 <div class="guide">
                     <h2>STEP BY STEP GUIDE:</h2>
                     <p><strong>Needs:</strong><br><span id="needs">Text</span></p>
-                    <p><strong>What to do (Preparation):</strong><br><div id="preparation">Text</div></p>
-                    <p><strong>How to (Step by Step):</strong><br><div id="step-by-step">Text</div></p>
+                    <p><strong>What to do (Preparation):</strong><br>
+                    <div id="preparation">Text</div>
+                    </p>
+                    <p><strong>How to (Step by Step):</strong><br>
+                    <div id="step-by-step">Text</div>
+                    </p>
                     <p><strong>Where:</strong><br><span id="where">Text</span></p>
                     <p><strong>When:</strong><br><span id="when">Text</span></p>
                 </div>
             </div>
 
             <div class="video-section">
+                <!-- This container must be empty or have your default bg image -->
                 <div class="media-placeholder" id="mediaPlaceholder">
-                    <img src="../assets/images/bg.png" alt="Plant Photo">
+                    <img src="../assets/images/bg.png" alt="Plant Photo"
+                        style="width:100%; height:100%; object-fit:cover; border-radius:17px;">
                 </div>
 
                 <div class="media-buttons">
-                    <button class="animated-button btn-photo" id="photoBtn">View Photo</button>
-                    <button class="animated-button btn-video" id="videoBtn">Show Video</button>
+                    <button type="button" class="animated-button btn-photo" id="photoBtn">
+                        <i class="fa-solid fa-image" aria-hidden="true"></i>
+                        <span>View Photo</span>
+                    </button>
+                    <button type="button" class="animated-button btn-video" id="videoBtn">
+                        <i class="fa-solid fa-video" aria-hidden="true"></i>
+                        <span>Show Video</span>
+                    </button>
                 </div>
 
                 <div class="fruit-name" id="name">Name</div>
@@ -109,8 +108,6 @@
 
     <script type="module" src="../../../js/navbar-auth.js"></script>
     <script type="module" src="../javascript/plant-info.js"></script>
-</div>
 </body>
 
 </html>
-

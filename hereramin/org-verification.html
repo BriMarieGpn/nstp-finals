@@ -394,25 +394,32 @@
 <section class="borrow-page-shell">
     <div class="borrow-grid">
 
-        <!-- ── LEFT TOOL PANEL (pulled from URL params / sessionStorage) ── -->
+       
         <section class="borrow-tool-panel">
             <div class="borrow-tool-image-wrap">
-                <img id="orgToolImage" src="../assets/images/shovel.png" alt="Selected Tool">
+                <img id="toolImage" src="assets/images/shovel.png" alt="Selected Tool">
             </div>
+
             <div class="availability-badge-wrap">
-                <span id="orgAvailBadge" class="availability-badge available">Available</span>
+                <span id="availabilityBadge" class="availability-badge available">Available</span>
             </div>
 
             <label class="borrow-label">Tool Name</label>
-            <div class="borrow-input" id="orgToolName" style="cursor:default;">Shovel</div>
+            <select id="toolSelect" class="borrow-input"></select>
 
             <label class="borrow-label">Quantity</label>
-            <div class="borrow-input" id="orgQtyDisplay" style="cursor:default;">1</div>
+            <div class="qty-control">
+                <button type="button" id="minusBtn" class="qty-btn">−</button>
+                <input type="number" id="quantity" class="qty-value" min="1" value="1" inputmode="numeric" />
+                <button type="button" id="plusBtn" class="qty-btn">+</button>
+            </div>
 
             <label class="borrow-label">Borrow Date</label>
-            <input type="date" id="orgBorrowDate" class="borrow-input">
+            <input type="date" id="borrowDate" class="borrow-input">
+
             <div class="date-separator">TO</div>
-            <input type="date" id="orgReturnDate" class="borrow-input">
+
+            <input type="date" id="returnDate" class="borrow-input">
         </section>
 
         <!-- ── RIGHT FORM PANEL ── -->

@@ -9,7 +9,7 @@
         .status { margin-top: 20px; }
     </style>
 </head>
-<body class="auth-pending auth-pending">
+<body>
     <h1>GrowSauYOU Local Cache Reset</h1>
     <p>This helper page will clear the browser local storage keys used by the i-tanim admin and volunteer dashboard.</p>
     <button id='resetBtn'>Clear local cache now</button>
@@ -21,14 +21,5 @@
             document.getElementById('status').textContent = 'Cleared localStorage keys. Reload the app pages now.';
         });
     </script>
-</div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.remove('auth-pending');
-  });
-</script>
 </body>
 </html>
-
-

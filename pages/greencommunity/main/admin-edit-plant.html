@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Plant</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;700&family=Product+Sans:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        integrity="sha512-p7MHX4zZ32TqQte97ulRkzvBvs2rR0KpFv8o7w9m1tK0v4uR0K0bA7+K1K0uR8n8x8TsXfy8J4qL6AwD4w5oqg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="../../../css/styles.css">
+    <link rel="stylesheet" href="../../../css/landing.css">
+    <link rel="stylesheet" href="../../../css/footer.css" />
+
+    <link rel="stylesheet" href="../css/reusable.css">
+    <link rel="stylesheet" href="../css/plant-info.css">
+    <link rel="stylesheet" href="../css/admin-edit.css  ">
+
+</head>
+
+<body class="background-image">
+
+    <nav class="landing-navbar">
+        <div class="landing-nav-left">
+            <a href="../../../index.html" class="brand">
+                <span>GrowSauYou</span>
+            </a>
+
+        </div>
+
+        <!-- REQUIRED FOR navbar-auth.js -->
+        <div class="nav-right">
+            <a class="nav-auth-link" href="../../greencommunity/main/admin-index.html">Login</a>
+            <a class="nav-auth-link" href="../../greencommunity/main/admin-index.html">Register</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="info-card">
+
+            <a class="animated-button btn-left" href="admin-index.html">← Back to Plant List</a>
+
+            <div class="text-section">
+                <h2><span id="name-header">(Plant)</span></h2>
+                <p style="margin-top:-10px;opacity:.9;">Edit plant details.</p>
+
+                <div id="error-box"
+                    style="display:none; background:#ffd2d2; border:1px solid #ff5a5a; padding:12px 14px; border-radius:12px; color:#8b0000; margin-top:20px;">
+                    <strong>Error:</strong> <span id="error-message"></span>
+                </div>
+
+                <hr>
+
+                <div class="guide">
+
+                    <h3>Basic Info</h3>
+                    <p><strong>Plant Name:</strong><br><input type="text" id="name" placeholder="Plant name" required></p>
+                    <p><strong>Scientific Name:</strong><br><input type="text" id="scientific_name"placeholder="Scientific name"></p>
+                    <p><strong>Type:</strong><br><input type="text" id="type" placeholder="Type"></p>
+                    <p><strong>Lifespan:</strong><br><input type="text" id="lifespan" placeholder="Lifespan"></p>
+                    <p><strong>Category:</strong><br><input type="text" id="category" placeholder="Category"></p>
+                    <p><strong>Origin:</strong><br><input type="text" id="origin" placeholder="Origin"></p>
+                    <p><strong>Habitat:</strong><br><input type="text" id="habitat" placeholder="Habitat"></p>
+                    <p><strong>Sunlight:</strong><br><input type="text" id="sunlight" placeholder="Sunlight"></p>
+                    <p><strong>Water:</strong><br><input type="text" id="water" placeholder="Water"></p>
+                    <p><strong>Soil:</strong><br><input type="text" id="soil" placeholder="Soil"></p>
+                    <p><strong>Size:</strong><br><input type="text" id="size" placeholder="Size"></p>
+                    <p><strong>Bloom:</strong><br><input type="text" id="bloom" placeholder="Bloom"></p>
+                    <p><strong>Uses:</strong><br><input type="text" id="uses" placeholder="Uses"></p>
+                    <p><strong>Notes:</strong><br><input type="text" id="notes" placeholder="Notes"></p>
+
+                    <hr>
+
+                    <h3>Needs</h3>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <div style="font-weight:600; margin-bottom:6px;">Fertilizers</div>
+                            <textarea id="fertilizers" rows="4" style="width:100%;" placeholder="..."></textarea>
+                        </div>
+                        <div>
+                            <div style="font-weight:600; margin-bottom:6px;">Soil Type</div>
+                            <textarea id="soil-type" rows="4" style="width:100%;" placeholder="..."></textarea>
+
+                        </div>
+                    </div>
+
+                    <h3>Preparation</h3>
+
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 12px;">
+                        <div>
+                            <textarea id="preparation" rows="10" style="width:100%;" cols="50" placeholder=""></textarea>
+                        </div>
+                    </div>
+
+                    <h3>Step by Step</h3>
+
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 12px;">
+                        <div>
+                            <textarea id="step_by_step" rows="12" style="width:100%;" cols="50"
+                                placeholder="One step per line (or JSON)"></textarea>
+                        </div>
+                    </div>
+
+                    <h3>Where / When</h3>
+                    <p><strong>Where:</strong><br><textarea id="where" rows="4" cols="50"
+                            placeholder="Saan Itatanim"></textarea></p>
+                    <p><strong>When:</strong><br><textarea id="when" rows="4" cols="50"
+                            placeholder="Tamang Panahon"></textarea></p>
+
+                </div>
+
+                <div style="display:flex; gap:12px; margin-top:20px;">
+                    <button type="button" id="saveBtn" class="add-plant" style="min-width:160px;">Save Changes</button>
+                    <button type="button" id="cancelBtn" class="add-plant"
+                        style="background:#e2e2e2; color:#222; min-width:160px;">Cancel</button>
+                    <button type="button" id="editEnableBtn" class="add-plant"
+                        style="background:#0b7a0b; color:#fff; min-width:160px; display:none;">Edit</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../../../js/navbar-auth.js"></script>
+    <script type="module" src="../javascript/admin-edit-plant.js"></script>
+</body>
+
+</html>
