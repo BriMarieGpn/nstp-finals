@@ -554,8 +554,6 @@ function restoreActiveTab() {
     }
     showTab(tab);
 }
-
-// Update tab content
 // Update tab content
 function updateTab(tabName) {
     try {
@@ -594,6 +592,8 @@ let organizationVerifications = [];
 let orgVerificationsUnsubscribe = null;
 let hereRaminEditingToolId = null;
 let hereRaminUploadedImageDataUrl = '';
+let hereRaminModalEditingToolId = null;
+let hereRaminModalUploadedImageDataUrl = '';
 
 function slugifyToolName(value) {
     return String(value || '')
@@ -674,6 +674,148 @@ function resetHereRaminToolForm() {
     if (saveBtn) saveBtn.textContent = 'Add Tool';
 }
 
+function resetHereRaminToolModalForm() {
+    const nameInput = document.getElementById('hrModalToolName');
+    const categoryInput = document.getElementById('hrModalToolCategory');
+    const imageInput = document.getElementById('hrModalToolImageUrl');
+    const wikiHowInput = document.getElementById('hrModalToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrModalToolDescription');
+    const qtyAvailableInput = document.getElementById('hrModalToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrModalToolQtyTotal');
+    const imageFileInput = document.getElementById('hrModalToolImageFile');
+    const imagePreview = document.getElementById('hrModalToolImagePreview');
+    const saveBtn = document.getElementById('hrModalSaveBtn');
+
+    hereRaminModalEditingToolId = null;
+    hereRaminModalUploadedImageDataUrl = '';
+    renderHereRaminCategoryOptions('hrModalToolCategory');
+    if (nameInput) nameInput.value = '';
+    if (categoryInput) categoryInput.value = HERE_RAMIN_CATEGORIES[0];
+    if (imageInput) imageInput.value = '';
+    if (wikiHowInput) wikiHowInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    if (qtyAvailableInput) qtyAvailableInput.value = '1';
+    if (qtyTotalInput) qtyTotalInput.value = '1';
+    if (imageFileInput) imageFileInput.value = '';
+    if (imagePreview) {
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+    }
+    if (saveBtn) saveBtn.textContent = 'Update Tool';
+}
+
+function showHereRaminToolEditModal(toolId) {
+    const tool = hereRaminTools.find((entry) => entry.id === toolId);
+    if (!tool) return;
+
+    const modal = document.getElementById('hereRaminToolModal');
+    const title = document.getElementById('hrModalTitle');
+    const nameInput = document.getElementById('hrModalToolName');
+    const categoryInput = document.getElementById('hrModalToolCategory');
+    const imageInput = document.getElementById('hrModalToolImageUrl');
+    const wikiHowInput = document.getElementById('hrModalToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrModalToolDescription');
+    const qtyAvailableInput = document.getElementById('hrModalToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrModalToolQtyTotal');
+    const imagePreview = document.getElementById('hrModalToolImagePreview');
+    const saveBtn = document.getElementById('hrModalSaveBtn');
+
+    if (!modal) return;
+    hereRaminModalEditingToolId = toolId;
+    hereRaminModalUploadedImageDataUrl = '';
+    renderHereRaminCategoryOptions('hrModalToolCategory');
+    if (title) title.textContent = 'Edit HERE-RAMIN Tool';
+    if (nameInput) nameInput.value = tool.tool_name || '';
+    if (categoryInput) categoryInput.value = tool.category || 'General Tools';
+    if (imageInput) imageInput.value = tool.image_url || '';
+    if (wikiHowInput) wikiHowInput.value = tool.wikihow_url || '';
+    if (descriptionInput) descriptionInput.value = tool.description || '';
+    if (qtyAvailableInput) qtyAvailableInput.value = String(tool.quantity_available ?? 0);
+    if (qtyTotalInput) qtyTotalInput.value = String(tool.quantity_total ?? 1);
+    if (imagePreview) {
+        if (tool.image_url) {
+            imagePreview.src = tool.image_url;
+            imagePreview.style.display = 'block';
+        } else {
+            imagePreview.src = '';
+            imagePreview.style.display = 'none';
+        }
+    }
+    if (saveBtn) saveBtn.textContent = 'Update Tool';
+    modal.style.display = 'flex';
+}
+
+function closeHereRaminToolEditModal() {
+    const modal = document.getElementById('hereRaminToolModal');
+    if (modal) modal.style.display = 'none';
+    resetHereRaminToolModalForm();
+}
+
+async function saveHereRaminToolFromModal() {
+    const nameInput = document.getElementById('hrModalToolName');
+    const categoryInput = document.getElementById('hrModalToolCategory');
+    const imageInput = document.getElementById('hrModalToolImageUrl');
+    const wikiHowInput = document.getElementById('hrModalToolWikiHowUrl');
+    const descriptionInput = document.getElementById('hrModalToolDescription');
+    const qtyAvailableInput = document.getElementById('hrModalToolQtyAvailable');
+    const qtyTotalInput = document.getElementById('hrModalToolQtyTotal');
+
+    const toolName = (nameInput?.value || '').trim();
+    const category = (categoryInput?.value || '').trim() || 'General Tools';
+    const imageUrl = (imageInput?.value || '').trim();
+    const wikiHowUrl = (wikiHowInput?.value || '').trim();
+    const description = (descriptionInput?.value || '').trim();
+    const qtyAvailable = Number(qtyAvailableInput?.value || 0);
+    const qtyTotal = Number(qtyTotalInput?.value || 0);
+
+    if (!toolName) {
+        alert('Tool name is required.');
+        return;
+    }
+    if (!Number.isFinite(qtyAvailable) || !Number.isFinite(qtyTotal) || qtyAvailable < 0 || qtyTotal <= 0 || qtyAvailable > qtyTotal) {
+        alert('Please enter valid quantities (available must be between 0 and total).');
+        return;
+    }
+    const docId = hereRaminModalEditingToolId || slugifyToolName(toolName) || `tool-${Date.now()}`;
+    const payload = {
+        tool_name: toolName,
+        category,
+        image_url: hereRaminModalUploadedImageDataUrl || imageUrl,
+        wikihow_url: wikiHowUrl,
+        description,
+        quantity_available: qtyAvailable,
+        quantity_total: qtyTotal,
+        available: qtyAvailable > 0,
+        status_: qtyAvailable > 0 ? 'Available' : 'Unavailable',
+        updated_at: new Date().toISOString()
+    };
+
+    try {
+        await setDoc(doc(db, HERERAMIN_TOOLS_COLLECTION, docId), payload, { merge: true });
+        logAction('hereramin_tool_edit', `Edited HERE-RAMIN tool: "${toolName}"`, { toolId: docId, category });
+        closeHereRaminToolEditModal();
+    } catch (error) {
+        console.error('Failed to update HERE-RAMIN tool', error);
+        alert('Failed to update tool: ' + (error.message || error));
+    }
+}
+
+async function handleHereRaminToolModalImageFile(event) {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+    try {
+        hereRaminModalUploadedImageDataUrl = await readImageAsDataUrl(file);
+        const imagePreview = document.getElementById('hrModalToolImagePreview');
+        if (imagePreview) {
+            imagePreview.src = hereRaminModalUploadedImageDataUrl;
+            imagePreview.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Failed to load modal image preview', error);
+        alert('Could not read the selected image file.');
+    }
+}
+
 async function readImageAsDataUrl(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -683,8 +825,8 @@ async function readImageAsDataUrl(file) {
     });
 }
 
-function renderHereRaminCategoryOptions() {
-    const categorySelect = document.getElementById('hrToolCategory');
+function renderHereRaminCategoryOptions(selectId = 'hrToolCategory') {
+    const categorySelect = document.getElementById(selectId);
     if (!categorySelect) return;
     const current = categorySelect.value;
     categorySelect.innerHTML = HERE_RAMIN_CATEGORIES.map((category) => `<option value="${category}">${category}</option>`).join('');
@@ -740,10 +882,10 @@ function updateHereRaminReceipts() {
     }
     list.innerHTML = rows.map((record) => `
         <div class="ad-task-row hr-receipts-row">
-            <span>${record.borrower?.name || 'Unknown'}</span>
+            <span>${record.borrower?.organizationName || record.borrower?.name || record.borrower?.organization || 'Unknown'}</span>
             <span>${record.tool?.name || 'Tool'}</span>
             <span>${record.tool?.quantity || 1}</span>
-            <span>${record.status.replace(/_/g, ' ')}</span>
+            <span>${(record.status||'').replace(/_/g, ' ')}</span>
             <span>${record.schedule?.returnDate || '-'}</span>
             <span style="display:flex;gap:6px;flex-wrap:wrap;">
                 <button class="edit-btn" onclick="openBorrowDetail('${record.id}')">View</button>
@@ -1069,33 +1211,8 @@ async function addHereRaminTool() {
     }
 }
 
-async function editHereRaminTool(toolId) {
-    const tool = hereRaminTools.find((entry) => entry.id === toolId);
-    if (!tool) return;
-    const nameInput = document.getElementById('hrToolName');
-    const categoryInput = document.getElementById('hrToolCategory');
-    const imageInput = document.getElementById('hrToolImageUrl');
-    const wikiHowInput = document.getElementById('hrToolWikiHowUrl');
-    const descriptionInput = document.getElementById('hrToolDescription');
-    const qtyAvailableInput = document.getElementById('hrToolQtyAvailable');
-    const qtyTotalInput = document.getElementById('hrToolQtyTotal');
-    const imagePreview = document.getElementById('hrToolImagePreview');
-    const saveBtn = document.getElementById('hrToolSaveBtn');
-
-    hereRaminEditingToolId = toolId;
-    hereRaminUploadedImageDataUrl = '';
-    if (nameInput) nameInput.value = tool.tool_name || '';
-    if (categoryInput) categoryInput.value = tool.category || 'General Tools';
-    if (imageInput) imageInput.value = tool.image_url || '';
-    if (wikiHowInput) wikiHowInput.value = tool.wikihow_url || '';
-    if (descriptionInput) descriptionInput.value = tool.description || '';
-    if (qtyAvailableInput) qtyAvailableInput.value = String(tool.quantity_available ?? 0);
-    if (qtyTotalInput) qtyTotalInput.value = String(tool.quantity_total ?? 1);
-    if (imagePreview && tool.image_url) {
-        imagePreview.src = tool.image_url;
-        imagePreview.style.display = 'block';
-    }
-    if (saveBtn) saveBtn.textContent = 'Update Tool';
+function editHereRaminTool(toolId) {
+    showHereRaminToolEditModal(toolId);
 }
 
 async function toggleHereRaminToolAvailability(toolId) {
@@ -1207,10 +1324,13 @@ function openBorrowDetail(recordId) {
     currentBorrowDetailId = recordId;
 
     // Populate borrower info
-    document.getElementById('bd-borrower-name').textContent = record.borrower?.name || '-';
+    // Populate borrower info — prefer organizationName, then name, then fallback fields
+    const borrowerDisplayName = record.borrower?.organizationName || record.borrower?.name || record.userEmail || record.borrower?.organization || '-';
+    document.getElementById('bd-borrower-name').textContent = borrowerDisplayName;
     document.getElementById('bd-borrower-age').textContent = record.borrower?.age || '-';
-    document.getElementById('bd-borrower-contact').textContent = record.borrower?.contact || '-';
-    document.getElementById('bd-borrower-address').textContent = record.borrower?.address || '-';
+    // Use contact fallbacks
+    document.getElementById('bd-borrower-contact').textContent = record.borrower?.contact || record.borrower?.phone || record.contact || '-';
+    document.getElementById('bd-borrower-address').textContent = record.borrower?.address || record.borrower?.location || '-';
 
     // Populate tool info
     document.getElementById('bd-tool-name').textContent = record.tool?.name || '-';
@@ -1223,13 +1343,27 @@ function openBorrowDetail(recordId) {
 
     // Populate images
     const idImg = document.getElementById('bd-id-image');
+    const idLink = document.getElementById('bd-id-link');
     const sigImg = document.getElementById('bd-signature-image');
     
-    if (record.validIdImage) {
-        idImg.src = record.validIdImage;
-        idImg.style.display = 'block';
+    const idSrc = record.validIdImage || record.organizationLetterPreview || record.organizationLetter || record.idImage || '';
+    const isImage = /^data:image\//.test(idSrc) || /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(idSrc);
+    if (idSrc) {
+        if (isImage) {
+            idImg.src = idSrc;
+            idImg.style.display = 'block';
+            if (idLink) idLink.style.display = 'none';
+        } else {
+            idImg.style.display = 'none';
+            if (idLink) {
+                idLink.href = idSrc;
+                idLink.style.display = 'inline-block';
+                idLink.textContent = 'Open valid ID / document';
+            }
+        }
     } else {
         idImg.style.display = 'none';
+        if (idLink) idLink.style.display = 'none';
     }
 
     if (record.signatureImage) {
@@ -3395,6 +3529,9 @@ window.editHereRaminTool = editHereRaminTool;
 window.deleteHereRaminTool = deleteHereRaminTool;
 window.toggleHereRaminToolAvailability = toggleHereRaminToolAvailability;
 window.updateHereRaminReceiptStatus = updateHereRaminReceiptStatus;
+window.closeHereRaminToolEditModal = closeHereRaminToolEditModal;
+window.saveHereRaminToolFromModal = saveHereRaminToolFromModal;
+window.handleHereRaminToolModalImageFile = handleHereRaminToolModalImageFile;
 window.archiveHereRaminBorrower = archiveHereRaminBorrower;
 window.deleteHereRaminBorrower = deleteHereRaminBorrower;
 window.clearHereRaminBorrowers = clearHereRaminBorrowers;

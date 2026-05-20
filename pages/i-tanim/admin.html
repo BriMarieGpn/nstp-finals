@@ -57,11 +57,7 @@
       </a>
       <a href="#" class="ad-sidenav__item" data-tab="hereramin" onclick="showAdminTab('hereramin');return false;" title="Here-Ramin Tools">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 1 0 1.4l-7 7a2 2 0 0 1-2.8 0l-1.8-1.8a2 2 0 0 1 0-2.8l7-7a1 1 0 0 1 1.4 0z"/><path d="M16 8l2.5-2.5a2.1 2.1 0 0 1 3 3L19 11"/><path d="M2 22l6-1-5-5-1 6z"/></svg>
-        <a href="#" class="ad-sidenav__item" data-tab="org-verification" onclick="showAdminTab('org-verification');return false;" title="Organization Verification">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </a>
-      </a>
-      
       <a href="../greencommunity/main/admin-index.html" class="ad-sidenav__item" data-tab="greencommunity" title="Green Community">
         <svg viewBox="0 -960 960 960" width="24" height="24" fill="white" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M440-120v-319q-64 0-123-24.5T213-533q-45-45-69-104t-24-123v-80h80q63 0 122 24.5T426-746q31 31 51.5 68t31.5 79q5-7 11-13.5t13-13.5q45-45 104-69.5T760-720h80v80q0 64-24.5 123T746-413q-45 45-103.5 69T520-320v200h-80Zm0-400q0-48-18.5-91.5T369-689q-34-34-77.5-52.5T200-760q0 48 18 92t52 78q34 34 78 52t92 18Zm80 120q48 0 91.5-18t77.5-52q34-34 52.5-78t18.5-92q-48 0-92 18.5T590-569q-34 34-52 77.5T520-400Zm0 0Zm-80-120Z"/></svg>
       </a>
@@ -509,7 +505,8 @@
           <!-- ID Image -->
           <div style="margin-bottom:20px;">
             <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Valid ID</h3>
-            <img id="bd-id-image" src="" alt="Valid ID" style="width:100%;max-height:300px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;">
+            <img id="bd-id-image" src="" alt="Valid ID" style="width:100%;max-height:300px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;display:none;">
+            <a id="bd-id-link" href="#" target="_blank" rel="noreferrer noopener" style="display:none;margin-top:8px;display:inline-block;color:#2f5e2b;font-weight:700;">Open valid ID / document</a>
           </div>
 
           <!-- Signature -->
@@ -537,7 +534,6 @@
           </div>
         </div>
       </div>
-    </div>
     </div>
 
     <!-- ══ MORE TABS (hidden, kept for admin.js compatibility) ══ -->
@@ -799,6 +795,44 @@
     <!-- Logout handled by admin.js logoutAdmin() -->
 
   </main>
+</div>
+
+<!-- ── Here-Ramin Tool Edit Modal ── -->
+<div id="hereRaminToolModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); justify-content:center; align-items:center; padding:20px; overflow-y:auto; z-index:100000;" onclick="if (event.target === this) closeHereRaminToolEditModal()">
+  <div style="background:rgba(255,248,236,0.98); padding:24px; border-radius:18px; width:min(520px,100%); max-width:520px; border:1px solid rgba(84,107,65,0.22); box-shadow:0 16px 50px rgba(0,0,0,0.12); position:relative;">
+    <button type="button" onclick="closeHereRaminToolEditModal()" style="position:absolute; top:16px; right:16px; border:none; background:none; font-size:1.4rem; cursor:pointer; color:#546B41;">×</button>
+    <h3 id="hrModalTitle" style="margin:0 0 18px; font-family:'Archivo Black',sans-serif; color:var(--primary);">Edit HERE-RAMIN Tool</h3>
+    <div style="display:grid; gap:12px;">
+      <label class="ad-label">Tool Name *</label>
+      <input id="hrModalToolName" class="ad-input" type="text" placeholder="e.g. Garden Rake">
+      <label class="ad-label">Category</label>
+      <select id="hrModalToolCategory" class="ad-select" style="width:100%;"></select>
+      <label class="ad-label">Image URL</label>
+      <input id="hrModalToolImageUrl" class="ad-input" type="text" placeholder="https://...">
+      <label class="ad-label">Upload Tool Photo</label>
+      <input id="hrModalToolImageFile" class="ad-input" type="file" accept="image/*" onchange="handleHereRaminToolModalImageFile(event)">
+      <label class="ad-label">Preview</label>
+      <img id="hrModalToolImagePreview" alt="Tool preview" style="max-width:140px;max-height:100px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);display:none;background:#fff;padding:4px;">
+      <label class="ad-label">WikiHow URL</label>
+      <input id="hrModalToolWikiHowUrl" class="ad-input" type="url" placeholder="https://www.wikihow.com/...">
+      <label class="ad-label">Description</label>
+      <textarea id="hrModalToolDescription" class="ad-input" placeholder="Optional notes about this tool." style="min-height:80px;resize:vertical;"></textarea>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="ad-label">Available Quantity *</label>
+          <input id="hrModalToolQtyAvailable" class="ad-input" type="number" min="0" value="1">
+        </div>
+        <div>
+          <label class="ad-label">Total Quantity *</label>
+          <input id="hrModalToolQtyTotal" class="ad-input" type="number" min="1" value="1">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:6px;">
+        <button type="button" class="ad-btn" onclick="closeHereRaminToolEditModal()">Cancel</button>
+        <button id="hrModalSaveBtn" type="button" class="ad-btn ad-btn--solid" onclick="saveHereRaminToolFromModal()">Update Tool</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ── Program Modal ── -->

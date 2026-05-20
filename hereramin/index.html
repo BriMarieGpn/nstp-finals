@@ -107,28 +107,28 @@
 
                 <div class="borrow-form-grid">
 
-                    <label for="borrowerName">NAME</label>
+                    <label for="borrowerName">ORGANIZATION NAME</label>
                     <input type="text" id="borrowerName" required>
+
+                    <label for="borrowerOrgId">ORGANIZATION ID</label>
+                    <input type="text" id="borrowerOrgId" required>
 
                     <label for="borrowerAddress">ADDRESS</label>
                     <input type="text" id="borrowerAddress" required>
 
-                    <label for="borrowerAge">AGE</label>
-                    <input type="number" id="borrowerAge" min="1" required>
-
                     <label for="borrowerContact">CONTACT NO.</label>
                     <input type="text" id="borrowerContact" required>
 
-                    <label for="idImage">VALID ID</label>
+                    <label for="orgLetterFile">VALID ID / DOCUMENT</label>
                     <div class="id-upload-section">
 
                         <div class="id-preview">
-                            <img id="idImage" src="assets/images/validid.jpg" alt="ID Preview">
+                            <img id="idImage" src="assets/images/validid.jpg" alt="Document Preview">
                         </div>
 
                         <div class="id-actions">
                             <button type="button" id="addIdBtn" class="id-btn">
-                                + Add Image
+                                + Upload Valid ID
                             </button>
 
                             <div class="id-dropdown" id="idDropdown">
@@ -140,11 +140,13 @@
                                     Upload from Internet
                                 </button>
 
-                                <input type="file" id="fileInput" hidden>
+                                <input type="file" id="fileInput" accept=".pdf,image/*" hidden>
                             </div>
                         </div>
 
                     </div>
+
+                    <div class="file-name" id="orgLetterName">No file selected</div>
 
                     <label for="borrowPurpose">PURPOSE / REASON FOR BORROWING</label>
                     <textarea id="borrowPurpose" required></textarea>
@@ -165,7 +167,6 @@
 
             <div class="borrow-actions">
                 <button type="button" id="backBtn" class="back-action">&lt; Back</button>
-                <button type="button" id="orgBorrowBtn" class="back-action" style="margin-left:8px;">Organization Borrow</button>
                 <button type="submit" form="borrowForm" id="proceedBtn" class="submit-action">
                     Submit
                 </button>

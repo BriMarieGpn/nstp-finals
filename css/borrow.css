@@ -139,7 +139,7 @@ body{
     display:grid;
     grid-template-columns:230px 1fr;
     gap:18px 24px;
-    align-items:center;
+        align-items:start;
 }
 
 .borrow-form-grid label{
@@ -168,6 +168,14 @@ body{
     display:flex;
     gap:18px;
     align-items:flex-start;
+    max-width:520px;
+    grid-column:2;
+}
+
+.file-name{
+    grid-column:2;
+    color:#6B6B6B;
+    margin-top:8px;
 }
 
 .id-preview{
@@ -220,6 +228,7 @@ body{
     display:flex;
     flex-direction:column;
     gap:10px;
+    grid-column:2;
 }
 
 #signaturePad{

@@ -1,5 +1,6 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getFirestore, doc, getDoc, collection, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 (function () {
@@ -11,9 +12,11 @@ import firebaseConfig from "./firebaseConfig.js";
     const receiptsList = document.getElementById("receiptsList");
     const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     let activeTab = "borrowing";
     let borrowRecords = [];
+    let currentUserGlobal = null;
 
     function setActiveTab(tabName) {
         activeTab = tabName;
@@ -107,13 +110,43 @@ import firebaseConfig from "./firebaseConfig.js";
         `;
     }
 
+    function isRecordForUser(record, user) {
+        if (!user || !record) return false;
+        const borrower = record.borrower || {};
+        const uidMatch = (borrower.uid && user.uid && borrower.uid === user.uid) || (borrower.id && user.uid && borrower.id === user.uid);
+        const emailMatch = borrower.email && user.email && String(borrower.email).toLowerCase() === String(user.email).toLowerCase();
+
+        // Match by volunteer ID (common in i-tanim profiles)
+        const volunteerId = String(user.volunteerID || user.volunteerId || '').trim().toLowerCase();
+        const fallbackVolunteerId = `grw-${String(user.id || '').substring(0,5).toLowerCase()}`;
+        const orgId = String(borrower.organizationId || borrower.organizationID || borrower.orgId || borrower.id || '').trim().toLowerCase();
+        const orgIdMatch = volunteerId && orgId && (orgId === volunteerId || orgId === fallbackVolunteerId);
+
+        // Match by name or organization name
+        const uName = String(user.name || user.fullName || user.displayName || '').trim().toLowerCase();
+        const orgName = String(borrower.organizationName || borrower.name || '').trim().toLowerCase();
+        const nameMatch = uName && orgName && (orgName === uName || orgName.includes(uName) || uName.includes(orgName));
+
+        // Match by contact/phone if available
+        const userContact = String(user.contact || user.phone || user.mobile || '').replace(/\s|\-|\(|\)/g, '').toLowerCase();
+        const borrowerContact = String(borrower.contact || borrower.phone || '').replace(/\s|\-|\(|\)/g, '').toLowerCase();
+        const contactMatch = userContact && borrowerContact && (borrowerContact === userContact || borrowerContact.includes(userContact) || userContact.includes(borrowerContact));
+
+        return uidMatch || emailMatch || orgIdMatch || nameMatch || contactMatch;
+    }
+
     function renderRecords() {
         if (!borrowRecords.length) {
             receiptsList.innerHTML = `<article class="receipt-item"><div class="receipt-meta"><h2>NO BORROWS YET</h2><p>Create a HERE-RAMIN request first.</p></div></article>`;
             return;
         }
 
-        receiptsList.innerHTML = sortByCreatedAtDesc(borrowRecords).map((record) => `
+        receiptsList.innerHTML = sortByCreatedAtDesc(borrowRecords).map((record) => {
+            const isMine = currentUserGlobal && isRecordForUser(record, currentUserGlobal);
+            const borrowerName = (record.borrower && (record.borrower.name || record.borrower.organizationName || record.borrower.organization || record.borrower.organizationName)) || record.userEmail || 'Unknown';
+            const requestedByLabel = isMine ? (currentUserGlobal.displayName || currentUserGlobal.email || 'You') : borrowerName;
+
+            return `
             <article class="receipt-item">
                 <div class="receipt-tool">
                     <div class="receipt-thumb">
@@ -121,7 +154,7 @@ import firebaseConfig from "./firebaseConfig.js";
                     </div>
                     <div class="receipt-meta">
                         <h2>${(record.tool?.name || "Tool").toUpperCase()}</h2>
-                        <p>Requested by: ${record.borrower?.name || "N/A"}</p>
+                        <p>Requested by: ${requestedByLabel}</p>
                         <p>Qty: ${record.tool?.quantity || 1}</p>
                     </div>
                 </div>
@@ -129,7 +162,7 @@ import firebaseConfig from "./firebaseConfig.js";
                     ${getTabPanelHtml(record)}
                 </div>
             </article>
-        `).join("");
+        `}).join("");
     }
 
     tabButtons.forEach((button) => {
@@ -165,7 +198,7 @@ import firebaseConfig from "./firebaseConfig.js";
         setActiveTab("returned");
     });
 
-    async function init() {
+    async function init(currentUser) {
         let loadedRecords = loadBorrowHistory();
 
         if (useFirestore) {
@@ -204,15 +237,46 @@ import firebaseConfig from "./firebaseConfig.js";
             }
         }
 
-        borrowRecords = loadedRecords
-            .filter((record) => record.deleted !== true)
-            .map((record, index) => ({
-                id: record.id || `borrow-local-${index}`,
-                status: record.status || "in_use",
-                ...record
-            }));
+        // Filter to only records belonging to the signed-in user (if available)
+        let filtered = (loadedRecords || []).filter((r) => r && r.deleted !== true && (!currentUser || isRecordForUser(r, currentUser)));
+
+        // If there are no filtered records but we have a local-most-recent borrow, include it as a fallback
+        try {
+            const localLatestRaw = localStorage.getItem(BORROW_RECORD_KEY);
+            if (localLatestRaw) {
+                const localLatest = JSON.parse(localLatestRaw);
+                if (localLatest && localLatest.id) {
+                    const existsInLoaded = (loadedRecords || []).some(lr => lr && (lr.id === localLatest.id));
+                    const alreadyIncluded = filtered.some(fr => fr.id === localLatest.id);
+                    if (!alreadyIncluded && (existsInLoaded || !filtered.length)) {
+                        // Prefer the loaded version if present, else use localLatest
+                        const toAdd = (loadedRecords || []).find(lr => lr && lr.id === localLatest.id) || localLatest;
+                        filtered = [toAdd].concat(filtered);
+                    }
+                }
+            }
+        } catch (e) {
+            // ignore JSON parse errors
+        }
+
+        borrowRecords = filtered.map((record, index) => ({
+            id: record.id || `borrow-local-${index}`,
+            status: record.status || "in_use",
+            ...record
+        }));
         renderRecords();
+        document.body.classList.remove('auth-pending');
     }
 
-    init();
+    // Require auth to show user-specific borrow records
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            receiptsList.innerHTML = `<article class="receipt-item"><div class="receipt-meta"><h2>Not signed in</h2><p>Please <a href="../../pages/i-tanim/login.html">login</a> to view your borrows.</p></div></article>`;
+            document.body.classList.remove('auth-pending');
+            return;
+        }
+        currentUserGlobal = user;
+        document.body.classList.remove('auth-pending');
+        init(user);
+    });
 })();

@@ -1,6 +1,6 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, getDocs, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs, setDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
 (function () {
@@ -14,6 +14,7 @@ import firebaseConfig from "./firebaseConfig.js";
     const auth = getAuth(app);
     const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     let borrowRecords = [];
+    let borrowRequestsUnsubscribe = null;
 
     function isAdminEmail(email) {
         return String(email || '').toLowerCase().includes('admin');
@@ -77,7 +78,8 @@ import firebaseConfig from "./firebaseConfig.js";
         // Load and initialize admin panel data
         loadBorrowHistory();
         loadBorrowRecords();
-        renderRecords();
+        subscribeToBorrowRequests();
+        document.body.classList.remove('auth-pending');
     }
 
     async function loadBorrowRecords() {
@@ -127,6 +129,34 @@ import firebaseConfig from "./firebaseConfig.js";
                 ...record
             }));
         renderRecords();
+    }
+
+    function subscribeToBorrowRequests() {
+        if (!useFirestore) {
+            return;
+        }
+
+        if (borrowRequestsUnsubscribe) {
+            borrowRequestsUnsubscribe();
+        }
+
+        borrowRequestsUnsubscribe = onSnapshot(collection(db, BORROW_REQUESTS_COLLECTION), (snapshot) => {
+            const firestoreRecords = snapshot.docs
+                .map((entry) => ({ id: entry.id, ...entry.data() }))
+                .filter((record) => record.deleted !== true);
+
+            if (firestoreRecords.length > 0) {
+                borrowRecords = firestoreRecords.map((record, index) => ({
+                    id: record.id || `borrow-fire-${index}`,
+                    status: record.status || "in_use",
+                    ...record
+                }));
+                saveBorrowHistory(borrowRecords);
+                renderRecords();
+            }
+        }, (error) => {
+            console.warn("Could not listen for borrow request updates.", error);
+        });
     }
 
     function loadBorrowHistory() {
@@ -195,7 +225,7 @@ import firebaseConfig from "./firebaseConfig.js";
                         </div>
                         <div class="admin-meta">
                             <h3>${record.tool?.name || "Tool"}</h3>
-                            <p>Requested by: ${record.borrower?.name || "N/A"}</p>
+                            <p>Requested by: ${record.borrower?.organizationName || record.borrower?.name || record.borrower?.email || "N/A"}</p>
                             <p>Qty: ${record.tool?.quantity || 1}</p>
                         </div>
                     </div>

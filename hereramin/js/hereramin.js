@@ -1,265 +1,20 @@
 import { initializeApp, getApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, doc, setDoc, addDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import firebaseConfig from "../../js/firebaseConfig.js";
 
 (function() {
-    // ═══════════════════════════════════════════════════════════════
-    // ORGANIZATION VERIFICATION GATEWAY (ported from older version)
-    // ═══════════════════════════════════════════════════════════════
-    
-    // Check if this is the borrow page (has the borrow form) or org verification page
-    const isBorrowPage = document.getElementById("borrowForm") !== null;
-    const isOrgVerificationPage = document.getElementById("orgVerifyForm") !== null;
-    
-    // If neither form exists, this script is running on a page that doesn't need it
-    if (!isBorrowPage && !isOrgVerificationPage) {
-        return;
-    }
-
-    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
-    const BORROW_REQUESTS_COLLECTION = "borrow_requests";
-    
-    // If this is the org verification page, handle the org verification form
-    if (isOrgVerificationPage) {
-        // Restore borrow draft from sessionStorage
-        const stored = JSON.parse(sessionStorage.getItem("growsauyou-borrow-draft") || "{}");
-        
-        const orgToolName = document.getElementById("orgToolName");
-        const orgToolImage = document.getElementById("orgToolImage");
-        const orgQtyDisplay = document.getElementById("orgQtyDisplay");
-        const orgBorrowDate = document.getElementById("orgBorrowDate");
-        const orgReturnDate = document.getElementById("orgReturnDate");
-        const orgAvailBadge = document.getElementById("orgAvailBadge");
-        
-        if (stored.toolName && orgToolName) orgToolName.textContent = stored.toolName;
-        if (stored.toolImage && orgToolImage) orgToolImage.src = stored.toolImage;
-        if (stored.quantity && orgQtyDisplay) orgQtyDisplay.textContent = stored.quantity;
-        if (stored.borrowDate && orgBorrowDate) orgBorrowDate.value = stored.borrowDate;
-        if (stored.returnDate && orgReturnDate) orgReturnDate.value = stored.returnDate;
-        
-        if (stored.available === false && orgAvailBadge) {
-            orgAvailBadge.textContent = "Unavailable";
-            orgAvailBadge.className = "availability-badge unavailable";
-        }
-        
-        // Dynamic ID uploads for org verification
-        let idCounter = 0;
-        
-        function addIdSlot() {
-            idCounter++;
-            const n = idCounter;
-            const list = document.getElementById("idMultiList");
-            if (!list) return;
-            
-            const entry = document.createElement("div");
-            entry.className = "id-entry";
-            entry.id = "idEntry_" + n;
-            
-            entry.innerHTML = `
-                <div class="id-thumb" id="idThumb_${n}">
-                    <span style="padding:4px;">ID Preview</span>
-                </div>
-                <button type="button" class="id-add-btn" onclick="window.triggerOrgId(${n})">
-                    <i class="fas fa-camera" style="margin-right:6px;"></i>+ Add Image
-                </button>
-                <input type="file" id="idFile_${n}" accept="image/*" style="display:none;" onchange="window.previewOrgId(this,${n})">
-                ${n > 1 ? `<button type="button" class="id-remove-btn" onclick="window.removeOrgId(${n})" title="Remove"><i class="fas fa-times"></i></button>` : ''}
-            `;
-            list.appendChild(entry);
-        }
-        
-        window.triggerOrgId = function(n) {
-            const input = document.getElementById("idFile_" + n);
-            if (input) input.click();
-        };
-        
-        window.previewOrgId = function(input, n) {
-            const file = input.files && input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                const box = document.getElementById("idThumb_" + n);
-                if (box) box.innerHTML = `<img src="${e.target.result}" alt="ID ${n}">`;
-            };
-            reader.readAsDataURL(file);
-        };
-        
-        window.removeOrgId = function(n) {
-            const el = document.getElementById("idEntry_" + n);
-            if (el) el.remove();
-        };
-        
-        const addAnotherIdBtn = document.getElementById("addAnotherIdBtn");
-        if (addAnotherIdBtn) {
-            addAnotherIdBtn.addEventListener("click", addIdSlot);
-            addIdSlot(); // Init first slot
-        }
-        
-        // Letter file upload
-        const letterFileInput = document.getElementById("letterFileInput");
-        if (letterFileInput) {
-            letterFileInput.addEventListener("change", function() {
-                const name = this.files && this.files[0] ? this.files[0].name : "No file chosen";
-                const nameEl = document.getElementById("letterFileName");
-                if (nameEl) nameEl.textContent = name;
-            });
-        }
-        
-        // Signature pad for org verification
-        const orgCanvas = document.getElementById("orgSignaturePad");
-        if (orgCanvas) {
-            const orgCtx = orgCanvas.getContext("2d");
-            let orgDrawing = false;
-            
-            function resizeOrgCanvas() {
-                const ratio = window.devicePixelRatio || 1;
-                const rect = orgCanvas.getBoundingClientRect();
-                orgCanvas.width = rect.width * ratio;
-                orgCanvas.height = 150 * ratio;
-                orgCtx.scale(ratio, ratio);
-                orgCtx.lineWidth = 2;
-                orgCtx.strokeStyle = "#2b3d24";
-                orgCtx.lineCap = "round";
-                orgCtx.lineJoin = "round";
-            }
-            resizeOrgCanvas();
-            window.addEventListener("resize", resizeOrgCanvas);
-            
-            function getOrgPos(e) {
-                const r = orgCanvas.getBoundingClientRect();
-                const ratio = window.devicePixelRatio || 1;
-                const src = e.touches ? e.touches[0] : e;
-                return {
-                    x: (src.clientX - r.left) * (orgCanvas.width / r.width / ratio),
-                    y: (src.clientY - r.top) * (orgCanvas.height / r.height / ratio)
-                };
-            }
-            
-            orgCanvas.addEventListener("mousedown", e => { orgDrawing = true; orgCtx.beginPath(); orgCtx.moveTo(getOrgPos(e).x, getOrgPos(e).y); });
-            orgCanvas.addEventListener("mousemove", e => { if (!orgDrawing) return; orgCtx.lineTo(getOrgPos(e).x, getOrgPos(e).y); orgCtx.stroke(); });
-            orgCanvas.addEventListener("mouseup", () => orgDrawing = false);
-            orgCanvas.addEventListener("mouseleave", () => orgDrawing = false);
-            orgCanvas.addEventListener("touchstart", e => { e.preventDefault(); orgDrawing = true; orgCtx.beginPath(); orgCtx.moveTo(getOrgPos(e).x, getOrgPos(e).y); }, { passive: false });
-            orgCanvas.addEventListener("touchmove", e => { e.preventDefault(); if (!orgDrawing) return; orgCtx.lineTo(getOrgPos(e).x, getOrgPos(e).y); orgCtx.stroke(); }, { passive: false });
-            orgCanvas.addEventListener("touchend", () => orgDrawing = false);
-            
-            const clearOrgSig = document.getElementById("clearOrgSig");
-            if (clearOrgSig) {
-                clearOrgSig.addEventListener("click", () => {
-                    orgCtx.clearRect(0, 0, orgCanvas.width, orgCanvas.height);
-                });
-            }
-        }
-        
-        // Org form submission
-        const orgSubmitBtn = document.getElementById("orgSubmitBtn");
-        if (orgSubmitBtn) {
-            orgSubmitBtn.addEventListener("click", async function() {
-                const orgName = document.getElementById("orgName")?.value?.trim() || "";
-                const orgHead = document.getElementById("orgHead")?.value?.trim() || "";
-                
-                if (!orgName || !orgHead) {
-                    alert("Please fill in all required fields.");
-                    return;
-                }
-                
-                // Collect org data and merge with borrow draft
-                const record = {
-                    id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                    status: "pending",
-                    borrowType: "organization",
-                    borrower: {
-                        orgName,
-                        orgHead
-                    },
-                    tool: {
-                        name: stored.toolName || '',
-                        quantity: stored.quantity || 1,
-                        image: stored.toolImage || ''
-                    },
-                    schedule: {
-                        borrowDate: document.getElementById("orgBorrowDate")?.value || "",
-                        returnDate: document.getElementById("orgReturnDate")?.value || ""
-                    },
-                    submittedAt: new Date().toISOString(),
-                    purpose: stored.purpose || document.getElementById("borrowPurpose")?.value?.trim() || '',
-                    organization: {
-                        name: orgName,
-                        head: orgHead
-                    }
-                };
-                sessionStorage.setItem("growsauyou-org-submission", JSON.stringify(record));
-
-                if (useFirestore) {
-                    try {
-                        await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
-                    } catch (error) {
-                        console.warn('Could not save organization borrow request to Firestore.', error);
-                        try {
-                            await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
-                        } catch (fallbackError) {
-                            console.error('Fallback Firestore save failed for organization borrow request.', fallbackError);
-                            const localPending = JSON.parse(localStorage.getItem('growsauyou-org-requests') || '[]');
-                            localPending.push(record);
-                            localStorage.setItem('growsauyou-org-requests', JSON.stringify(localPending));
-                        }
-                    }
-                } else {
-                    const localPending = JSON.parse(localStorage.getItem('growsauyou-org-requests') || '[]');
-                    localPending.push(record);
-                    localStorage.setItem('growsauyou-org-requests', JSON.stringify(localPending));
-                    console.warn('Firestore disabled, saved organization request locally.');
-                }
-
-                // Show pending state
-                const orgFormPage = document.getElementById("orgFormPage");
-                const pendingPage = document.getElementById("pendingPage");
-                if (orgFormPage) orgFormPage.classList.add("hidden");
-                if (pendingPage) pendingPage.classList.add("active");
-
-                const ref = "GSY-ORG-" + Date.now().toString().slice(-8).toUpperCase();
-                const refText = document.getElementById("pendingRefText");
-                if (refText) refText.textContent = "Reference No: " + ref;
-
-                if (orgFormPage) {
-                    orgFormPage.classList.add("hidden");
-                    orgFormPage.style.display = "none";
-                }
-                if (pendingPage) {
-                    pendingPage.classList.add("active");
-                    pendingPage.style.display = "flex";
-                    pendingPage.style.opacity = "1";
-                }
-
-                if (pendingPage) pendingPage.scrollIntoView({ behavior: "smooth", block: "start" });
-                window.alert("Organization borrow request submitted. Pending status is now visible.");
-            });
-        }
-        
-        // Back button
-        const orgBackBtn = document.getElementById("orgBackBtn");
-        if (orgBackBtn) {
-            orgBackBtn.addEventListener("click", () => {
-                window.location.href = "index.html";
-            });
-        }
-        
-        // Done - org verification page handled
-        return;
-    }
-    
-    // ═══════════════════════════════════════════════════════════════
-    // EXISTING BORROW FORM LOGIC (newer version's main functionality)
-    // ═══════════════════════════════════════════════════════════════
-    
     const RECEIPT_STATE_KEY = "growsauyou-receipt-state";
     const BORROW_RECORD_KEY = "growsauyou-borrow-record";
     const BORROW_HISTORY_KEY = "growsauyou-borrow-history";
     const BORROW_DOC_PATH = ["hereramin", "latestBorrow"];
     const TOOLS_COLLECTION = "tools";
-    
+    const BORROW_REQUESTS_COLLECTION = "borrow_requests";
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const useFirestore = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes("YOUR_API_KEY") && !firebaseConfig.apiKey.includes("XXXX");
     const imageFolder = "assets/images/";
     let toolsUnsubscribe = null;
 
@@ -328,6 +83,8 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         }
     ];
     let groupedTools = JSON.parse(JSON.stringify(defaultGroupedTools));
+    let validIdSelected = false;
+    let validIdDataUrl = "";
 
     const toolSelect = document.getElementById("toolSelect");
     const toolImage = document.getElementById("toolImage");
@@ -335,6 +92,7 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     const plusBtn = document.getElementById("plusBtn");
     const quantityText = document.getElementById("quantity");
     const availabilityBadge = document.getElementById("availabilityBadge");
+    const proceedBtn = document.getElementById("proceedBtn");
 
     const addIdBtn = document.getElementById("addIdBtn");
     const idActions = document.querySelector(".id-actions");
@@ -349,10 +107,11 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     const borrowDateInput = document.getElementById("borrowDate");
     const returnDateInput = document.getElementById("returnDate");
     const borrowerName = document.getElementById("borrowerName");
+    const borrowerOrgId = document.getElementById("borrowerOrgId");
     const borrowerAddress = document.getElementById("borrowerAddress");
-    const borrowerAge = document.getElementById("borrowerAge");
     const borrowerContact = document.getElementById("borrowerContact");
     const borrowPurpose = document.getElementById("borrowPurpose");
+    const orgLetterName = document.getElementById("orgLetterName");
     const fallbackToolMap = buildFallbackToolMap();
     let quantity = 1;
 
@@ -435,7 +194,8 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             group.tools.forEach((tool) => {
                 const option = document.createElement("option");
                 option.value = tool.name;
-                option.textContent = tool.name;
+                option.textContent = tool.name + (tool.available === false ? " (Unavailable)" : "");
+                option.disabled = tool.available === false;
                 option.dataset.image = getLocalImagePath(tool.image || getFallbackToolImage(tool.name));
                 optGroup.appendChild(option);
             });
@@ -462,10 +222,15 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         toolImage.alt = tool.name;
 
         setAvailability(tool.available);
+        if (proceedBtn) {
+            proceedBtn.disabled = tool.available === false;
+        }
         if (quantity > (tool.maxQuantity || 10)) {
             quantity = Math.max(1, tool.maxQuantity || 10);
-            quantityText.textContent = String(quantity);
+            quantityText.value = String(quantity);
         }
+        quantityText.max = String(tool.maxQuantity || 10);
+        quantityText.value = String(quantity);
     }
 
     function getSelectedTool() {
@@ -629,44 +394,34 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         setTool(toolSelect.value);
     });
 
-    const orgBorrowBtn = document.getElementById("orgBorrowBtn");
-    if (orgBorrowBtn) {
-        orgBorrowBtn.addEventListener("click", () => {
-            const toolSelect = document.getElementById("toolSelect");
-            const toolImage = document.getElementById("toolImage");
-            const quantityText = document.getElementById("quantity");
-            const borrowDate = document.getElementById("borrowDate");
-            const returnDate = document.getElementById("returnDate");
-            const borrowPurpose = document.getElementById("borrowPurpose");
-
-            const draft = {
-                toolName: toolSelect?.value || "",
-                toolImage: toolImage?.src || "",
-                quantity: parseInt(quantityText?.textContent || "1"),
-                borrowDate: borrowDate?.value || "",
-                returnDate: returnDate?.value || "",
-                purpose: borrowPurpose?.value?.trim() || '',
-                available: getSelectedTool()?.available ?? true
-            };
-            sessionStorage.setItem("growsauyou-borrow-draft", JSON.stringify(draft));
-            window.location.href = "org-verification.html";
-        });
-    }
-
     plusBtn.addEventListener("click", () => {
         const selectedTool = getSelectedTool();
         const maxQuantity = selectedTool?.maxQuantity || 10;
         if (quantity < maxQuantity) {
             quantity += 1;
-            quantityText.textContent = String(quantity);
+            quantityText.value = String(quantity);
         }
     });
 
     minusBtn.addEventListener("click", () => {
         if (quantity > 1) {
             quantity -= 1;
-            quantityText.textContent = String(quantity);
+            quantityText.value = String(quantity);
         }
+    });
+
+    quantityText.addEventListener("input", () => {
+        let value = Number(quantityText.value);
+        if (Number.isNaN(value) || value < 1) {
+            value = 1;
+        }
+        const selectedTool = getSelectedTool();
+        const maxQuantity = selectedTool?.maxQuantity || 10;
+        if (value > maxQuantity) {
+            value = maxQuantity;
+        }
+        quantity = value;
+        quantityText.value = String(quantity);
     });
 
     addIdBtn.addEventListener("click", () => {
@@ -678,24 +433,45 @@ import firebaseConfig from "../../js/firebaseConfig.js";
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
+        validIdSelected = true;
+        orgLetterName.textContent = file.name;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            idImage.src = String(ev.target.result);
+            const result = String(ev.target.result);
+            validIdDataUrl = result;
+            if (file.type.startsWith("image/")) {
+                idImage.src = result;
+            } else {
+                idImage.alt = file.name;
+            }
         };
         reader.readAsDataURL(file);
     });
 
     document.getElementById("fromInternet").addEventListener("click", () => {
-        const url = window.prompt("Paste image URL:");
-        if (url) idImage.src = url;
+        const url = window.prompt("Paste document image URL:");
+        if (!url) {
+            return;
+        }
+        validIdSelected = true;
+        validIdDataUrl = url;
+        if (/^data:image\//.test(url) || /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(url)) {
+            idImage.src = url;
+        } else {
+            idImage.alt = url;
+        }
+        orgLetterName.textContent = url;
     });
 
     function resizeCanvas() {
         const ratio = window.devicePixelRatio || 1;
         const rect = canvas.getBoundingClientRect();
+        // Reset any existing transform to avoid cumulative scaling
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         canvas.width = Math.round(rect.width * ratio);
-        canvas.height = Math.round(140 * ratio);
-        ctx.scale(ratio, ratio);
+        canvas.height = Math.round(rect.height * ratio);
+        // Scale drawing operations so 1 canvas unit = 1 CSS pixel
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#546B41";
         ctx.lineCap = "round";
@@ -707,10 +483,20 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 
     let drawing = false;
 
+    function getPointerPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        if (e.touches && e.touches.length > 0) {
+            const t = e.touches[0];
+            return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+        }
+        return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
     canvas.addEventListener("mousedown", (e) => {
         drawing = true;
         ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
+        const p = getPointerPos(e);
+        ctx.moveTo(p.x, p.y);
     });
 
     canvas.addEventListener("mouseup", () => {
@@ -723,12 +509,41 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 
     canvas.addEventListener("mousemove", (e) => {
         if (!drawing) return;
-        ctx.lineTo(e.offsetX, e.offsetY);
+        const p = getPointerPos(e);
+        ctx.lineTo(p.x, p.y);
         ctx.stroke();
     });
 
+    // Touch support
+    canvas.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        drawing = true;
+        ctx.beginPath();
+        const p = getPointerPos(e);
+        ctx.moveTo(p.x, p.y);
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", (e) => {
+        e.preventDefault();
+        if (!drawing) return;
+        const p = getPointerPos(e);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+    }, { passive: false });
+
+    canvas.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        drawing = false;
+    });
+
     clearSig.addEventListener("click", () => {
+        // Clear full drawing surface (use device pixel size)
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Restore scale for further drawing
+        const ratio = window.devicePixelRatio || 1;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        ctx.beginPath();
     });
 
     backBtn.addEventListener("click", () => {
@@ -753,6 +568,42 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         return canvas.toDataURL("image/png");
     }
 
+    function trimRecordForStorage(record) {
+        const safeRecord = { ...record };
+        delete safeRecord.validIdImage;
+        delete safeRecord.organizationLetterPreview;
+        delete safeRecord.signatureImage;
+
+        if (safeRecord.borrower) {
+            safeRecord.borrower = { ...safeRecord.borrower };
+        }
+        if (safeRecord.tool) {
+            safeRecord.tool = { ...safeRecord.tool };
+        }
+        if (safeRecord.schedule) {
+            safeRecord.schedule = { ...safeRecord.schedule };
+        }
+        return safeRecord;
+    }
+
+    function trimRecordForFirestore(record) {
+        const safeRecord = { ...record };
+        delete safeRecord.validIdImage;
+        delete safeRecord.organizationLetterPreview;
+        delete safeRecord.signatureImage;
+        if (safeRecord.borrower) {
+            safeRecord.borrower = { ...safeRecord.borrower };
+            delete safeRecord.borrower.documentImage;
+        }
+        if (safeRecord.tool) {
+            safeRecord.tool = { ...safeRecord.tool };
+        }
+        if (safeRecord.schedule) {
+            safeRecord.schedule = { ...safeRecord.schedule };
+        }
+        return safeRecord;
+    }
+
     function appendBorrowHistory(record) {
         let history = [];
         try {
@@ -763,8 +614,13 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         } catch (error) {
             history = [];
         }
-        history.unshift(record);
-        localStorage.setItem(BORROW_HISTORY_KEY, JSON.stringify(history));
+        history.unshift(trimRecordForStorage(record));
+        history = history.slice(0, 10);
+        try {
+            localStorage.setItem(BORROW_HISTORY_KEY, JSON.stringify(history));
+        } catch (error) {
+            console.warn("Could not save borrow history to localStorage.", error);
+        }
     }
 
     borrowForm.addEventListener("submit", async (event) => {
@@ -780,21 +636,34 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             return;
         }
 
+        if (selectedTool.available === false) {
+            window.alert("This tool is not available for borrowing. Please choose another tool.");
+            return;
+        }
+
+        if (!validIdSelected) {
+            window.alert("Please upload a valid ID or document before submitting.");
+            return;
+        }
+
+        const authUser = auth.currentUser;
         const record = {
             id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             status: "in_use",
-            borrowType: "individual",
             borrower: {
-                name: borrowerName.value.trim(),
+                organizationName: borrowerName.value.trim(),
+                organizationId: borrowerOrgId.value.trim(),
                 address: borrowerAddress.value.trim(),
-                age: borrowerAge.value.trim(),
-                contact: borrowerContact.value.trim()
+                contact: borrowerContact.value.trim(),
+                uid: authUser?.uid || undefined,
+                email: authUser?.email || undefined,
+                name: authUser?.displayName || authUser?.email || undefined
             },
             tool: {
                 name: selectedTool.name,
                 image: selectedTool.image ? new URL(selectedTool.image, window.location.href).href : toolImage.src,
                 available: selectedTool.available,
-                quantity,
+                quantity: Number(quantityText.value) || quantity,
                 quantityAvailable: selectedTool.quantityAvailable ?? null,
                 quantityTotal: selectedTool.quantityTotal ?? null
             },
@@ -803,24 +672,38 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                 returnDate: returnDateInput.value
             },
             purpose: borrowPurpose.value.trim(),
-            validIdImage: idImage.src,
+            validIdName: orgLetterName.textContent,
+            validIdImage: validIdDataUrl || idImage.src,
+            organizationLetter: orgLetterName.textContent,
+            organizationLetterPreview: validIdDataUrl || idImage.src,
             signatureImage: signatureAsDataUrl(),
             createdAt: new Date().toISOString()
         };
 
-        localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(record));
+        const storageRecord = trimRecordForStorage(record);
+        try {
+            localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(storageRecord));
+        } catch (error) {
+            console.warn("Could not save current borrow record to localStorage.", error);
+        }
         appendBorrowHistory(record);
-        localStorage.setItem(RECEIPT_STATE_KEY, "in_use");
+        try {
+            localStorage.setItem(RECEIPT_STATE_KEY, "in_use");
+        } catch (error) {
+            console.warn("Could not save receipt state to localStorage.", error);
+        }
 
         if (useFirestore) {
             try {
                 const borrowDocRef = doc(db, BORROW_DOC_PATH[0], BORROW_DOC_PATH[1]);
-                await setDoc(borrowDocRef, record, { merge: true });
-                await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), record, { merge: true });
+                const firestoreRecord = trimRecordForFirestore(record);
+                await setDoc(borrowDocRef, firestoreRecord, { merge: true });
+                await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), firestoreRecord, { merge: true });
             } catch (error) {
                 console.warn("Could not save HERE-RAMIN record to Firestore.", error);
                 try {
-                    await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), record);
+                    const fallbackRecord = trimRecordForFirestore(record);
+                    await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), fallbackRecord);
                     console.log("Saved HERE-RAMIN borrow request with fallback addDoc.");
                 } catch (fallbackError) {
                     console.error("Fallback Firestore save failed for HERE-RAMIN borrow request.", fallbackError);
