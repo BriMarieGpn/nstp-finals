@@ -1345,6 +1345,7 @@ function openBorrowDetail(recordId) {
     const idImg = document.getElementById('bd-id-image');
     const idLink = document.getElementById('bd-id-link');
     const sigImg = document.getElementById('bd-signature-image');
+    const sigEmpty = document.getElementById('bd-signature-empty');
     
     const idSrc = record.validIdImage || record.organizationLetterPreview || record.organizationLetter || record.idImage || '';
     const isImage = /^data:image\//.test(idSrc) || /\.(png|jpe?g|gif|webp|bmp|svg)(\?|$)/i.test(idSrc);
@@ -1366,11 +1367,14 @@ function openBorrowDetail(recordId) {
         if (idLink) idLink.style.display = 'none';
     }
 
+    // Display signature image
     if (record.signatureImage) {
         sigImg.src = record.signatureImage;
         sigImg.style.display = 'block';
+        if (sigEmpty) sigEmpty.style.display = 'none';
     } else {
         sigImg.style.display = 'none';
+        if (sigEmpty) sigEmpty.style.display = 'block';
     }
 
     // Set current status

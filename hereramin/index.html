@@ -124,13 +124,13 @@
 
                         <div class="id-preview">
                             <img id="idImage" src="assets/images/validid.jpg" alt="Document Preview">
+                            
                         </div>
 
                         <div class="id-actions">
                             <button type="button" id="addIdBtn" class="id-btn">
                                 + Upload Valid ID
                             </button>
-
                             <div class="id-dropdown" id="idDropdown">
                                 <button type="button" class="id-choice" id="fromDevice">
                                     Upload from Device
@@ -139,15 +139,11 @@
                                 <button type="button" class="id-choice" id="fromInternet">
                                     Upload from Internet
                                 </button>
-
                                 <input type="file" id="fileInput" accept=".pdf,image/*" hidden>
                             </div>
                         </div>
-
                     </div>
-
-                    <div class="file-name" id="orgLetterName">No file selected</div>
-
+                    <div class="file-name" id="orgLetterName" style="overflow: hidden; max-width: fit-content;">No file selected</div>
                     <label for="borrowPurpose">PURPOSE / REASON FOR BORROWING</label>
                     <textarea id="borrowPurpose" required></textarea>
 

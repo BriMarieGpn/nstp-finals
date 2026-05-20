@@ -505,14 +505,19 @@
           <!-- ID Image -->
           <div style="margin-bottom:20px;">
             <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Valid ID</h3>
-            <img id="bd-id-image" src="" alt="Valid ID" style="width:100%;max-height:300px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;display:none;">
-            <a id="bd-id-link" href="#" target="_blank" rel="noreferrer noopener" style="display:none;margin-top:8px;display:inline-block;color:#2f5e2b;font-weight:700;">Open valid ID / document</a>
+            <div id="bd-id-container">
+              <img id="bd-id-image" src="" alt="Valid ID" style="width:100%;max-height:300px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;display:none;">
+              <a id="bd-id-link" href="#" target="_blank" rel="noreferrer noopener" style="display:none;margin-top:8px;display:inline-block;color:#2f5e2b;font-weight:700;">Open valid ID / document</a>
+            </div>
           </div>
 
           <!-- Signature -->
           <div style="margin-bottom:20px;">
             <h3 style="margin:0 0 12px 0;color:#546B41;font-size:1rem;">Signature</h3>
-            <img id="bd-signature-image" src="" alt="Signature" style="width:100%;max-height:200px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;">
+            <div id="bd-signature-container">
+              <img id="bd-signature-image" src="" alt="Signature" style="width:100%;max-height:200px;border-radius:12px;border:1px solid rgba(84,107,65,0.2);object-fit:contain;background:#f4f9ec;display:none;">
+              <p id="bd-signature-empty" style="color:#9BA98C;font-size:0.9rem;margin:0;">No signature provided</p>
+            </div>
           </div>
 
           <!-- Status & Actions -->

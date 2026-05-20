@@ -428,24 +428,64 @@ import firebaseConfig from "../../js/firebaseConfig.js";
         idActions.classList.toggle("show");
     });
 
-    document.getElementById("fromDevice").addEventListener("click", () => fileInput.click());
+    document.getElementById("fromDevice").addEventListener("click", () => {
+        console.log("[Upload] Triggering file input dialog");
+        fileInput.click();
+    });
 
     fileInput.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
-        if (!file) return;
+        if (!file) {
+            console.warn("[Upload] No file selected");
+            return;
+        }
+        
+        console.log("[Upload] File selected:", file.name, "Size:", (file.size / 1024).toFixed(2), "KB");
+        
+        // Check file size (max 5MB for data URL)
+        if (file.size > 5 * 1024 * 1024) {
+            console.warn("[Upload] File too large");
+            window.alert("File is too large (max 5MB). Please choose a smaller file or use a URL instead.");
+            return;
+        }
+        
         validIdSelected = true;
         orgLetterName.textContent = file.name;
+        console.log("[Upload] File marked as valid, reading as data URL...");
+        
         const reader = new FileReader();
+        
         reader.onload = (ev) => {
-            const result = String(ev.target.result);
-            validIdDataUrl = result;
-            if (file.type.startsWith("image/")) {
-                idImage.src = result;
-            } else {
-                idImage.alt = file.name;
+            try {
+                const result = String(ev.target.result);
+                validIdDataUrl = result;
+                console.log("[Upload] ✓ Data URL created, length:", result.length);
+                
+                if (file.type.startsWith("image/")) {
+                    idImage.src = result;
+                    idImage.alt = file.name;
+                    idImage.style.display = "block";
+                    console.log("[Upload] ✓ Image preview displayed");
+                } else {
+                    idImage.alt = file.name;
+                    idImage.style.display = "none";
+                    console.log("[Upload] ✓ Non-image file uploaded (will be saved as data URL)");
+                }
+            } catch (error) {
+                console.error("[Upload] ✗ Error processing file:", error);
+                window.alert("Error processing file. Please try again.");
+                validIdSelected = false;
             }
         };
+        
+        reader.onerror = (error) => {
+            console.error("[Upload] ✗ FileReader error:", error);
+            window.alert("Error reading file. Please try again.");
+            validIdSelected = false;
+        };
+        
         reader.readAsDataURL(file);
+        console.log("[Upload] Reading file as data URL...");
     });
 
     document.getElementById("fromInternet").addEventListener("click", () => {
@@ -588,9 +628,21 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 
     function trimRecordForFirestore(record) {
         const safeRecord = { ...record };
-        delete safeRecord.validIdImage;
+        // Keep validIdImage and signatureImage for admin panel display
+        // Delete only the preview-specific fields
         delete safeRecord.organizationLetterPreview;
-        delete safeRecord.signatureImage;
+        
+        // Don't store large image data URLs to Firestore - save space and avoid quota issues
+        // Images are kept in localStorage for user's receipts page
+        if (safeRecord.validIdImage && safeRecord.validIdImage.startsWith("data:")) {
+            console.log("[Firestore] Excluding large image data URL from Firestore save");
+            delete safeRecord.validIdImage;
+        }
+        if (safeRecord.signatureImage && safeRecord.signatureImage.startsWith("data:")) {
+            console.log("[Firestore] Excluding signature data URL from Firestore save");
+            delete safeRecord.signatureImage;
+        }
+        
         if (safeRecord.borrower) {
             safeRecord.borrower = { ...safeRecord.borrower };
             delete safeRecord.borrower.documentImage;
@@ -625,28 +677,37 @@ import firebaseConfig from "../../js/firebaseConfig.js";
 
     borrowForm.addEventListener("submit", async (event) => {
         event.preventDefault();
+        console.log("[Submit] Form submission started");
 
         if (!validateDates()) {
+            console.warn("[Submit] ✗ Date validation failed");
             return;
         }
 
         const selectedTool = getSelectedTool();
         if (!selectedTool) {
+            console.warn("[Submit] ✗ No tool selected");
             window.alert("Please select a tool.");
             return;
         }
+        console.log("[Submit] ✓ Tool selected:", selectedTool.name);
 
         if (selectedTool.available === false) {
+            console.warn("[Submit] ✗ Tool not available");
             window.alert("This tool is not available for borrowing. Please choose another tool.");
             return;
         }
 
         if (!validIdSelected) {
+            console.warn("[Submit] ✗ No valid ID selected");
             window.alert("Please upload a valid ID or document before submitting.");
             return;
         }
+        console.log("[Submit] ✓ Valid ID uploaded");
 
         const authUser = auth.currentUser;
+        console.log("[Submit] Auth user:", authUser?.uid, authUser?.email);
+        
         const record = {
             id: `borrow-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             status: "in_use",
@@ -680,12 +741,25 @@ import firebaseConfig from "../../js/firebaseConfig.js";
             createdAt: new Date().toISOString()
         };
 
+        console.log("[Submit] Record created:", record.id, record.borrower);
+
         const storageRecord = trimRecordForStorage(record);
         try {
             localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(storageRecord));
+            console.log("✓ Saved current record to localStorage");
         } catch (error) {
-            console.warn("Could not save current borrow record to localStorage.", error);
+            console.warn("⚠ Could not save full record to localStorage (quota exceeded):", error.message);
+            // Try saving without the large image data
+            const minimalRecord = { ...storageRecord };
+            delete minimalRecord.validIdImage;
+            try {
+                localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(minimalRecord));
+                console.log("✓ Saved minimal record to localStorage (images excluded)");
+            } catch (e2) {
+                console.warn("Could not save to localStorage at all:", e2.message);
+            }
         }
+        
         appendBorrowHistory(record);
         try {
             localStorage.setItem(RECEIPT_STATE_KEY, "in_use");
@@ -698,19 +772,27 @@ import firebaseConfig from "../../js/firebaseConfig.js";
                 const borrowDocRef = doc(db, BORROW_DOC_PATH[0], BORROW_DOC_PATH[1]);
                 const firestoreRecord = trimRecordForFirestore(record);
                 await setDoc(borrowDocRef, firestoreRecord, { merge: true });
+                console.log("✓ Saved to Firestore latestBorrow doc");
+                
                 await setDoc(doc(db, BORROW_REQUESTS_COLLECTION, record.id), firestoreRecord, { merge: true });
+                console.log("✓ Saved to Firestore borrow_requests collection:", record.id);
             } catch (error) {
                 console.warn("Could not save HERE-RAMIN record to Firestore.", error);
                 try {
                     const fallbackRecord = trimRecordForFirestore(record);
                     await addDoc(collection(db, BORROW_REQUESTS_COLLECTION), fallbackRecord);
-                    console.log("Saved HERE-RAMIN borrow request with fallback addDoc.");
+                    console.log("✓ Saved HERE-RAMIN borrow request with fallback addDoc.");
                 } catch (fallbackError) {
-                    console.error("Fallback Firestore save failed for HERE-RAMIN borrow request.", fallbackError);
+                    console.error("✗ Fallback Firestore save failed for HERE-RAMIN borrow request.", fallbackError);
                 }
             }
+        } else {
+            console.warn("Firestore not enabled - record saved to localStorage only");
         }
 
-        window.location.href = "../pages/receipts/user.html";
+        console.log("✓ Redirecting to receipts page...");
+        setTimeout(() => {
+            window.location.href = "../pages/receipts/user.html";
+        }, 500);
     });
 })();

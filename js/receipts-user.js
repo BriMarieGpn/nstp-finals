@@ -113,26 +113,31 @@ import firebaseConfig from "./firebaseConfig.js";
     function isRecordForUser(record, user) {
         if (!user || !record) return false;
         const borrower = record.borrower || {};
-        const uidMatch = (borrower.uid && user.uid && borrower.uid === user.uid) || (borrower.id && user.uid && borrower.id === user.uid);
+        
+        // Exact UID match (most reliable)
+        const uidMatch = (borrower.uid && user.uid && borrower.uid === user.uid);
+        
+        // Email match
         const emailMatch = borrower.email && user.email && String(borrower.email).toLowerCase() === String(user.email).toLowerCase();
 
         // Match by volunteer ID (common in i-tanim profiles)
-        const volunteerId = String(user.volunteerID || user.volunteerId || '').trim().toLowerCase();
-        const fallbackVolunteerId = `grw-${String(user.id || '').substring(0,5).toLowerCase()}`;
+        const volunteerId = String(user.volunteerID || user.volunteerId || user.id || '').trim().toLowerCase();
         const orgId = String(borrower.organizationId || borrower.organizationID || borrower.orgId || borrower.id || '').trim().toLowerCase();
-        const orgIdMatch = volunteerId && orgId && (orgId === volunteerId || orgId === fallbackVolunteerId);
+        const orgIdMatch = volunteerId && orgId && (orgId === volunteerId || orgId.includes(volunteerId));
 
-        // Match by name or organization name
-        const uName = String(user.name || user.fullName || user.displayName || '').trim().toLowerCase();
+        // Match by name or organization name (fuzzy match)
+        const uName = String(user.name || user.fullName || user.displayName || user.displayName || '').trim().toLowerCase();
         const orgName = String(borrower.organizationName || borrower.name || '').trim().toLowerCase();
         const nameMatch = uName && orgName && (orgName === uName || orgName.includes(uName) || uName.includes(orgName));
 
         // Match by contact/phone if available
         const userContact = String(user.contact || user.phone || user.mobile || '').replace(/\s|\-|\(|\)/g, '').toLowerCase();
         const borrowerContact = String(borrower.contact || borrower.phone || '').replace(/\s|\-|\(|\)/g, '').toLowerCase();
-        const contactMatch = userContact && borrowerContact && (borrowerContact === userContact || borrowerContact.includes(userContact) || userContact.includes(borrowerContact));
+        const contactMatch = userContact && borrowerContact && (borrowerContact === userContact);
 
-        return uidMatch || emailMatch || orgIdMatch || nameMatch || contactMatch;
+        const matched = uidMatch || emailMatch || orgIdMatch || nameMatch || contactMatch;
+        console.log(`[Record Match] ID: ${record.id} | uidMatch: ${uidMatch} | emailMatch: ${emailMatch} | orgIdMatch: ${orgIdMatch} | nameMatch: ${nameMatch} | contactMatch: ${contactMatch} | Result: ${matched}`);
+        return matched;
     }
 
     function renderRecords() {
@@ -200,6 +205,7 @@ import firebaseConfig from "./firebaseConfig.js";
 
     async function init(currentUser) {
         let loadedRecords = loadBorrowHistory();
+        console.log(`[Init] Loaded from localStorage:`, loadedRecords.length, "records");
 
         if (useFirestore) {
             try {
@@ -207,8 +213,24 @@ import firebaseConfig from "./firebaseConfig.js";
                 const firestoreRecords = snapshot.docs
                     .map((entry) => ({ id: entry.id, ...entry.data() }))
                     .filter((record) => record.deleted !== true);
+                console.log(`[Init] Loaded from Firestore:`, firestoreRecords.length, "records");
+                
+                // Merge Firestore records with localStorage to fill in missing images
                 if (firestoreRecords.length > 0) {
-                    loadedRecords = firestoreRecords;
+                    const mergedRecords = firestoreRecords.map(fsRecord => {
+                        // Try to find the same record in localStorage to get image data
+                        const localRecord = loadedRecords.find(lr => lr && lr.id === fsRecord.id);
+                        if (localRecord) {
+                            console.log(`[Init] Merging images for record ${fsRecord.id} from localStorage`);
+                            return {
+                                ...fsRecord,
+                                validIdImage: fsRecord.validIdImage || localRecord.validIdImage,
+                                signatureImage: fsRecord.signatureImage || localRecord.signatureImage
+                            };
+                        }
+                        return fsRecord;
+                    });
+                    loadedRecords = mergedRecords;
                     saveBorrowHistory(loadedRecords);
                     localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(sortByCreatedAtDesc(loadedRecords)[0]));
                 } else {
@@ -219,6 +241,7 @@ import firebaseConfig from "./firebaseConfig.js";
                         loadedRecords = [latest];
                         saveBorrowHistory(loadedRecords);
                         localStorage.setItem(BORROW_RECORD_KEY, JSON.stringify(latest));
+                        console.log(`[Init] Loaded latest from`, BORROW_DOC_PATH.join("/"));
                     }
                 }
             } catch (error) {
@@ -231,6 +254,7 @@ import firebaseConfig from "./firebaseConfig.js";
             if (fallbackLatest) {
                 try {
                     loadedRecords = [JSON.parse(fallbackLatest)];
+                    console.log(`[Init] Using fallback from localStorage`);
                 } catch (error) {
                     loadedRecords = [];
                 }
@@ -238,7 +262,9 @@ import firebaseConfig from "./firebaseConfig.js";
         }
 
         // Filter to only records belonging to the signed-in user (if available)
+        console.log(`[Init] Filtering ${loadedRecords.length} records for user:`, currentUser?.email || currentUser?.uid);
         let filtered = (loadedRecords || []).filter((r) => r && r.deleted !== true && (!currentUser || isRecordForUser(r, currentUser)));
+        console.log(`[Init] After filtering: ${filtered.length} records match user`);
 
         // If there are no filtered records but we have a local-most-recent borrow, include it as a fallback
         try {
@@ -252,11 +278,18 @@ import firebaseConfig from "./firebaseConfig.js";
                         // Prefer the loaded version if present, else use localLatest
                         const toAdd = (loadedRecords || []).find(lr => lr && lr.id === localLatest.id) || localLatest;
                         filtered = [toAdd].concat(filtered);
+                        console.log(`[Init] Added fallback record from localStorage:`, localLatest.id);
                     }
                 }
             }
         } catch (e) {
-            // ignore JSON parse errors
+            console.warn("[Init] Error processing localStorage fallback:", e);
+        }
+
+        // If still no records, show all records from loadedRecords as a last resort (for debugging)
+        if (!filtered.length && loadedRecords.length > 0) {
+            console.warn(`[Init] No filtered records found. Showing all ${loadedRecords.length} loaded records as fallback.`);
+            filtered = loadedRecords;
         }
 
         borrowRecords = filtered.map((record, index) => ({
@@ -264,6 +297,7 @@ import firebaseConfig from "./firebaseConfig.js";
             status: record.status || "in_use",
             ...record
         }));
+        console.log(`[Init] Final records to display: ${borrowRecords.length}`);
         renderRecords();
         document.body.classList.remove('auth-pending');
     }

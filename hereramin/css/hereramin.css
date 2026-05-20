@@ -247,6 +247,17 @@
     position: relative;
 }
 
+.file-name {
+    max-width: 280px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 8px;
+    padding: 0 4px;
+}
+
 .id-btn {
     background: var(--green-600);
     color: var(--hr-bg);
